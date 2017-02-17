@@ -875,8 +875,7 @@ apply is_RInt_gen_comp.
   assert (0 < z).
     now apply Rlt_le_trans with (Rmin x y); [apply Rmin_pos | psatzl R].
   split.
-    apply: ex_derive_continuous; unfold ellf.
-    now auto_derive; repeat split; lt0.
+    now apply: ex_derive_continuous; unfold ellf; auto_derive; repeat split; lt0.
   split.
     now unfold s, s'; auto_derive;[| field]; lt0.
   now apply: ex_derive_continuous; unfold s'; auto_derive; lt0.
@@ -1200,44 +1199,12 @@ assert (ell a b = PI / (PI / ell a b) :> R).
   assert (0 < Rmax a b) by now apply Rlt_le_trans with (2 := Rmax_l _ _).
   assert (0 < PI / Rmax a b) by lt0.
   now symmetry; field; lt0.
-assert (mablim : is_lim_seq (fun n => fst (ag a b n)) (Finite (PI/ell a b))).
-  intros P [eps peps].
-  enough (exists n, (a - b) / 2 ^ n < eps) as [n Pn].
-    exists n; intros k nk; apply peps.
-    assert (cmps := ag_le k a b a0 b0 amb).
-    assert (an0 : 0 < fst (ag a b k)) by psatzl R.
-    assert (bn0 : 0 < snd (ag a b k)) by psatzl R.
-    assert (lb := ell_upper_bound _ _ an0 bn0).
-    assert (ub := ell_lower_bound _ _ an0 bn0).
-    assert (mxv : Rmax (fst (ag a b k)) (snd (ag a b k)) = fst (ag a b k)).
-      now rewrite Rmax_left; psatzl R.
-    assert (mnv : Rmin (fst (ag a b k)) (snd (ag a b k)) = snd (ag a b k)).
-      now rewrite Rmin_right; psatzl R.
-    rewrite mxv in ub; rewrite mnv in lb.   
-    set (p := (k - n)%nat); assert (kpn : k = (p + n)%nat)
-     by now unfold p; rewrite Nat.sub_add.
-    change (Rabs (fst (ag a b k) - PI / ell a b) < eps).
-    rewrite Rabs_right; cycle 1.
-      rewrite -> (ell_ag_n k _ _ a0 b0).
-      apply Rle_ge, Rle_trans with (fst (ag a b k) - PI / (PI / fst (ag a b k))).
-        now apply Req_le; field; lt0.
-      apply Rplus_le_compat_l, Ropp_le_contravar, Rmult_le_compat_l; try lt0.
-      now apply Rinv_le_contravar; lt0.
-    apply Rle_lt_trans with (fst (ag a b k) - snd (ag a b k)); cycle 1.
-      apply Rle_lt_trans with (1 := agm_conv _ _ k a0 b0 amb).
-      rewrite kpn; apply Rle_lt_trans with ((a - b) / 2 ^ n); auto.
-      replace ((a - b) / 2 ^ (p + n)) with (((a - b) / 2 ^ n) / 2 ^ p); cycle 1.
-        now rewrite pow_add; field; split; lt0.
-      now apply div_pow2_le; apply Rmult_le_pos; lt0.
-    apply Rplus_le_compat_l, Ropp_le_contravar.
-    apply Rle_trans with (PI / (PI / snd (ag a b k))).
-      now apply Req_le; field; split; lt0.
-    apply Rmult_le_compat_l; try lt0.
-    rewrite (ell_ag_n k _ _ a0 b0).
-    apply Rinv_le_contravar; try lt0.
-    now apply Rlt_le_trans with (2 := ub); lt0.
+enough (mablim : is_lim_seq (fun n => fst (ag a b n)) (Finite (PI/ell a b))).
+  now rewrite (is_lim_seq_finite_unique _ _ (is_lim_seq_M _ _ a0 b0) mablim).
+intros P [eps peps].
+assert (exists n, (a - b) / 2 ^ n < eps) as [n Pn].
   destruct (Req_dec a b) as [ab | anb].
-  unfold Rdiv; exists 1%nat; rewrite -> ab, Rminus_eq_0, Rmult_0_l; lt0.
+    now unfold Rdiv; exists 1%nat; rewrite -> ab, Rminus_eq_0, Rmult_0_l; lt0.
   assert (half_lt_1 : Rabs(/2) < 1) by (rewrite Rabs_right; lt0).
   assert (eps0 : 0 < eps / (a - b)) by (case eps; simpl; intros; lt0).
   destruct (pow_lt_1_zero (/2) half_lt_1 (eps / (a - b)) eps0) as [it Pit].
@@ -1245,7 +1212,42 @@ assert (mablim : is_lim_seq (fun n => fst (ag a b n)) (Finite (PI/ell a b))).
   unfold Rdiv; rewrite -> (Rmult_comm (a - b)), Rmult_assoc, Rinv_r; try lt0.
   apply Rle_lt_trans with (2 := Pit it (le_n _)).
   now rewrite -> Rmult_1_r, Rabs_right, Rinv_pow; try apply Rle_ge; lt0.
-now rewrite (is_lim_seq_finite_unique _ _ (is_lim_seq_M _ _ a0 b0) mablim).
+exists n; intros k nk; apply peps.
+assert (cmps : b <= snd (ag a b k) /\ snd (ag a b k) <= fst (ag a b k) <= a).
+  now apply ag_le.
+assert (0 < fst (ag a b k) /\ 0 < snd (ag a b k)) as [an0 bn0].
+  now split; psatzl R.
+assert (ub := ell_lower_bound _ _ an0 bn0).
+assert (lb := ell_upper_bound _ _ an0 bn0).
+assert (mxv : Rmax (fst (ag a b k)) (snd (ag a b k)) = fst (ag a b k)).
+  now rewrite Rmax_left; psatzl R.
+assert (mnv : Rmin (fst (ag a b k)) (snd (ag a b k)) = snd (ag a b k)).
+  now rewrite Rmin_right; psatzl R.
+rewrite mxv in ub; rewrite mnv in lb.
+set (p := (k - n)%nat); assert (kpn : k = (p + n)%nat)
+ by now unfold p; rewrite Nat.sub_add.
+change (Rabs (fst (ag a b k) - PI / ell a b) < eps).
+rewrite Rabs_right; cycle 1.
+  rewrite -> (ell_ag_n k _ _ a0 b0).
+  apply Rle_ge, Rle_trans with (fst (ag a b k) - PI / (PI / fst (ag a b k))).
+    now apply Req_le; field; lt0.
+  apply Rplus_le_compat_l, Ropp_le_contravar, Rmult_le_compat_l; try lt0.
+  clear -ub an0.
+  now apply Rinv_le_contravar; lt0.
+apply Rle_lt_trans with (fst (ag a b k) - snd (ag a b k)); cycle 1.
+  apply Rle_lt_trans with (1 := agm_conv _ _ k a0 b0 amb).
+  rewrite kpn; apply Rle_lt_trans with ((a - b) / 2 ^ n); auto.
+  replace ((a - b) / 2 ^ (p + n)) with (((a - b) / 2 ^ n) / 2 ^ p); cycle 1.
+    now rewrite pow_add; field; split; lt0.
+  now apply div_pow2_le; apply Rmult_le_pos; lt0.
+apply Rplus_le_compat_l, Ropp_le_contravar.
+apply Rle_trans with (PI / (PI / snd (ag a b k))).
+  now apply Req_le; field; split; lt0.
+apply Rmult_le_compat_l; try lt0.
+rewrite (ell_ag_n k _ _ a0 b0).
+apply Rinv_le_contravar; try lt0.
+clear -ub pi0 an0.
+now apply Rlt_le_trans with (2 := ub); lt0.
 Qed.
 
 Lemma M_scal a b k : 0 < a -> 0 < b -> 0 < k -> M (k * a) (k * b) = k * M a b.
