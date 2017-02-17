@@ -35,10 +35,10 @@ Ltac lt0 :=
   | |- 0 < _ * _ => apply Rmult_lt_0_compat; lt0
   | |- 0 < _ ^ 2 * cos _ ^ 2 + _ ^ 2 * sin _ ^ 2 => apply sin_cos_form_pos; lt0
   | |- 0 < (?a * (?a * 1)) * (cos ?z * (cos _ * 1)) +
-           (?b * (?b * 1)) * (sin _ * (sin _ * 1)) => 
+           (?b * (?b * 1)) * (sin _ * (sin _ * 1)) =>
        apply (sin_cos_form_pos a b z); lt0
   | |- 0 < ?a * ?a * cos ?z * cos _ +
-           ?b * ?b * sin _ * sin _ => 
+           ?b * ?b * sin _ * sin _ =>
        apply (sin_cos_form_pos a b z); lt0
   | |- 0 < _ + _ => apply Rplus_lt_0_compat; lt0
   | |- 0 < Rmin _ _ => apply Rmin_glb_lt; lt0
@@ -47,7 +47,7 @@ Ltac lt0 :=
   | |- 0 < _ / _ => unfold Rdiv; apply Rmult_lt_0_compat; lt0
   | |- 0 < _ ^ _ => apply pow_lt; lt0
   | |- 0 < _ ^ 2 + _ => apply Rplus_le_lt_0_compat;[apply pow2_ge_0 | lt0]
-  | |- 0 < (?x * (?x * 1))%R + _ => 
+  | |- 0 < (?x * (?x * 1))%R + _ =>
                         apply Rplus_le_lt_0_compat;[apply pow2_ge_0 | lt0]
   | |- 0 <= Rabs _ => apply Rabs_pos
   | |- _ <= _ => apply Rlt_le; lt0
@@ -59,7 +59,7 @@ Lemma sqrt_pow_2 x : 0 <= x -> sqrt x ^ 2 = x.
 Proof. now intros x0; simpl; rewrite -> Rmult_1_r, sqrt_sqrt. Qed.
 
 Lemma elliptic_integrable a b : 0 < a -> 0 < b ->
-ex_RInt_gen 
+ex_RInt_gen
  (fun x => /sqrt ((x ^ 2 + a ^ 2) * (x ^ 2 + b ^ 2)))
  (Rbar_locally m_infty) (Rbar_locally p_infty).
 Proof.
@@ -88,7 +88,7 @@ intros x y x0 y0; split; cbv [fst snd].
   rewrite <- Rmult_assoc; replace (m * m * (z/m) ^2) with (z ^ 2); cycle 1.
     now field; apply Rgt_not_eq.
   assert (h : (z ^ 2 + m * m) ^ 2 = (z ^ 2 + m ^ 2) * (z ^ 2 + m ^ 2)) by ring.
-  rewrite h; apply Rmult_le_compat; 
+  rewrite h; apply Rmult_le_compat;
     try (apply Rplus_le_le_0_compat; apply pow2_ge_0);
     apply Rplus_le_compat; auto with real;
     apply pow_incr; psatzl R.
@@ -110,7 +110,7 @@ Definition ell (a b : R) :=
 
 (* This lemma could be for any normed module, but this requires
   that is_RInt_unique should also be for any normed module. *)
-Lemma ex_RInt_gen_unique 
+Lemma ex_RInt_gen_unique
   (F G : (R -> Prop) -> Prop) {FF : ProperFilter F}
   {FG : ProperFilter G} (f : R -> R) :
   ex_RInt_gen f F G -> exists ! v, is_RInt_gen f F G v.
@@ -176,8 +176,8 @@ exists (fun p => If(g (fst p), g (snd p))); split.
       try now apply filter_and; auto.
   intros x y [sgx s1x] [sgy s2y]; simpl.
   replace (If(g x, g y)) with (RInt f (g x) (g y));
-    [ | now apply is_RInt_unique, fp1]. 
-  apply (is_RInt_comp f g dg). 
+    [ | now apply is_RInt_unique, fp1].
+  apply (is_RInt_comp f g dg).
     now intros z intz; apply (dp x y s1x s2y z intz).
   intros z intz; apply (dp x y s1x s2y z intz).
 apply filter_le_trans with (2 := fp2).
@@ -196,7 +196,7 @@ generalize (iota_correct _ (ex_un_ell _ _ ka0 kb0)); unfold ell.
 set (w := iota _); intros intw.
 destruct (ex_un_ell (k * a) (k * b) ka0 kb0) as [ww [_ Pww]].
 assert (ellfq : filter_prod (Rbar_locally m_infty) (Rbar_locally p_infty)
-          (fun p => forall x, Rmin (fst p) (snd p) < x < Rmax (fst p) (snd p) -> 
+          (fun p => forall x, Rmin (fst p) (snd p) < x < Rmax (fst p) (snd p) ->
               /k * (/k * ellf a b (/k * x + 0)) = ellf (k * a) (k * b) x)).
   apply filter_forall; intros _ x _; unfold ellf; symmetry.
   pattern x at 1 2; replace x with (k * (x / k)) by now field; apply Rgt_not_eq.
@@ -311,12 +311,12 @@ Fixpoint ag (a b : R) (n : nat) :=
   match n with 0 => (a, b) | S p => ag ((a + b)/2) (sqrt(a * b)) p end.
 
 Definition M a b : R :=
-  iota (fun v => filterlim (fun n =>fst (ag a b n)) Hierarchy.eventually 
+  iota (fun v => filterlim (fun n =>fst (ag a b n)) Hierarchy.eventually
                     (locally v)).
 
 Lemma ag_swap a b n : 0 < a -> 0 < b -> (0 < n)%nat ->
   ag a b n = ag b a n.
-Proof. 
+Proof.
 now destruct n as [|n];[lia| simpl; rewrite -> Rplus_comm, Rmult_comm].
 Qed.
 
@@ -351,7 +351,7 @@ simpl; apply (IHn _ _ ar0 ge0 arge).
 Qed.
 
 Lemma ag_le n a b : 0 < a -> 0 < b -> b <= a ->
-  b <= snd (ag a b n) /\ 
+  b <= snd (ag a b n) /\
   snd (ag a b n) <= fst (ag a b n) /\
   fst (ag a b n) <= a.
 Proof.
@@ -367,10 +367,10 @@ split; [exact IHn2 | ].
 apply Rle_trans with (2 := ana); exact IHn3.
 Qed.
 
-Lemma ex_lim_agm a b : 0 < a -> 0 < b -> 
+Lemma ex_lim_agm a b : 0 < a -> 0 < b ->
   ex_finite_lim_seq (fun n => (fst (ag a b n))).
 Proof.
-enough (gen : forall a b, 0 < a -> 0 < b -> b <= a -> 
+enough (gen : forall a b, 0 < a -> 0 < b -> b <= a ->
           ex_finite_lim_seq (fun n => fst (ag a b n))).
   intros a0 b0; destruct (Rle_dec b a) as [ba | ab].
     now apply gen.
@@ -394,13 +394,13 @@ Lemma agm_diff a b : 0 < a -> 0 < b ->
 Proof.
 intros a0 b0.
 replace ((a + b) / 2 - sqrt (a * b)) with
-  ((((a + b) / 2) ^ 2 - sqrt (a * b) ^ 2) / ((a + b)/2 + sqrt (a * b))) 
+  ((((a + b) / 2) ^ 2 - sqrt (a * b) ^ 2) / ((a + b)/2 + sqrt (a * b)))
   by (field; lt0).
 replace (sqrt (a * b) ^ 2) with (a * b) by (rewrite sqrt_pow_2; lt0).
 now field; lt0.
 Qed.
 
-Lemma agm_conv a b n : 0 < a -> 0 < b -> b <= a -> 
+Lemma agm_conv a b n : 0 < a -> 0 < b -> b <= a ->
   fst (ag a b n) - snd (ag a b n) <= (a - b) / (2 ^ n).
 Proof.
 revert a b; induction n as [ | n IHn].
@@ -489,7 +489,7 @@ assert (t': forall eps : posreal, exists x,
     assert (a < z) by (destruct (laG a z); psatzl R || tauto).
     assert (ex_RInt f x a).
       apply (ex_RInt_Chasles_1 f x a y);[psatzl R | assumption].
-    rewrite !RInt_Chasles; auto; 
+    rewrite !RInt_Chasles; auto;
        try (apply (ex_RInt_Chasles_2 f x); auto; psatzl R); cycle 1.
     change (ball (RInt f x y) eps (RInt f x z)).
     replace (pos eps) with (pos_div_2 eps + pos_div_2 eps) by (simpl; field).
@@ -500,7 +500,7 @@ assert (t': forall eps : posreal, exists x,
     apply (ball_triangle _ l); [apply ball_sym | ]; apply vfg'; tauto.
   repeat apply filter_and; tauto.
 intros P [eps Pe].
-assert (t := (R_complete 
+assert (t := (R_complete
             (filtermap (fun x => RInt f a x) G) _
             t' eps)).
 apply (filter_imp (ball v eps)); [exact Pe | ].
@@ -581,7 +581,7 @@ Lemma is_RInt_gen_at_point_at_right (f : R -> R) (a : R) F {FF : ProperFilter F}
   filter_Rlt (at_point a) F ->  is_RInt_gen f (at_right a) F v.
 Proof.
 intros [delta1 pd1] [inf [isinf limf]] [m [P Q FP FQ cmp]]; simpl in cmp.
-destruct (pd1 a (ball_center a delta1) 
+destruct (pd1 a (ball_center a delta1)
           (ball (f a) (mkposreal _ Rlt_0_1)) (locally_ball _ _)) as
     [delta2 Pd2].
 destruct isinf as [P1 Q1 FP1 FQ1 isinf].
@@ -634,7 +634,7 @@ destruct (limf (ball v (pos_div_2 eps))) as [Ql Rl FQl FRl vfi'].
   now apply locally_ball.
 assert (pre_ep2 : 0 < eps / 2 * /M) by lt0.
 set (ep2 := mkposreal _ pre_ep2).
-assert (at_right a (fun x => ball a delta1 x /\ ball a ep2 x /\ 
+assert (at_right a (fun x => ball a delta1 x /\ ball a ep2 x /\
                              ball a delta2 x /\ a < x /\ x < m)).
   repeat apply filter_and; try (now apply filter_le_within, locally_ball).
     now exists ep2; intros; tauto.
@@ -646,8 +646,8 @@ assert (at_right a (fun x => ball a delta1 x /\ ball a ep2 x /\
   now rewrite -> Rabs_right in bay; psatzl R.
 assert (F (fun y => Q y /\ Rl y /\ Q1 y)).
   now repeat apply filter_and; auto.
-exists (fun x => ball a delta1 x /\ ball a ep2 x /\ 
-                 ball a delta2 x /\ a < x /\ x < m) 
+exists (fun x => ball a delta1 x /\ ball a ep2 x /\
+                 ball a delta2 x /\ a < x /\ x < m)
           (fun y => Q y /\ Rl y /\ Q1 y); auto.
 intros x y bx Ry; apply P2eps; simpl.
 replace (pos eps) with (pos_div_2 eps + pos_div_2 eps) by (simpl; field).
@@ -675,7 +675,7 @@ apply ball_triangle with (RInt f a y); cycle 1.
     apply: (ex_RInt_Chasles_2 f a).
       split;[apply Rlt_le; tauto | apply Rlt_le, Rlt_trans with m; try tauto].
     now destruct (cmp a y); tauto.
-  exists (inf (a, y)); apply isinf.    
+  exists (inf (a, y)); apply isinf.
     now apply FP1; intros; apply ball_center.
   now tauto.
   now rewrite [_ - _](_ : _ = - RInt f a x) ?Rabs_Ropp;[ | ring].
@@ -690,7 +690,7 @@ Lemma is_RInt_gen_at_right_at_point (f : R -> R) (a : R) F {FF : ProperFilter F}
   is_RInt_gen f (at_point a) F v.
 Proof.
 intros [delta1 pd1].
-destruct (pd1 a (ball_center a delta1) 
+destruct (pd1 a (ball_center a delta1)
           (ball (f a) (mkposreal _ Rlt_0_1)) (locally_ball _ _)) as
     [delta2 Pd2].
 intros [fi [ifi vfi]].
@@ -759,15 +759,15 @@ exists (fun p => RInt f (fst p) (snd p)); split; cycle 1.
         try psatzl Rdefinitions.R.
   apply abs_RInt_le; try psatzl Rdefinitions.R.
   apply ex_RInt_swap; assumption.
-  apply Rle_lt_trans with (RInt (fun _ => M) (Rmin a a') (Rmax a a')).    
+  apply Rle_lt_trans with (RInt (fun _ => M) (Rmin a a') (Rmax a a')).
   apply RInt_le.
-          now apply Rminmax.  
+          now apply Rminmax.
         apply: ex_RInt_continuous.
         rewrite -> Rmin_left, Rmax_right; try apply Rminmax.
         intros z pz; apply continuous_comp;[ | now apply continuous_Rabs].
         apply pd1, Rle_lt_trans with (Rabs (a' - a));[ | tauto].
         unfold abs, minus, plus, opp; simpl.
-        destruct (Rle_dec a a') as [aa' | a'a].          
+        destruct (Rle_dec a a') as [aa' | a'a].
           now rewrite -> Rmin_left, Rmax_right in pz; try rewrite !Rabs_right;
           psatzl Rdefinitions.R.
         rewrite -> Rmin_right, Rmax_left in pz; try rewrite (Rabs_left (a' - a));
@@ -782,7 +782,7 @@ exists (fun p => RInt f (fst p) (snd p)); split; cycle 1.
       now rewrite -> Rmin_right, Rmax_left in pz; psatzl Rdefinitions.R.
     apply Rlt_trans with (Rabs (a' - a));[ | tauto].
     unfold abs, minus, plus, opp; simpl.
-    destruct (Rle_dec a a') as [aa' | a'a].          
+    destruct (Rle_dec a a') as [aa' | a'a].
       now rewrite -> Rmin_left, Rmax_right in pz; try rewrite !Rabs_right;
           psatzl Rdefinitions.R.
     rewrite -> Rmin_right, Rmax_left in pz; try rewrite (Rabs_left (a' - a));
@@ -812,14 +812,14 @@ Proof.
 intros x0.
 assert (sqrt x <> 0) by (apply Rgt_not_eq; lt0).
 apply Rmult_eq_reg_r with (sqrt x); auto.
-rewrite Rinv_l; auto.  
+rewrite Rinv_l; auto.
 rewrite <- sqrt_mult_alt; try lt0.
 rewrite -> Rinv_l, sqrt_1; auto with real.
 Qed.
 
 Lemma elliptic_agm_step a b c d v : 0 < a -> 0 < b ->
   c = (a + b)/2 -> d = sqrt(a * b) ->
-  is_RInt_gen (fun x => /sqrt((x ^ 2 + c ^ 2) * (x ^ 2 + d ^ 2))) 
+  is_RInt_gen (fun x => /sqrt((x ^ 2 + c ^ 2) * (x ^ 2 + d ^ 2)))
       (Rbar_locally m_infty) (Rbar_locally p_infty) v ->
   is_RInt_gen (fun x => /sqrt((x ^ 2 + a ^ 2) * (x ^ 2 + b ^ 2)))
       (Rbar_locally m_infty) (Rbar_locally p_infty) v.
@@ -1008,7 +1008,7 @@ Proof.
 intros b0; auto_derive; auto; field; rewrite Rplus_comm; split; lt0.
 Qed.
 
-Lemma is_RInt_gen_equiv F G F' G' (f : R -> R) v: 
+Lemma is_RInt_gen_equiv F G F' G' (f : R -> R) v:
   (forall s, F s <-> F' s) -> (forall s, G s <-> G' s) ->
   is_RInt_gen f F G v -> is_RInt_gen f F' G' v.
 Proof.
@@ -1167,7 +1167,7 @@ apply Rinv_0_lt_compat; try lt0.
 now apply Rlt_le_trans with (1 := a0), Rmax_l.
 Qed.
 
-Lemma M_shift a b n : 0 < a -> 0 < b -> 
+Lemma M_shift a b n : 0 < a -> 0 < b ->
   M (fst (ag a b n)) (snd (ag a b n)) = M a b.
 Proof.
 revert a b.
@@ -1180,7 +1180,7 @@ assert (main : forall a b, 0 < a -> 0 < b -> b <= a ->
   assert (bn0 : 0 < snd (ag a b n)) by lt0.
   generalize (is_lim_seq_unique _ _ (is_lim_seq_M _ _ an0 bn0)).
   rewrite <- (Lim_seq_incr_n _ n) in t.
-    rewrite <- (Lim_seq_ext (fun k => fst (ag a b (k + n)))), t. 
+    rewrite <- (Lim_seq_ext (fun k => fst (ag a b (k + n)))), t.
     now intros q; injection q.
   now intros k; rewrite ag_shift.
 intros a b a0 b0; destruct (Rle_dec b a).
@@ -1270,7 +1270,7 @@ now apply Rmult_le_compat_l; lt0.
 Qed.
 
 Lemma elliptic_to_sin_cos_form a b :
-  0 < a -> 0 < b -> 
+  0 < a -> 0 < b ->
   is_RInt_gen (ellf a b) (Rbar_locally m_infty) (Rbar_locally p_infty)
     (RInt (fun x => /sqrt (a ^ 2 * cos x ^ 2 + b ^ 2 * sin x ^ 2))
       (- PI / 2) (PI / 2)).
@@ -1284,7 +1284,7 @@ apply (is_RInt_gen_ext
                          b ^ 2 * sin (atan (t / b)) ^ 2))).
   exists (Rgt 0) (Rlt 0).
       now exists 0; tauto.
-    now exists 0; tauto.           
+    now exists 0; tauto.
   intros x y _ _ z _.
   rewrite (Rplus_comm (b ^ 2)).
   assert (c0 : cos (atan (z / b)) <> 0).
@@ -1292,7 +1292,7 @@ apply (is_RInt_gen_ext
   assert (cq : cos (atan (z / b)) ^ 2 = /((z / b) ^ 2 + 1)).
     rewrite <- (atan_right_inv (z / b)) at 2.
     replace (tan (atan (z / b)) ^ 2 + 1) with
-            ((sin (atan (z / b)) ^ 2 + cos (atan (z / b)) ^ 2) / 
+            ((sin (atan (z / b)) ^ 2 + cos (atan (z / b)) ^ 2) /
                   cos (atan (z / b)) ^ 2).
       replace (sin (atan (z / b)) ^ 2 + cos (atan (z / b)) ^ 2) with
         (Rsqr (sin (atan (z / b))) +
@@ -1339,7 +1339,7 @@ apply: is_RInt_gen_at_point_at_right.
                             b ^ 2 * sin (- x) ^ 2))))).
     apply filter_forall; intros [x y] z _.
     rewrite -> cos_neg, sin_neg; replace ((- sin z) ^ 2) with (sin z ^ 2) by ring.
-    (* bug? why ring does not work here? *)    
+    (* bug? why ring does not work here? *)
     now rewrite <- Ropp_mult_distr_l, Rmult_1_l, Ropp_involutive; reflexivity.
   rewrite <- (Ropp_involutive u).
   apply: is_RInt_gen_swap.
@@ -1391,7 +1391,7 @@ auto_derive;[split;[ | split;[ | exact I]]|]; try lt0.
 simpl; rewrite -> Rmult_1_r, sqrt_sqrt; ring_simplify; lt0.
 Qed.
 
-Definition I_t a b := 
+Definition I_t a b :=
   RInt (fun x => /sqrt(a ^ 2 * cos x ^ 2 + b ^ 2 * sin x ^ 2)) (-PI/2) (PI/2).
 
 Local Lemma half_ball a x (a0 : 0 < a):
@@ -1412,13 +1412,13 @@ Lemma is_derive_I_t_2 : (* old name q2_1_2_bis_a *)
 Proof.
 intros a b a0 b0.
 assert (locally b
-          (fun y => ex_RInt 
+          (fun y => ex_RInt
             (fun t => / sqrt (a ^ 2 * cos t ^ 2 + y ^ 2 * sin t ^ 2))
             (- PI / 2) (PI / 2))).
   exists (pos_div_2 (mkposreal _ b0)).
   simpl; intros x xp.
   assert (0 < x) by now apply half_ball in xp.
-  apply: ex_RInt_continuous; intros z zc. 
+  apply: ex_RInt_continuous; intros z zc.
   now apply: ex_derive_continuous; auto_derive; repeat split; lt0.
 apply is_derive_RInt_param; auto.
   exists (pos_div_2 (mkposreal _ b0)).
@@ -1470,7 +1470,7 @@ assert (pd : forall x t, 0 < x ->
               (sqrt (cos t ^ 2 + x ^ 2 * sin t ^ 2) ^ 3))) x t)).
   intros x t x0; auto_derive; cycle 1.
     replace (1 * (1 * 1) *
-       (cos t * (cos t * 1)) + (x * (x * 1) * (sin t * (sin t * 1)))) 
+       (cos t * (cos t * 1)) + (x * (x * 1) * (sin t * (sin t * 1))))
     with (cos t ^ 2 + x ^ 2 * sin t ^ 2) by ring.
     field; apply Rgt_not_eq, sqrt_lt_R0.
     now replace (cos t ^ 2) with (1 ^ 2 * cos t ^ 2) by ring; lt0.
@@ -1480,7 +1480,7 @@ assert (exists bnd1, (forall t, PI / 4 < t < PI / 2 ->
           <= bnd1) /\ bnd1 < 0) as [bnd1 [Pbnd1 bnd1neg]].
   exists (- (b / 2 * / sqrt (1 + b ^ 2) ^ 3)).
   split; cycle 1.
-    now rewrite <- Ropp_0; apply Ropp_lt_contravar; lt0.  
+    now rewrite <- Ropp_0; apply Ropp_lt_contravar; lt0.
   intros t intt.
   rewrite (is_derive_unique _ _ _ (pd b t b0)).
   assert (0 <= sin t - 1 / sqrt 2).
@@ -1519,7 +1519,7 @@ intros t _; rewrite (is_derive_unique _ _ _ (pd b t b0)).
   now replace (cos t ^ 2) with (1 ^ 2 * cos t ^ 2) by ring; lt0.
 assert (ctd : forall x t, 0 < x -> continuous (fun t => - (x * sin t ^ 2 /
               (sqrt (cos t ^ 2 + x ^ 2 * sin t ^ 2) ^ 3))) t).
-  intros x t x0; apply: ex_derive_continuous.  
+  intros x t x0; apply: ex_derive_continuous.
   auto_derive; replace (cos t * (cos t * 1)) with (1 ^ 2 * cos t ^ 2) by ring;
   replace (x * (x * 1) * (sin t * (sin t * 1)))
     with (x ^ 2 * sin t ^ 2) by ring.
@@ -1540,7 +1540,7 @@ assert (ex_RInt (fun t : R =>
   now apply: ex_RInt_continuous; intros z _; apply ctd; lt0.
 rewrite <- (RInt_Chasles _ (-PI/2) (PI/4) (PI/2)); auto.
 match goal with |- ?x + ?y < 0 => assert (x <= 0 /\ y < 0); try lt0 end.
-split.  
+split.
   replace 0 with (RInt (fun _ => 0) (-PI/2) (PI/4)); cycle 1.
     now rewrite -> RInt_const, Rmult_0_r.
   apply RInt_le; try lt0.
@@ -1554,7 +1554,7 @@ Qed.
 
 Lemma ell_I_t a b : 0 < a -> 0 < b ->
   ell a b = I_t a b.
-Proof. 
+Proof.
 intros a0 b0.
 unfold ell; generalize (iota_correct _ (ex_un_ell a b a0 b0)).
 set (el := iota _); intros Pel.
