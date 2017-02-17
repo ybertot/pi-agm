@@ -1,2 +1,3 @@
 -R . agm
-agmpi.v arcsinh.v atan_derivative_improper_integral.v elliptic_integral.v filter_Rlt.v
+agmpi.v arcsinh.v atan_derivative_improper_integral.v
+elliptic_integral.v filter_Rlt.v generalities.v
