@@ -200,51 +200,6 @@ Qed.
 Lemma ball_Rabs x y e : ball x e y <-> Rabs (y - x) < e.
 Proof. intros; tauto. Qed.
 
-Lemma M_shift a b n : 0 < a -> 0 < b -> 
-  M (fst (ag a b n)) (snd (ag a b n)) = M a b.
-Proof.
-revert a b.
-assert (main : forall a b, 0 < a -> 0 < b -> b <= a ->
-          M (fst (ag a b n)) (snd (ag a b n)) = M a b).
-  intros a b a0 b0 ba.
-  assert (t := is_lim_seq_unique _ _ (is_lim_seq_M _ _ a0 b0)).
-  destruct (ag_le n a b); try lt0.
-  assert (an0 : 0 < fst (ag a b n)) by lt0.
-  assert (bn0 : 0 < snd (ag a b n)) by lt0.
-  generalize (is_lim_seq_unique _ _ (is_lim_seq_M _ _ an0 bn0)).
-  rewrite <- (Lim_seq_incr_n _ n) in t.
-    rewrite <- (Lim_seq_ext (fun k => fst (ag a b (k + n)))), t. 
-    now intros q; injection q.
-  now intros k; rewrite ag_shift.
-intros a b a0 b0; destruct (Rle_dec b a).
-  now apply main; lt0.
-destruct (ag_le n b a); try lt0.
-destruct n as [| p];[reflexivity |].
-rewrite -> ag_swap, (M_swap a); try lt0; try lia.
-now apply main; lt0.
-Qed.
-
-Lemma M_scal a b k : 0 < a -> 0 < b -> 0 < k -> M (k * a) (k * b) = k * M a b.
-Proof.
-assert (pi0 : 0 < PI) by apply PI_RGT_0.
-revert a b; enough (main : forall a b, 0 < a -> 0 < b -> 0 < k -> b <= a ->
-                      M (k * a) (k * b) = k * M a b).
-  intros a b a0 b0 k0; destruct (Rle_lt_dec b a) as [ba | ab].
-    now apply main.
-  rewrite -> (M_swap (k * a)), (M_swap a); try lt0.
-  now apply main; try lt0.
-intros a b a0 b0 k0 ba.
-replace (M (k * a) (k * b)) with (PI / ell (k * a) (k * b)).
-  replace (M a b) with (PI / ell a b).
-    rewrite scal_ell; try lt0; field; split; try lt0.
-    now apply Rgt_not_eq, ell0.
-  rewrite ell_agm; try lt0; field; split; try lt0.
-  now apply Rgt_not_eq, M0.
-rewrite ell_agm; try lt0; try (field; split;
-                                 try lt0; apply Rgt_not_eq, M0; lt0).
-now apply Rmult_le_compat_l; lt0.
-Qed.
-
 Lemma ag_continuous n a b : 0 < a -> 0 < b ->
    continuous (fun p => ag (fst p) (snd p) n) (a, b).
 Proof.
