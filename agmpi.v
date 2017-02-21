@@ -228,8 +228,7 @@ assert (0 < u_ n x) by (destruct (ag_le n 1 x Rlt_0_1); unfold u_; lt0).
 auto_derive;[ | field_simplify; try rewrite (Rmult_comm (Derive _ _) (w_ _ _));
                 try reflexivity; repeat split; lt0].
 destruct (ex_derive_ag n x) as [d1 [d2 [Pd1 [Pd2 cmps]]]]; try lt0.
-split;[exists d1; exact Pd1 |].
-repeat split; try lt0.
+split;[exists d1; exact Pd1 | repeat split; try lt0].
 unfold w_; apply ex_derive_comp.
   auto_derive.
   assert (t := ag_lt n 1 x intx); destruct (ag_le n 1 x); try lt0.
@@ -406,8 +405,8 @@ assert (dif2 := ag_lt (S n) a b (conj b0 ba)); revert dif2.
 replace (ag a b (S n)) with ((fst (ag a b n) + snd (ag a b n)) / 2,
                              sqrt (fst (ag a b n) * snd (ag a b n))); cycle 1.
   now replace (S n) with (1 + n)%nat by ring; rewrite ag_shift.
-unfold snd at 1 10. unfold fst at 2 5 8; intros dif2.
-destruct (ag a b n) as [a' b']; simpl in pos_ag, dif, dif2; simpl fst; simpl snd.
+destruct (ag a b n) as [a' b']; simpl in pos_ag, dif; simpl fst; simpl snd.
+intros dif2.
 assert (help : forall A B, 0 < B < A -> 0 < A ^ 2 - B ^ 2).
   intros A B H; replace (A ^ 2 - B ^ 2) with ((A - B) * (A + B)) by ring; lt0.
 assert (b'0 : 0 < b') by psatzl R.
@@ -812,9 +811,9 @@ assert (cv_k_n : forall y : R,
   rewrite <- is_lim_seq_Reals; apply is_lim_k; lt0.
 assert (cvu_dk_n : CVU (fun n x => Derive (k_ n) x) 
           (fun x => ff x ^ 2 / (x * (1 - x ^ 2))) x delta).
- apply (CVU_derive_k_n (x - delta) (x + delta));
+  apply (CVU_derive_k_n (x - delta) (x + delta));
   [assert (tmp := cond_pos delta); psatzl R | psatzl R | ].
- intros y dyx; unfold Boule in dyx; apply Rabs_lt_between in dyx; psatzl R.
+  now intros y dy; unfold Boule in dy; apply Rabs_lt_between in dy; psatzl R.
 assert (ctf :forall y : R,
        Boule x delta y ->
        continuity_pt (fun x : R => ff x ^ 2 / (x * (1 - x ^ 2))) y).
