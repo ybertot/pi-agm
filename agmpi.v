@@ -436,25 +436,47 @@ replace (2 ^ S n) with (2 ^ n * 2) by (simpl; ring); rewrite Rmult_assoc.
 Qed.
 
 Lemma Rint_ellf_sqrt_equiv : 
-  filterlim (fun x => RInt (ellf 1 x) 0 (sqrt x) / arcsinh(/sqrt x))
+  filterlim (fun x => RInt (ellf 1 x) 0 (sqrt x) / ln(/sqrt x))
      (at_right 0) (locally 1).
 Proof.
+assert (filterlim (fun x => arcsinh (/ sqrt x) / ln (/ sqrt x))
+          (at_right 0) (locally 1)).
+  apply (filterlim_comp _ _ _ (fun x => / sqrt x) (fun y => arcsinh y / ln y)
+           _ (Rbar_locally p_infty));[ | apply ln_arcinh_equiv_infty].
+  apply (filterlim_comp _ _ _ sqrt Rinv _ (at_right 0)).
+    now apply filterlim_sqrt_0.
+  now apply filterlim_Rinv_0_right.
+apply equiv_trans with (g := fun x => arcsinh (/sqrt x)); cycle 4.
+        now easy.
+       now apply at_right_proper_filter.
+    exists pos_half; intros y y2 y0.
+    change (Rabs (y - 0) < / 2) in y2.
+    assert (1 < / sqrt y).
+      rewrite Rabs_right in y2; [ | psatzl R].
+      rewrite <- Rinv_1, <- sqrt_1.
+      now apply Rinv_lt_contravar;[ lt0 | apply sqrt_lt_1_alt; psatzl R].
+    now rewrite <- arcsinh_0; apply Rgt_not_eq, arcsinh_lt; lt0.
+  exists pos_half; intros y y2 y0.
+  change (Rabs (y - 0) < / 2) in y2.
+  assert (1 < / sqrt y).
+    rewrite Rabs_right in y2; [ | psatzl R].
+    rewrite <- Rinv_1, <- sqrt_1.
+    now apply Rinv_lt_contravar;[ lt0 | apply sqrt_lt_1_alt; psatzl R].
+  now rewrite <- ln_1; apply Rgt_not_eq, ln_increasing; lt0.
+assert (help : forall x,  x * (x * 1) = x ^ 2) by (intros; ring).
 assert (ctinv : continuous (fun x => / sqrt (x ^ 2 + 1)) 0).
-  apply: ex_derive_continuous; auto_derive; rewrite !Rmult_0_l.
-  now repeat split; lt0.
+  now apply: ex_derive_continuous; auto_derive; repeat split; lt0.
 intros P [eps peps].
 destruct (ctinv (ball (/sqrt (0 ^ 2 + 1)) eps)) as [delta1 Pd1].
   now exists eps; tauto.
-assert (delta0 : 0 < Rmin delta1 (Rmin ((delta1 / 2) ^ 2) 1) / 2).
-  now destruct delta1; simpl; lt0.
+set d0 := Rmin delta1 (Rmin ((delta1 / 2) ^ 2) 1) / 2.
+assert (delta0 : 0 < d0) by now unfold d0; destruct delta1; simpl; lt0.
 exists (mkposreal _ delta0).
-intros x xd x0; apply peps.
+intros x xd x0; change (ball 0 d0 x) in xd; apply peps.
 assert (s0 : 0 <= sqrt x) by lt0.
 assert (ris : ex_RInt (fun t => /sqrt (t ^ 2 + x ^ 2)) 0 (sqrt x)).
   apply: ex_RInt_continuous; intros z _; apply: ex_derive_continuous.
-  auto_derive; replace (z * (z * 1)) with (z ^ 2) by ring. 
-  replace (x * (x * 1)) with (x ^ 2) by ring.
-  now repeat split; lt0.
+  now auto_derive; rewrite !help; repeat split; lt0.
 assert (vris := int_arcsinh x x0).
 assert (cmp : forall y : R,
        0 < y < sqrt x ->
@@ -463,12 +485,11 @@ assert (cmp : forall y : R,
   intros y inty; apply Rle_Rinv;[lt0 | lt0 | ].
   apply sqrt_le_1_alt; assert (tmp := pow2_ge_0 y); rewrite pow1.
   enough (t : forall a b, 0 <= a -> 0 <= b -> b <= (a + 1) * b) by
-    (apply t; auto; lt0 t).
-  intros a b a0 b0; rewrite <- Rmult_1_l at 1.
-  now apply Rmult_le_compat_r; psatzl R. 
+    (apply t; auto; lt0).
+  now intros; rewrite <- Rmult_1_l at 1; apply Rmult_le_compat_r; psatzl R.
 assert (rib : ex_RInt
           (fun t => /sqrt (((delta1/2)^2 + 1) * (t ^ 2 + x ^ 2))) 0 (sqrt x)).
-  apply:ex_RInt_continuous. intros; apply: ex_derive_continuous.
+  apply:ex_RInt_continuous; intros; apply: ex_derive_continuous.
   now auto_derive; repeat split; lt0.
 assert (cmp' : forall y : R,
          0 < y < sqrt x ->
@@ -497,10 +518,8 @@ assert (scal :
     now intros z _; rewrite -> sqrt_mult, Rinv_mult_distr;lt0.
   now rewrite -> RInt_scal, vris.
 rewrite ball_Rabs.
-assert (0 < arcsinh(/sqrt x))
-  by (rewrite <- arcsinh_0; apply arcsinh_lt; lt0).
-rewrite <- Rabs_Ropp.
-rewrite -> Rabs_right, Ropp_minus_distr.
+assert (0 < arcsinh(/sqrt x)) by (rewrite <- arcsinh_0; apply arcsinh_lt; lt0).
+rewrite <- Rabs_Ropp, -> Rabs_right, Ropp_minus_distr.
   apply Rle_lt_trans with (1 - RInt (fun t => /sqrt (((delta1 / 2) ^ 2 + 1) *
                                                 (t ^ 2 + x ^ 2))) 0 (sqrt x)/
                            RInt (fun t => /sqrt (t ^ 2 + x ^ 2)) 0 (sqrt x)).
@@ -528,63 +547,26 @@ apply: ex_RInt_continuous; intros; unfold ellf; apply:ex_derive_continuous.
 now auto_derive; repeat split; lt0.
 Qed.
 
-Lemma ff_at_0 :
-  forall f, (forall n, 0 < f n) -> is_lim_seq f 0 ->
-  is_lim_seq (fun n => ff (f n) * (/(PI/2) * -ln (f n))) 1.
-Proof.
+Lemma ff_at_0 : filterlim (fun x => ff x * (/ (PI / 2) * - ln x))
+                  (at_right 0) (locally 1).
 assert (pi_0 := PI_RGT_0).
-intros f f0 fl0.
-apply (is_lim_seq_ext_loc
-          (fun n => / ((RInt (ellf 1 (f n)) 0 (sqrt (f n)) /
-                      arcsinh (/sqrt (f n)))) *
-                     (ln (/sqrt(f n)) / arcsinh (/sqrt (f n))))).
-  assert (lt1 : Hierarchy.eventually (fun n => f n < 1)).
-    assert (b0 : locally 0 (ball 0 (mkposreal _ Rlt_0_1)))
-       by apply locally_ball.
-    apply fl0 in b0; simpl in b0; revert b0; unfold filtermap; apply filter_imp.
-    intros x bx; change (Rabs (f x - 0) < 1) in bx.
-    rewrite -> Rminus_0_r, Rabs_right in bx; auto; apply Rle_ge, Rlt_le, f0.
-  apply filter_imp with (2 := lt1); intros n fn1.
-  unfold ff; assert (fnp : 0 < f n) by auto.
-  replace (M 1 (f n)) with (PI * / ell 1 (f n)); cycle 1.
-    rewrite ell_agm; try lt0; field.
-    now split; apply Rgt_not_eq; try apply M0; lt0.
-  rewrite quarter_elliptic; auto.
-  assert (tmp := ell0 1 (f n) Rlt_0_1 fnp).
-  assert (tm2 := quarter_elliptic (f n) fnp).
-  transitivity (/ (2  * RInt (ellf 1 (f n)) 0 (sqrt (f n))) * - ln (f n));
-       cycle 1.
-    now field; lt0.
-  assert (0 < arcsinh (/sqrt (f n))) by
-   (rewrite <- arcsinh_0; apply arcsinh_lt; lt0).
-  replace (ln (/sqrt (f n))) with (- ln (f n) / 2); cycle 1.
-    rewrite <- (Ropp_involutive (ln (f _ ))).
-    pattern (f n) at 1; rewrite <- pow2_sqrt;[ | lt0].
-    rewrite ln_pow;[ | lt0]. 
-    now rewrite <- Ropp_mult_distr_r_reverse, ln_Rinv;[ | lt0]; simpl; field.
-  now field; lt0.
-assert (sfp : forall n, 0 < sqrt (f n)) by (intros; apply sqrt_lt_R0, f0).
-assert (cvsf : is_lim_seq (fun n => sqrt (f n)) 0).
-  apply filter_le_trans with (at_right 0); cycle 1.
-    unfold at_right; change (Rbar_locally 0) with (locally 0).
-    now apply filter_le_within.
-  apply filterlim_comp with (at_right 0);[ | apply filterlim_sqrt_0].
-  intros P [eps peps].
-  destruct (fl0 (ball 0 eps)) as [N Pn];[apply locally_ball | ].
-  now exists N; intros n Nn; apply peps; auto.
-assert (is_lim_seq (fun n => ln (/ sqrt (f n)) / arcsinh (/ sqrt (f n))) 1).
-  rewrite is_lim_seq_Reals; apply equiv_ln_arcsinh; auto.
-  now rewrite <- is_lim_seq_Reals.
-apply (is_lim_seq_mult _ _ 1 1); auto; cycle 1.
-  now unfold is_Rbar_mult; simpl; rewrite Rmult_1_r.
-apply (filterlim_comp nat R R _ Rinv Hierarchy.eventually (locally 1)
-         (locally 1)); cycle 1.
-  rewrite <- Rinv_1 at 2; apply (filterlim_Rbar_inv 1).
-  now intros q; injection q; psatzl R.
-apply (fun h => filterlim_comp _ R R f _ _ (at_right 0)
-   _ h Rint_ellf_sqrt_equiv).
-intros P [eps peps]; destruct (fl0 (ball 0 eps) (locally_ball _ _)) as [M A].
-now exists M; intros x mx; apply peps;[apply A | auto].
+apply filterlim_ext_loc with
+  (fun x => / (RInt (ellf 1 x) 0 (sqrt x) / ln (/ sqrt x))).
+  exists pos_half; intros y y2 y0; change (Rabs (y - 0) < / 2) in y2.
+  rewrite Rabs_right in y2;[ | lt0].
+  replace (RInt (ellf 1 y) 0 (sqrt y)) with (/ 4 * ell 1 y); cycle 1.
+    now rewrite -> quarter_elliptic; try lt0; field.
+  rewrite ell_agm; try lt0.
+  replace (ln (/ sqrt y)) with (-/2 * ln y); cycle 1.
+    replace y with (sqrt y ^ 2) at 1 by (apply pow2_sqrt; lt0).
+    now rewrite -> ln_pow, ln_Rinv;[ simpl; field | lt0 | lt0].
+  unfold ff; field; repeat split;[lt0| apply Rgt_not_eq, M0; lt0 | ].
+  now rewrite <- ln_1; apply Rlt_not_eq, ln_increasing; lt0.
+apply (filterlim_comp _ _ _ _ Rinv _ (locally 1)).
+  now apply Rint_ellf_sqrt_equiv.
+evar_last.
+  now apply (filterlim_Rbar_inv (Finite 1)); injection; lt0.
+simpl; rewrite Rinv_1; reflexivity.
 Qed.
   
 Lemma w_lt_u n x : 0 < x < 1 -> w_ n x < u_ n x.
@@ -619,7 +601,7 @@ assert (pi_0 := PI_RGT_0).
 intros intx.
 assert (help : forall u v, u ^ 2 - v ^ 2 = (u - v) * (u + v)) by (intros; ring).
 assert (help2 : forall x, 2 * (x / 2) = x) by (intros; field).
-assert (is_lim_seq (fun n => w_ n x) 0).
+assert (limw : is_lim_seq (fun n => w_ n x) 0).
   assert (lim_sqrt : filterlim sqrt (at_right 0) (at_right 0))
     by apply filterlim_sqrt_0.
   unfold w_; apply (filter_le_trans) with (at_right 0); cycle 1.
@@ -655,15 +637,14 @@ assert (is_lim_seq (fun n => w_ n x) 0).
     simpl (fst (ag 1 x 1)); simpl (snd (ag 1 x 1)).
     destruct (ag_le (S p) ((1 + x) /2) (sqrt (1 * x))); try lt0.
     now destruct (ag_le 1 1 x); simpl in *; lt0.
-  replace (1 / 2 ^ S p * (2 * 1)) with (/ 2 ^ p).
+  replace (1 / 2 ^ S p * (2 * 1)) with (/ 2 ^ p) by (simpl; field; lt0).
   assert (Np : (N <= p)%nat) by lia.
-    rewrite <- (Rabs_right (/ _)), <- (Rminus_0_r (/ _)); try lt0.
-      rewrite Rinv_pow; try lt0; apply Pn; lia.
-    now apply Rle_ge, Rlt_le; lt0.
-  simpl; field; lt0.
+  rewrite <- (Rabs_right (/ _)), <- (Rminus_0_r (/ _)); try lt0.
+    rewrite Rinv_pow; try lt0; apply Pn; lia.
+  now apply Rle_ge, Rlt_le; lt0.
 assert (fp : forall n, 0 < w_ n x / u_ n x).
-  intros n; assert (tw := w0 n x  intx).
-  now destruct (ag_le n 1 x Rlt_0_1); unfold u_; try lt0.
+  intros n; assert (tw := w0 n x intx).
+  now destruct (ag_le n 1 x Rlt_0_1); unfold u_; lt0.
 apply is_lim_seq_ext with
  (fun n => (ff (w_ n x / u_ n x) * ((/(PI/2)) * -ln (w_ n x / u_ n x))) *
            (/(ff (w_ n x / u_ n x) * ((/(PI/2)) * -ln (w_ n x / u_ n x)))
@@ -671,16 +652,22 @@ apply is_lim_seq_ext with
   intros; field.
   assert (wp : 0 < w_ n x) by (apply w0; lt0).
   assert (up : 0 < u_ n x) by (destruct (ag_le n 1 x); unfold u_; try lt0).
-  split;[lt0 | ].
-  assert (t:= ln_w_div_u n x intx); split;[apply Rlt_not_eq; lt0 | ].
-  now unfold ff; apply Rgt_not_eq, M0; lt0.
+  assert (t:= ln_w_div_u n x intx); unfold ff.
+  now split;[lt0 | split;[apply Rlt_not_eq; lt0 |apply Rgt_not_eq, M0; lt0]].
 apply: (is_lim_seq_mult _ _ 1 (PI/2 * ff x / ff(sqrt (1 - x ^ 2)))); cycle 2.
     now unfold is_Rbar_mult; cbn -[pow]; rewrite Rmult_1_l.
+apply (filterlim_comp _ _ _ (fun n => w_ n x / u_ n x)
+           (fun y => ff y * (/ (PI / 2) * - ln y)) _ (at_right 0)); cycle 1.
   apply ff_at_0; auto.
-  apply (is_lim_seq_div _ _ 0 (ff x)); auto.
-      now apply is_lim_seq_M; lt0.
-    now injection; apply Rgt_not_eq, M0; lt0.
-  now unfold is_Rbar_div, is_Rbar_mult; simpl; rewrite Rmult_0_l.
+  assert (limwu : filterlim (fun n => w_ n x / u_ n x) Hierarchy.eventually
+            (Rbar_locally 0)).
+    apply (is_lim_seq_div _ _ 0 (ff x)); auto.
+        now apply is_lim_seq_M; lt0.
+      now injection; apply Rgt_not_eq, M0; lt0.
+    now unfold is_Rbar_div, is_Rbar_mult; simpl; rewrite Rmult_0_l.
+  intros P [eps Peps].
+  destruct (limwu (ball 0 eps) (locally_ball _ _)) as [bound pb].
+  now exists bound; intros n Pn; apply Peps; auto.
 apply is_lim_seq_ext with
    (fun n => (PI / 2) * / (2 ^ n * ff (w_ n x / u_ n x))).
   intros n; unfold k_.

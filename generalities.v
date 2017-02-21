@@ -251,4 +251,86 @@ apply is_RInt_unique, is_RInt_derive.
 now intros; apply: ex_derive_continuous; auto_derive; repeat split; lt0.
 Qed.
 
+Lemma equiv_trans F (FF : Filter F) f g h :
+  F (fun x => g x <> 0) -> F (fun x => h x <> 0) ->
+  filterlim (fun x : R => f x / g x) F (locally 1) ->
+  filterlim (fun x => g x / h x) F (locally 1) ->
+  filterlim (fun x => f x / h x) F (locally 1).
+Proof.
+intros g0 h0 fg gh P [eps Peps].
+set eps' := Rmin eps 1.
+assert (ep' : 0 < eps').
+  now apply Rmin_pos;[destruct eps; simpl; assumption | lt0].
+assert (ep4 : 0 < eps' / 4) by lt0.
+assert (ep1 : eps' <= 1) by now unfold eps'; apply Rmin_r.
+assert (fg4 := fg _ (locally_ball _ (mkposreal _ ep4))); simpl in fg4.
+assert (gh4 := gh _ (locally_ball _ (mkposreal _ ep4))); simpl in gh4.
+unfold filtermap in fg4, gh4;
+  assert (fh4 := filter_and _ _ g0
+                  (filter_and _ _ h0 (filter_and _ _ fg4 gh4))).
+apply filter_imp with (2 := fh4); intros x cx; apply Peps.
+change (Rabs (f x / h x - 1) < eps).
+apply Rlt_le_trans with eps'; [ | apply Rmin_l].
+replace (f x / h x - 1) with ( (f x / g x - 1) + (f x / g x) * (g x / h x - 1));
+  cycle 1.
+  field; tauto.
+replace eps' with (eps'/4 + 3 / 4 * eps') by field.
+apply Rle_lt_trans with (1 := Rabs_triang _ _); apply Rplus_lt_compat.
+  change (ball 1 (eps' / 4) (f x / g x)); tauto.
+apply Rlt_le_trans with (3 * (eps' / 4)); [ | psatzl R].
+rewrite Rabs_mult; apply Rmult_le_0_lt_compat; cycle 3.
+      change (ball 1 (eps' / 4) (g x / h x)); tauto.
+    now apply Rabs_pos.
+  now apply Rabs_pos.
+replace (f x / g x) with ((f x / g x - 1) + 1) by ring.
+apply Rle_lt_trans with (1 := Rabs_triang _ _); apply Rplus_lt_compat; cycle 1.
+  now rewrite Rabs_right; lt0.
+apply Rlt_trans with (eps' / 4).
+  change (ball 1 (eps' / 4) (f x / g x)); tauto.
+now psatzl R.
+Qed.
 
+Lemma ln_arcinh_equiv_infty :
+  filterlim (fun x => arcsinh x / ln x)
+       (Rbar_locally p_infty) (locally 1).
+Proof.
+assert (gt1 : Rbar_locally p_infty (Rlt 1)) by (now exists 1).
+intros P [eps Peps].
+set (delta := Rmax (exp (ln 3 / eps)) 1).
+exists delta; intros x px; apply Peps.
+assert (x1 : 1 < x).
+  now apply Rle_lt_trans with (2 := px); unfold delta; apply Rmax_r.
+assert (0 < sqrt (x ^ 2 + 1)) by lt0.
+assert (0 < ln x).
+  now rewrite <- ln_1; apply ln_increasing; auto; psatzl R.
+change (Rabs (arcsinh x / ln x - 1) < eps).
+rewrite Rabs_right; cycle 1.
+  apply Rle_ge, Fcore_Raux.Rle_0_minus.
+  apply Rmult_le_reg_r with (ln x); auto.
+  unfold Rdiv; rewrite -> Rmult_1_l, Rmult_assoc, Rinv_l, Rmult_1_r; cycle 1.
+    now psatzl R.
+  unfold arcsinh; apply Rlt_le, ln_increasing;[psatzl R | ].
+  now psatzl R.
+apply Rlt_trans with (ln (3 * x) / ln x - 1); cycle 1.
+  apply Rmult_lt_reg_r with (ln x); auto; unfold Rdiv.
+  rewrite -> Rmult_minus_distr_r, Rmult_1_l, Rmult_assoc, Rinv_l; try psatzl R.
+  rewrite -> Rmult_1_r, ln_mult; try psatzl R.
+  replace (ln 3 + ln x - ln x) with (ln 3) by ring.
+  apply Rmult_lt_reg_l with (/ eps).
+    now destruct eps; simpl; lt0.
+  rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l;[ | destruct eps; simpl; lt0].
+  rewrite <- (ln_exp (_ * _)), Rmult_comm; apply ln_increasing.
+    now apply exp_pos.
+  now apply Rle_lt_trans with (2 := px), Rmax_l.
+apply Rplus_lt_compat_r, Rmult_lt_compat_r;[lt0 | ].
+apply ln_increasing;[lt0 | ].
+assert (1 < 3 * x ^ 2).
+  apply Rle_lt_trans with (x ^ 2).
+    replace 1 with (1 ^ 2) at 1 by ring.
+    now apply pow_incr; psatzl R.
+  assert (0 < x ^ 2) by lt0; psatzl R.
+apply Rlt_le_trans with (x + sqrt (x ^ 2 + 3 * x ^ 2)).
+  now apply Rplus_lt_compat_l, sqrt_lt_1; lt0.
+replace (x ^ 2 + 3 * x ^ 2) with ((2 * x) ^ 2) by ring.
+rewrite sqrt_pow2;[psatzl R | lt0].
+Qed.
