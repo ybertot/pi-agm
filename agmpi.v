@@ -547,7 +547,7 @@ apply: ex_RInt_continuous; intros; unfold ellf; apply:ex_derive_continuous.
 now auto_derive; repeat split; lt0.
 Qed.
 
-Lemma ff_at_0 : filterlim (fun x => ff x * (/ (PI / 2) * - ln x))
+Lemma ff_at_0 : filterlim (fun x => ff x / (- PI / (2 * ln x)))
                   (at_right 0) (locally 1).
 assert (pi_0 := PI_RGT_0).
 apply filterlim_ext_loc with
@@ -560,7 +560,7 @@ apply filterlim_ext_loc with
   replace (ln (/ sqrt y)) with (-/2 * ln y); cycle 1.
     replace y with (sqrt y ^ 2) at 1 by (apply pow2_sqrt; lt0).
     now rewrite -> ln_pow, ln_Rinv;[ simpl; field | lt0 | lt0].
-  unfold ff; field; repeat split;[lt0| apply Rgt_not_eq, M0; lt0 | ].
+  unfold ff; field; repeat split; [| lt0 | apply Rgt_not_eq, M0; lt0].
   now rewrite <- ln_1; apply Rlt_not_eq, ln_increasing; lt0.
 apply (filterlim_comp _ _ _ _ Rinv _ (locally 1)).
   now apply Rint_ellf_sqrt_equiv.
@@ -645,29 +645,29 @@ assert (limw : is_lim_seq (fun n => w_ n x) 0).
 assert (fp : forall n, 0 < w_ n x / u_ n x).
   intros n; assert (tw := w0 n x intx).
   now destruct (ag_le n 1 x Rlt_0_1); unfold u_; lt0.
+assert (limwu : filterlim (fun n => w_ n x / u_ n x) Hierarchy.eventually
+          (Rbar_locally 0)).
+  apply (is_lim_seq_div _ _ 0 (ff x)); auto.
+      now apply is_lim_seq_M; lt0.
+    now injection; apply Rgt_not_eq, M0; lt0.
+  now unfold is_Rbar_div, is_Rbar_mult; simpl; rewrite Rmult_0_l.
 apply is_lim_seq_ext with
- (fun n => (ff (w_ n x / u_ n x) * ((/(PI/2)) * -ln (w_ n x / u_ n x))) *
-           (/(ff (w_ n x / u_ n x) * ((/(PI/2)) * -ln (w_ n x / u_ n x)))
-                          * k_ n x)).
+ (fun n => (ff (w_ n x / u_ n x)  / (-PI/(2 * ln (w_ n x / u_ n x))) *
+           (/(ff (w_ n x / u_ n x) * ((- /((PI/ 2) / ln (w_ n x / u_ n x)))))
+                          * k_ n x))).
   intros; field.
   assert (wp : 0 < w_ n x) by (apply w0; lt0).
   assert (up : 0 < u_ n x) by (destruct (ag_le n 1 x); unfold u_; try lt0).
   assert (t:= ln_w_div_u n x intx); unfold ff.
-  now split;[lt0 | split;[apply Rlt_not_eq; lt0 |apply Rgt_not_eq, M0; lt0]].
+  now split;[apply Rlt_not_eq; lt0| split;[lt0 |apply Rgt_not_eq, M0; lt0]].
 apply: (is_lim_seq_mult _ _ 1 (PI/2 * ff x / ff(sqrt (1 - x ^ 2)))); cycle 2.
     now unfold is_Rbar_mult; cbn -[pow]; rewrite Rmult_1_l.
-apply (filterlim_comp _ _ _ (fun n => w_ n x / u_ n x)
-           (fun y => ff y * (/ (PI / 2) * - ln y)) _ (at_right 0)); cycle 1.
-  apply ff_at_0; auto.
-  assert (limwu : filterlim (fun n => w_ n x / u_ n x) Hierarchy.eventually
-            (Rbar_locally 0)).
-    apply (is_lim_seq_div _ _ 0 (ff x)); auto.
-        now apply is_lim_seq_M; lt0.
-      now injection; apply Rgt_not_eq, M0; lt0.
-    now unfold is_Rbar_div, is_Rbar_mult; simpl; rewrite Rmult_0_l.
-  intros P [eps Peps].
-  destruct (limwu (ball 0 eps) (locally_ball _ _)) as [bound pb].
-  now exists bound; intros n Pn; apply Peps; auto.
+  apply (filterlim_comp _ _ _ (fun n => (w_ n x / u_ n x)) 
+             (fun y => ff y / (- PI/(2 * ln y))) _ (at_right 0)).
+    intros P [eps Peps].
+    destruct (limwu (ball 0 eps) (locally_ball _ _)) as [bound pb].
+    now exists bound; intros n Pn; apply Peps; auto.
+  exact ff_at_0.
 apply is_lim_seq_ext with
    (fun n => (PI / 2) * / (2 ^ n * ff (w_ n x / u_ n x))).
   intros n; unfold k_.
@@ -678,6 +678,7 @@ apply is_lim_seq_ext with
   field; repeat split; try lt0.
     now apply Rlt_not_eq, ln_w_div_u.
   now unfold ff; apply Rgt_not_eq, M0; auto; psatzl R.
+
 assert (ff1m : 0 < ff (sqrt (1 - x ^ 2))).
   now apply M0; try lt0; replace (1 - x ^ 2) with ((1 - x) * (1 + x)); lt0.
 assert (ffx : 0 < ff x).
