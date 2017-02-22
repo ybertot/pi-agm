@@ -6,6 +6,10 @@ Import mathcomp.ssreflect.ssreflect.
 
 Hint Mode ProperFilter' - + : typeclass_instances.
 
+
+Lemma ints : 0 < /sqrt 2 < 1.
+Proof. split; interval. Qed.
+
 (* standard *)
 Lemma CVU_derivable :
   forall f f' g g' c d,

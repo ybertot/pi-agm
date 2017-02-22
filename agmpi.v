@@ -854,8 +854,8 @@ assert (t := is_derive_I_t_2 1 x Rlt_0_1 (proj1 intx)).
 assert (I_t 1 x <> 0).
   now rewrite <- ell_I_t; try lt0; apply Rgt_not_eq, ell0; lt0.
 auto_derive; cycle 1.
-  simpl; field_simplify; try reflexivity; try lt0.
-now split;[eapply ex_intro; exact t | auto].
+  now simpl; field_simplify; try reflexivity; lt0.
+now split;[eapply ex_intro; exact t |].
 Qed.
 
 Lemma ex_derive_ff x : 0 < x < 1 ->  ex_derive ff x.
@@ -872,70 +872,56 @@ assert (tmp := ell0 1 x Rlt_0_1 (proj1 intx)).
 now apply Rinv_0_lt_compat; rewrite <- ell_I_t; lt0.
 Qed.
 
-Lemma ints : 0 < /sqrt 2 < 1.
-Proof. split; interval. Qed.
-
-
 Lemma PI_from_ff_ff' :
    PI = 2 * sqrt 2 * ff (/ sqrt 2) ^ 3 / Derive ff (/ sqrt 2).
 Proof.
-assert (vs2 : (/ sqrt 2) ^ 2 = / 2) by (rewrite <- Rinv_pow, sqrt_pow_2; lt0).
-assert (ints2 : 0 < /sqrt 2 < 1) by exact ints.
-assert (t := main_derivative_formula (/sqrt 2) ints2).
-assert (t' : forall x, 0 < x < 1 ->
-           is_derive (fun x => PI/2 * ff x / ff (sqrt (1 - x ^ 2))) x
-           (PI/2 * ((Derive ff x * ff (sqrt (1 - x ^ 2)) -
-                (Derive ff (sqrt (1 - x ^ 2))  *
-                  (/(2 * sqrt (1 - x ^ 2)) * (0 - 2 * x))) * ff x)/
-                   ff (sqrt (1 - x ^ 2)) ^ 2))).
-  intros x intx.
-  assert (0 < 1 - x ^ 2)
-    by (replace (1 - x ^ 2) with ((1 + x) * (1 - x)) by ring; lt0).
-  assert (1 - x ^ 2 < 1)
-    by (assert (t' := pow_lt x 2 (proj1 intx)); psatzl R).
-  assert (sqrt (1 - x ^ 2) <= 1).
-    rewrite <- sqrt_1 at 2.
-    now apply sqrt_le_1_alt; lt0.
-  assert (0 < sqrt (1 - x ^ 2)) by lt0.
-  apply (is_derive_ext (fun x => PI/2 * (ff x /ff(sqrt(1-x^2)))));
-    [simpl; intros y; unfold Rdiv; ring | ].
-  auto_derive.
-    assert (0 < 1 + - (x * (x * 1))).
-      now replace (1 + - (x * (x * 1))) with ((1 - x) * (1 + x)) by ring; lt0.
-    assert (sqrt (1 + - (x * (x * 1))) < 1).
-      rewrite <- sqrt_1 at 3.
-      apply sqrt_lt_1_alt; change (x * (x * 1)) with (x ^ 2).
-      now assert (t' := pow2_ge_0 x); lt0.
-    repeat (split;[ apply ex_derive_ff; split; lt0 | ]); repeat split; auto.
-    now unfold ff; apply Rgt_not_eq, M0; lt0.
-  change (Derive (fun x => ff x) x) with (Derive ff x).
-  change (1 + - (x * (x * 1))) with (1 - x ^ 2).
-  now field_simplify; try reflexivity; split; try lt0;
-      unfold ff; destruct (Mbounds 1 (sqrt (1 - x ^ 2))); try lt0.
-assert (t2 := t' _ ints2).
-apply is_derive_unique in t2; rewrite (is_derive_unique _ _ _ t) in t2.
-assert (help : forall a b c, c <> 0 -> a = (b / 2) * c -> b = 2 * a / c).
+assert (help : forall y, 1 - y ^ 2 = (1 + y) * (1 - y)) by (intros; ring).
+assert (help' : forall y, y * (y * 1) = y ^ 2) by (intros; ring).
+assert (help2 : forall a b c, c <> 0 -> a = (b / 2) * c -> b = 2 * a / c).
   now intros a b c c0 q; rewrite q; field.
+assert (vs2 : (/ sqrt 2) ^ 2 = / 2) by (rewrite <- Rinv_pow, sqrt_pow_2; lt0).
 assert (md : 1 - /2 = / 2) by field.
 assert (ts : 2 * / sqrt 2 = sqrt 2).
   apply Rmult_eq_reg_r with (/sqrt 2); try lt0.
   now rewrite -> Rmult_assoc, <- Rinv_mult_distr, sqrt_sqrt, !Rinv_r; lt0.
 assert (vs : sqrt (/2) = / sqrt 2).
   apply Rmult_eq_reg_r with (sqrt 2); try lt0.
-  rewrite Rinv_l; try lt0.
-  rewrite <- sqrt_mult; try lt0.
-  rewrite Rinv_l; try lt0.
-  now rewrite sqrt_1.
-assert (0 < Derive ff (/sqrt 2)) by (apply derive_ff_pos; auto).
+  now rewrite -> Rinv_l, <- sqrt_mult, Rinv_l, sqrt_1; lt0.
+assert (t := main_derivative_formula (/sqrt 2) ints).
+assert (main : forall x, 0 < x < 1 ->
+           is_derive (fun x => PI/2 * ff x / ff (sqrt (1 - x ^ 2))) x
+           (PI/2 * ((Derive ff x * ff (sqrt (1 - x ^ 2)) -
+                (Derive ff (sqrt (1 - x ^ 2))  *
+                  (/(2 * sqrt (1 - x ^ 2)) * (0 - 2 * x))) * ff x)/
+                   ff (sqrt (1 - x ^ 2)) ^ 2))).
+  intros x intx.
+  assert (0 < 1 - x ^ 2) by (rewrite help; lt0).
+  assert (1 - x ^ 2 < 1)
+    by (assert (t' := pow_lt x 2 (proj1 intx)); psatzl R).
+  assert (sqrt (1 - x ^ 2) < 1).
+    now rewrite <- sqrt_1 at 2; apply sqrt_lt_1_alt; lt0.
+  assert (0 < sqrt (1 - x ^ 2)) by lt0.
+  apply (is_derive_ext (fun x => PI/2 * (ff x /ff(sqrt(1-x^2)))));
+    [simpl; intros y; unfold Rdiv; ring | ].
+  auto_derive; rewrite help'; change (1 + - x ^ 2) with (1 - x ^ 2).
+    repeat (split;[ apply ex_derive_ff; try lt0 | ]); repeat split; auto.
+    now unfold ff; apply Rgt_not_eq, M0; lt0.
+  change (Derive (fun x => ff x) x) with (Derive ff x).
+  change (1 + - (x * (x * 1))) with (1 - x ^ 2).
+  now field_simplify; try reflexivity; split; try lt0;
+      unfold ff; destruct (Mbounds 1 (sqrt (1 - x ^ 2))); try lt0.
+assert (main2 := main _ ints).
+apply is_derive_unique in main2; rewrite (is_derive_unique _ _ _ t) in main2.
+assert (0 < Derive ff (/sqrt 2)) by (apply derive_ff_pos; auto using ints).
 assert (0 < ff (/ sqrt 2)) by (apply (M0 1 (/sqrt 2)); lt0).
-apply help in t2; cycle 1.
+apply help2 in main2; cycle 1.
   repeat (rewrite -> vs2 || rewrite md || rewrite ts || rewrite vs).
   rewrite -> Rminus_0_l, <- !Ropp_mult_distr_r, <- Ropp_mult_distr_l. 
   now unfold Rminus; rewrite -> Ropp_involutive, Rinv_l, Rmult_1_r; lt0.
-rewrite t2; repeat (rewrite -> vs2 || rewrite md || rewrite ts || rewrite vs). 
-field; repeat split; try lt0.
-rewrite <- Ropp_mult_distr_r, <- Ropp_mult_distr_l.
-now unfold Rminus; rewrite Ropp_involutive; lt0.
+rewrite main2.
+repeat(rewrite -> ?vs2, ?md, ?ts, ?vs); field; repeat split; try lt0.
+unfold Rminus; rewrite <- Ropp_mult_distr_r, <- Ropp_mult_distr_l.
+now rewrite Ropp_involutive; lt0.
 Qed.
 
 Lemma is_lim_seq_fst_ag x : 0 < x < 1 ->
