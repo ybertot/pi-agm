@@ -882,17 +882,13 @@ assert (help2 : forall a b c, c <> 0 -> a = (b / 2) * c -> b = 2 * a / c).
 assert (vs2 : (/ sqrt 2) ^ 2 = / 2) by (rewrite <- Rinv_pow, sqrt_pow_2; lt0).
 assert (md : 1 - /2 = / 2) by field.
 assert (ts : 2 * / sqrt 2 = sqrt 2).
-  apply Rmult_eq_reg_r with (/sqrt 2); try lt0.
-  now rewrite -> Rmult_assoc, <- Rinv_mult_distr, sqrt_sqrt, !Rinv_r; lt0.
-assert (vs : sqrt (/2) = / sqrt 2).
-  apply Rmult_eq_reg_r with (sqrt 2); try lt0.
-  now rewrite -> Rinv_l, <- sqrt_mult, Rinv_l, sqrt_1; lt0.
-assert (t := main_derivative_formula (/sqrt 2) ints).
+  now rewrite <- (pow2_sqrt 2) at 1;[field | ]; lt0.
+assert (vs : sqrt (/2) = / sqrt 2) by now  rewrite inv_sqrt; lt0.
 assert (main : forall x, 0 < x < 1 ->
            is_derive (fun x => PI/2 * ff x / ff (sqrt (1 - x ^ 2))) x
-           (PI/2 * ((Derive ff x * ff (sqrt (1 - x ^ 2)) -
+           (PI/2 * ((Derive ff x * ff (sqrt (1 - x ^ 2)) +
                 (Derive ff (sqrt (1 - x ^ 2))  *
-                  (/(2 * sqrt (1 - x ^ 2)) * (0 - 2 * x))) * ff x)/
+                  (/(2 * sqrt (1 - x ^ 2)) * (2 * x))) * ff x)/
                    ff (sqrt (1 - x ^ 2)) ^ 2))).
   intros x intx.
   assert (0 < 1 - x ^ 2) by (rewrite help; lt0).
@@ -901,27 +897,21 @@ assert (main : forall x, 0 < x < 1 ->
   assert (sqrt (1 - x ^ 2) < 1).
     now rewrite <- sqrt_1 at 2; apply sqrt_lt_1_alt; lt0.
   assert (0 < sqrt (1 - x ^ 2)) by lt0.
+  assert (ff (sqrt (1 - x ^ 2)) <> 0).
+    now unfold ff; destruct (Mbounds 1 (sqrt (1 - x ^ 2))); lt0.
   apply (is_derive_ext (fun x => PI/2 * (ff x /ff(sqrt(1-x^2)))));
     [simpl; intros y; unfold Rdiv; ring | ].
   auto_derive; rewrite help'; change (1 + - x ^ 2) with (1 - x ^ 2).
-    repeat (split;[ apply ex_derive_ff; try lt0 | ]); repeat split; auto.
-    now unfold ff; apply Rgt_not_eq, M0; lt0.
-  change (Derive (fun x => ff x) x) with (Derive ff x).
-  change (1 + - (x * (x * 1))) with (1 - x ^ 2).
-  now field_simplify; try reflexivity; split; try lt0;
-      unfold ff; destruct (Mbounds 1 (sqrt (1 - x ^ 2))); try lt0.
-assert (main2 := main _ ints).
-apply is_derive_unique in main2; rewrite (is_derive_unique _ _ _ t) in main2.
+    now repeat (split;[ apply ex_derive_ff; try lt0 | ]); auto.
+  now change (fun x => ff x) with ff; field; split; lt0.
+assert (main2 := main _ ints); apply is_derive_unique in main2; clear main.
+rewrite (is_derive_unique _ _ _ (main_derivative_formula _ ints)) in main2.
 assert (0 < Derive ff (/sqrt 2)) by (apply derive_ff_pos; auto using ints).
 assert (0 < ff (/ sqrt 2)) by (apply (M0 1 (/sqrt 2)); lt0).
 apply help2 in main2; cycle 1.
-  repeat (rewrite -> vs2 || rewrite md || rewrite ts || rewrite vs).
-  rewrite -> Rminus_0_l, <- !Ropp_mult_distr_r, <- Ropp_mult_distr_l. 
-  now unfold Rminus; rewrite -> Ropp_involutive, Rinv_l, Rmult_1_r; lt0.
+  now repeat (rewrite -> vs2 || rewrite md || rewrite ts || rewrite vs); lt0.
 rewrite main2.
-repeat(rewrite -> ?vs2, ?md, ?ts, ?vs); field; repeat split; try lt0.
-unfold Rminus; rewrite <- Ropp_mult_distr_r, <- Ropp_mult_distr_l.
-now rewrite Ropp_involutive; lt0.
+now repeat(rewrite -> ?vs2, ?md, ?ts, ?vs); field; repeat split; lt0.
 Qed.
 
 Lemma is_lim_seq_fst_ag x : 0 < x < 1 ->
@@ -997,7 +987,7 @@ rewrite (Derive_ext _ (fun x => sqrt (u_ n x * snd (ag 1 x n)))).
   assert (ex_derive (u_ n) x) by (exists d; tauto).
   assert (ex_derive (fun x => snd (ag 1 x n)) x) by (exists e; tauto).
   evar_last.
-    apply is_derive_unique. apply is_derive_sqrt.
+    apply is_derive_unique; apply is_derive_sqrt.
       apply: is_derive_mult.
           now apply Derive_correct; exact (ex_intro _ _ (proj1 Ps)).
         now apply Derive_correct; exact (ex_intro _ _ (proj1 (proj2 Ps))).
@@ -1985,13 +1975,6 @@ rewrite <- Rinv_mult_distr; try (apply Rgt_not_eq, exp_pos).
 rewrite <- Rpower_plus; simpl; right;
  apply f_equal with (f := fun x => /Rpower 8 x); ring.
 Qed.
-
-Ltac prove_nested_sqrt_approx :=
- repeat (apply Rsqr_incrst_0;
-         try (try apply Rlt_le; 
-               repeat apply sqrt_lt_R0; unfold Rsqr; psatzl R);
- rewrite Rsqr_sqrt; try (apply Rlt_le; repeat apply sqrt_lt_R0; psatzl R));
- unfold Rsqr; psatzl R.
 
 Lemma ineq2 : (1 + ((1 + sqrt 2)/(2 * sqrt (sqrt 2))))/
               (1 + / sqrt (/ sqrt 2)) < 1.
