@@ -673,3 +673,46 @@ intros x x1.
  apply Rmult_lt_compat_r;[assumption | ].
  rewrite <- sqrt_1; apply sqrt_lt_1_alt;split;[apply Rlt_le, Rlt_0_1|assumption].
 Qed.
+
+Lemma small_taylor_lagrange2 :
+  forall f f1 f2 x z, x < z ->
+    (forall y, x < y < z -> is_derive f y (f1 y)) ->
+    (forall y, x < y < z -> is_derive f1 y (f2 y)) ->
+    forall u v, x < u < v -> v < z ->
+    exists zeta, u < zeta < v /\
+    f v = f u + f1 u * (v - u) + f2 zeta * (v - u)^2/2.
+Proof.
+intros f f1 f2 x z xz d1 d2 u v xuv vz.
+set (delta := Rmin (u - x) (z - v)).
+assert (delta0 : 0 < delta).
+ unfold delta; apply Rmin_glb_lt; psatzl R.
+assert (delta <= u - x) by apply Rmin_l.
+assert (delta <= z - v) by apply Rmin_r.
+assert (dn : forall y, u <= y <= v ->
+             forall k, (k <= 2)%nat -> ex_derive_n f k y).
+ intros y xyz [ | [ | [ | k]]]; simpl.
+    now trivial.
+   intros _; exists (f1 y); apply d1; psatzl R.
+  intros _; apply (ex_derive_ext_loc f1).
+   exists (mkposreal _ delta0); intros t int; symmetry.
+   apply is_derive_unique, d1.
+   apply ball_Rabs in int; apply Rabs_def2 in int; simpl in int.
+   now unfold minus, plus, opp in int; simpl in int; psatzl R.
+  now exists (f2 y); apply d2; psatzl R.
+ now lia.
+assert (uv : u < v) by psatzl R.
+destruct (Taylor_Lagrange f 1 u v uv dn) as [zeta [inzeta qq]].
+exists zeta; split; [assumption | rewrite qq].
+simpl; replace (1 / 1) with 1 by field; rewrite !Rmult_1_l; rewrite !Rmult_1_r.
+replace (Derive (fun y => Derive (fun z => f z) y) zeta) with (f2 zeta).
+  replace (Derive (fun y => f y) u) with (f1 u).
+    field.
+  now symmetry; apply is_derive_unique, d1; psatzl R.
+symmetry; apply is_derive_unique.
+apply (is_derive_ext_loc f1).
+  exists (mkposreal _ delta0); simpl; intros t int.
+  apply ball_Rabs in int; apply Rabs_def2 in int; simpl in int.
+  unfold minus, plus, opp in int; simpl in int.
+  now symmetry; apply is_derive_unique, d1; psatzl R.
+apply d2; psatzl R.
+Qed.
