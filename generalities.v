@@ -1,11 +1,334 @@
 Require Import Reals Coquelicot.Coquelicot Fourier Psatz.
 Require Import filter_Rlt atan_derivative_improper_integral.
-Require Import elliptic_integral arcsinh.
+Require Import arcsinh.
 Require Import Interval.Interval_tactic.
 Import mathcomp.ssreflect.ssreflect.
 
 Hint Mode ProperFilter' - + : typeclass_instances.
 
+Ltac lt0 :=
+  match goal with
+  | |- _ => assumption
+  | |- 0 < exp _ => apply exp_pos
+  | |- 0 < pos _ => apply cond_pos
+  | |- _ > 0 => unfold Rgt; lt0
+  | |- 0 < 1 =>  apply Rlt_0_1
+  | |- 0 < 2 => apply Rlt_0_2
+  | |- 0 < PI => apply PI_RGT_0
+  | |- _ <> 0 => apply Rgt_not_eq; lt0
+  | |- 0 < Rabs _ + _ => apply (Rplus_le_lt_0_compat _ _ (Rabs_pos _)); lt0
+  | |- 0 < _ * _ => apply Rmult_lt_0_compat; lt0
+  | |- 0 < _ + _ => apply Rplus_lt_0_compat; lt0
+  | |- 0 < Rmin _ _ => apply Rmin_glb_lt; lt0
+  | |- 0 < / _ => apply Rinv_0_lt_compat; lt0
+  | |- 0 < sqrt _ => apply sqrt_lt_R0; lt0
+  | |- 0 < _ / _ => unfold Rdiv; apply Rmult_lt_0_compat; lt0
+  | |- 0 < _ ^ _ => apply pow_lt; lt0
+  | |- 0 < _ ^ 2 + _ => apply Rplus_le_lt_0_compat;[apply pow2_ge_0 | lt0]
+  | |- 0 < (?x * (?x * 1))%R + _ =>
+                        apply Rplus_le_lt_0_compat;[apply pow2_ge_0 | lt0]
+  | |- 0 <= Rabs _ => apply Rabs_pos
+  | |- _ <= _ => apply Rlt_le; lt0
+  | |- _ => psatzl R
+  end.
+
+(* TODO : move to coquelicot. *)
+Lemma filter_prod_le {T : Type} (F G F' G' : (T -> Prop) -> Prop) :
+  filter_le F F' -> filter_le G G' -> filter_le (filter_prod F G)
+    (filter_prod F' G').
+Proof.  now intros FF GG S [S1 S2 FS GS Imp]; exists S1 S2; auto. Qed.
+
+Lemma is_RInt_gen_filter_le {T : NormedModule R_AbsRing}
+  F G F' G' {FF : Filter F} {FG : Filter G}
+  {FF' : Filter F'} {FG' : Filter G'} (f : R -> T) v :
+  filter_le F' F -> filter_le G' G -> is_RInt_gen f F G v ->
+  is_RInt_gen f F' G' v.
+Proof.
+  intros lef leg [If [P1 P2]].
+  exists If; split.
+  now apply (filter_prod_le _ _ _ _ lef leg).
+now apply filter_le_trans with (2 := P2); intros S; apply filter_prod_le.
+Qed.
+
+Lemma is_RInt_gen_comp {Fa Fb : (R -> Prop) -> Prop} {FFa : Filter Fa}
+  {FFb : Filter Fb} (f : R -> R) (dg g : R -> R) l :
+  filter_prod Fa Fb (fun p =>
+      forall y, Rmin (fst p) (snd p) <= y <= Rmax (fst p) (snd p) ->
+             continuous f (g y) /\
+             is_derive g y (dg y) /\ continuous dg y) ->
+  is_RInt_gen f (filtermap g Fa) (filtermap g Fb) l ->
+  is_RInt_gen (fun x => scal (dg x) (f (g x))) Fa Fb l.
+Proof.
+intros dp [If [[S S' FS FS' fp1 fp2]]].
+destruct dp as [S1 S2 FS1 FS2 dp].
+exists (fun p => If(g (fst p), g (snd p))); split.
+  exists (fun x => S (g x) /\ S1 x) (fun x => S' (g x) /\ S2 x);
+      try now apply filter_and; auto.
+  intros x y [sgx s1x] [sgy s2y]; simpl.
+  replace (If(g x, g y)) with (RInt f (g x) (g y));
+    [ | now apply is_RInt_unique, fp1].
+  apply (is_RInt_comp f g dg).
+    now intros z intz; apply (dp x y s1x s2y z intz).
+  intros z intz; apply (dp x y s1x s2y z intz).
+apply filter_le_trans with (2 := fp2).
+now intros T [U V *]; exists (fun x => U (g x)) (fun x => V (g x)); auto.
+Qed.
+
+Lemma is_RInt_gen_equiv F G F' G' (f : R -> R) v:
+  (forall s, F s <-> F' s) -> (forall s, G s <-> G' s) ->
+  is_RInt_gen f F G v -> is_RInt_gen f F' G' v.
+Proof.
+intros eqF eqG [inf [[A B FA GB isinf] liminf]].
+exists inf; split;[now exists A B; rewrite <- ?eqG, <- ?eqF; auto|].
+apply filterlim_filter_le_1 with (2 := liminf).
+apply filter_prod_le; intros P;[apply eqF | apply eqG].
+Qed.
+
+Lemma is_RInt_gen_at_point_at_right (f : R -> R) (a : R) F {FF : ProperFilter F}
+  v : locally a (continuous f) -> is_RInt_gen f (at_point a) F v ->
+  filter_Rlt (at_point a) F ->  is_RInt_gen f (at_right a) F v.
+Proof.
+intros [delta1 pd1] [inf [isinf limf]] [m [P Q FP FQ cmp]]; simpl in cmp.
+destruct (pd1 a (ball_center a delta1)
+          (ball (f a) (mkposreal _ Rlt_0_1)) (locally_ball _ _)) as
+    [delta2 Pd2].
+destruct isinf as [P1 Q1 FP1 FQ1 isinf].
+assert (pa : P a) by (apply FP; intros; apply ball_center).
+exists (fun p => RInt f (fst p) (snd p)); split.
+  exists (fun x => m > x /\ a < x) (fun x => Q x /\ Q1 x).
+      destruct (filter_ex _ FQ) as [y Qy].
+      destruct (cmp _ _ pa Qy).
+      assert (ma : 0 < m - a) by psatzl R.
+      exists (mkposreal _ ma); simpl; intros z; unfold ball; simpl.
+      unfold AbsRing_ball, ball, minus, plus, opp, abs; simpl.
+      now intros B az; revert B; rewrite Rabs_right; psatzl R.
+    now apply filter_and.
+  intros x y xm fq; simpl; apply RInt_correct.
+  apply: (ex_RInt_Chasles_2 _ a).
+    destruct (cmp a y pa); try tauto; psatzl R.
+  exists (inf (a, y)); apply isinf; try tauto.
+  now apply FP1; intros; apply ball_center.
+intros P2 [eps P2eps].
+set (M := Rabs (f a) + 1).
+assert (M0 : 0 < eps / M) by (unfold M; lt0).
+assert (close : forall y, y <> a -> ball a delta2 y -> Rabs (f y) < M).
+  intros y ay b_y; unfold M.
+  replace (f y) with (f a + (f y - f a)) by ring.
+  apply Rle_lt_trans with (1 := Rabs_triang _ _).
+  now apply Rplus_lt_compat_l, Pd2; auto.
+assert (exrint_close : forall a', ball a delta1 a' -> ex_RInt f a a').
+  intros a' baa'.
+  apply: ex_RInt_continuous; intros z pz; apply pd1.
+  destruct (Rle_dec a a') as [aa' | a'a].
+    rewrite -> Rmin_left, Rmax_right in pz; auto.
+    change (Rabs (z - a) < delta1).
+    rewrite Rabs_right; cycle 1.
+      psatzl Rdefinitions.R.
+    apply Rle_lt_trans with (a' - a); try psatzl Rdefinitions.R.
+    rewrite <- (Rabs_right (a' - a)); try psatzl Rdefinitions.R.
+    tauto.
+  change (Rabs (z - a) < delta1).
+  destruct (Rle_dec a z) as [az | za].
+    rewrite -> Rmin_right, Rmax_left in pz; try psatzl Rdefinitions.R.
+    assert (za' : z = a) by psatzl Rdefinitions.R.
+    now rewrite -> za', Rminus_eq_0, Rabs_R0; case delta1; tauto.
+  rewrite -> Rmin_right, Rmax_left in pz; try psatzl Rdefinitions.R.
+  rewrite Rabs_left; cycle 1.
+  psatzl Rdefinitions.R.
+  apply Rle_lt_trans with (a - a'); try psatzl Rdefinitions.R.
+  rewrite <- (Rabs_right (a - a')); try psatzl Rdefinitions.R.
+  now change (ball a' delta1 a); apply ball_sym; tauto.
+destruct (limf (ball v (pos_div_2 eps))) as [Ql Rl FQl FRl vfi'].
+  now apply locally_ball.
+assert (pre_ep2 : 0 < eps / 2 * /M) by lt0.
+set (ep2 := mkposreal _ pre_ep2).
+assert (at_right a (fun x => ball a delta1 x /\ ball a ep2 x /\
+                             ball a delta2 x /\ a < x /\ x < m)).
+  repeat apply filter_and; try (now apply filter_le_within, locally_ball).
+    now exists ep2; intros; tauto.
+  destruct (filter_ex _ FQ) as [y' Py'].
+  assert (ma0 : 0 < m - a).
+    now destruct (cmp a y'); auto; psatzl R.
+  exists (mkposreal _ ma0); simpl; intros y.
+  intros bay ay; change (Rabs (y - a) < m - a) in bay.
+  now rewrite -> Rabs_right in bay; psatzl R.
+assert (F (fun y => Q y /\ Rl y /\ Q1 y)).
+  now repeat apply filter_and; auto.
+exists (fun x => ball a delta1 x /\ ball a ep2 x /\
+                 ball a delta2 x /\ a < x /\ x < m)
+          (fun y => Q y /\ Rl y /\ Q1 y); auto.
+intros x y bx Ry; apply P2eps; simpl.
+replace (pos eps) with (pos_div_2 eps + pos_div_2 eps) by (simpl; field).
+assert (Rabs (RInt f a x) < pos_div_2 eps).
+  apply Rle_lt_trans with ((x - a) * M).
+    apply abs_RInt_le_const;[apply Rlt_le; tauto | | ].
+      now apply: exrint_close; tauto.
+    intros t atx.
+    replace (f t) with (f a + (f t - f a)) by ring.
+    apply Rle_trans with (1 := Rabs_triang _ _).
+    apply Rplus_le_compat;[apply Rle_refl | ].
+    apply Rlt_le, (Pd2 t).
+    change (Rabs (t - a) < delta2); rewrite Rabs_right;[ | psatzl R].
+    apply Rle_lt_trans with (x - a);[psatzl R | ].
+    now rewrite <- (Rabs_right (x - a));[tauto | psatzl R].
+  replace (pos (pos_div_2 eps)) with (ep2 * M).
+    rewrite <- (Rabs_right (x - a));[|psatzl R].
+    now apply Rmult_lt_compat_r;[unfold M; lt0 | tauto].
+  simpl; field; unfold M; lt0.
+apply ball_triangle with (RInt f a y); cycle 1.
+  change (Rabs (RInt f x y - RInt f a y) < pos_div_2 eps).
+  replace (RInt f a y) with (RInt f a x + RInt f x y); cycle 1.
+  apply RInt_Chasles.
+      now apply: exrint_close; tauto.
+    apply: (ex_RInt_Chasles_2 f a).
+      split;[apply Rlt_le; tauto | apply Rlt_le, Rlt_trans with m; try tauto].
+    now destruct (cmp a y); tauto.
+  exists (inf (a, y)); apply isinf.
+    now apply FP1; intros; apply ball_center.
+  now tauto.
+  now rewrite [_ - _](_ : _ = - RInt f a x) ?Rabs_Ropp;[ | ring].
+rewrite (is_RInt_unique f a y (inf(a, y))); cycle 1.
+  now apply isinf;[apply FP1; intros; apply ball_center | tauto].
+now apply vfi';[apply FQl; intros; apply ball_center | tauto].
+Qed.
+
+Lemma is_RInt_gen_at_right_at_point (f : R -> R) (a : R) F {FF : ProperFilter F}
+  v :
+  locally a (continuous f) -> is_RInt_gen f (at_right a) F v ->
+  is_RInt_gen f (at_point a) F v.
+Proof.
+intros [delta1 pd1].
+destruct (pd1 a (ball_center a delta1)
+          (ball (f a) (mkposreal _ Rlt_0_1)) (locally_ball _ _)) as
+    [delta2 Pd2].
+intros [fi [ifi vfi]].
+set (M := Rabs (f a) + 1).
+assert (M0 : 0 < M) by (unfold M; lt0).
+assert (close : forall y, y <> a -> ball a delta2 y -> Rabs (f y) < M).
+  intros y ay b_y; unfold M.
+  replace (f y) with (f a + (f y - f a)) by ring.
+  apply Rle_lt_trans with (1 := Rabs_triang _ _).
+  now apply Rplus_lt_compat_l, Pd2; auto.
+destruct ifi as [Q2 R2 FQ2 FR2 ifi].
+assert (atrd1 : at_right a (ball a delta1)) by (exists delta1; tauto).
+assert (exrint_close : forall a', ball a delta1 a' -> ex_RInt f a a').
+  intros a' baa'.
+  apply: ex_RInt_continuous; intros z pz; apply pd1.
+  destruct (Rle_dec a a') as [aa' | a'a].
+    rewrite -> Rmin_left, Rmax_right in pz; auto.
+    change (Rabs (z - a) < delta1).
+    rewrite Rabs_right; cycle 1.
+      psatzl Rdefinitions.R.
+    apply Rle_lt_trans with (a' - a); try psatzl Rdefinitions.R.
+    rewrite <- (Rabs_right (a' - a)); try psatzl Rdefinitions.R.
+  tauto.
+  change (Rabs (z - a) < delta1).
+  destruct (Rle_dec a z) as [az | za].
+    rewrite -> Rmin_right, Rmax_left in pz; try psatzl Rdefinitions.R.
+    assert (za' : z = a) by psatzl Rdefinitions.R.
+    now rewrite -> za', Rminus_eq_0, Rabs_R0; case delta1; tauto.
+  rewrite -> Rmin_right, Rmax_left in pz; try psatzl Rdefinitions.R.
+  rewrite Rabs_left; cycle 1.
+  psatzl Rdefinitions.R.
+  apply Rle_lt_trans with (a - a'); try psatzl Rdefinitions.R.
+  rewrite <- (Rabs_right (a - a')); try psatzl Rdefinitions.R.
+  now change (ball a' delta1 a); apply ball_sym; tauto.
+exists (fun p => RInt f (fst p) (snd p)); split; cycle 1.
+  intros P [eps Peps].
+  assert (pre_ep2 : 0 < eps / 2 * /M) by lt0.
+  set (ep2 := mkposreal _ pre_ep2).
+  destruct (vfi (ball v (pos_div_2 eps))) as [Q R FQ FR vfi'].
+    now apply locally_ball.
+  exists (eq a) (fun y => R y /\ R2 y).
+      exact: ball_eq.
+    now apply filter_and.
+  intros x y ax [Ry R2y]; simpl; rewrite <- ax; clear ax x.
+  apply Peps.
+  assert (atrd2 : at_right a (ball a delta2)) by (exists delta2; tauto).
+  assert (atre2 : at_right a (ball a ep2)) by (exists ep2; tauto).
+  destruct (filter_ex _ (filter_and _ _ atrd1 (filter_and _ _ atrd2
+                          (filter_and _ _ FQ (filter_and _ _ FQ2 atre2))))) as
+      [a' Pa'].
+  replace (pos eps) with (eps/2 + M * (eps / 2 * / M)) by (field; lt0).
+  apply ball_triangle with (RInt f a' y).
+    replace (RInt f a' y) with (fi (a', y)).
+      now apply vfi'; tauto.
+    now symmetry; apply is_RInt_unique, ifi; tauto.
+  assert (ex_RInt f a a') by (apply exrint_close; tauto).
+  change (Rabs (RInt f a y - RInt f a' y) < M * (eps / 2 * / M)).
+  apply Rle_lt_trans with (RInt (fun x => Rabs (f x)) (Rmin a a') (Rmax a a')).
+  replace (RInt f a y - RInt f a' y) with (RInt f a a'); cycle 1.
+    apply Rplus_eq_reg_r with (RInt f a' y).
+    now rewrite RInt_Chasles;[ring | | eapply ex_intro; apply ifi]; tauto.
+  destruct (Rle_dec a a') as [aa' | a'a].
+    rewrite -> Rmin_left, Rmax_right; try psatzl Rdefinitions.R.
+    apply abs_RInt_le; assumption.
+  rewrite <- RInt_swap, Rabs_Ropp, Rmin_right, Rmax_left;
+        try psatzl Rdefinitions.R.
+  apply abs_RInt_le; try psatzl Rdefinitions.R.
+  apply ex_RInt_swap; assumption.
+  apply Rle_lt_trans with (RInt (fun _ => M) (Rmin a a') (Rmax a a')).
+  apply RInt_le.
+          now apply Rminmax.
+        apply: ex_RInt_continuous.
+        rewrite -> Rmin_left, Rmax_right; try apply Rminmax.
+        intros z pz; apply continuous_comp;[ | now apply continuous_Rabs].
+        apply pd1, Rle_lt_trans with (Rabs (a' - a));[ | tauto].
+        unfold abs, minus, plus, opp; simpl.
+        destruct (Rle_dec a a') as [aa' | a'a].
+          now rewrite -> Rmin_left, Rmax_right in pz; try rewrite !Rabs_right;
+          psatzl Rdefinitions.R.
+        rewrite -> Rmin_right, Rmax_left in pz; try rewrite (Rabs_left (a' - a));
+          try psatzl Rdefinitions.R.
+        destruct (Req_dec z a) as [za | nza].
+          rewrite -> za,Rplus_opp_r, Rabs_R0; psatzl Rdefinitions.R.
+        now rewrite Rabs_left; psatzl Rdefinitions.R.
+      now apply ex_RInt_const.
+    intros z pz; apply Rlt_le, close.
+      destruct (Rle_dec a a') as [aa' | a'a].
+        now rewrite -> Rmin_left, Rmax_right in pz; psatzl Rdefinitions.R.
+      now rewrite -> Rmin_right, Rmax_left in pz; psatzl Rdefinitions.R.
+    apply Rlt_trans with (Rabs (a' - a));[ | tauto].
+    unfold abs, minus, plus, opp; simpl.
+    destruct (Rle_dec a a') as [aa' | a'a].
+      now rewrite -> Rmin_left, Rmax_right in pz; try rewrite !Rabs_right;
+          psatzl Rdefinitions.R.
+    rewrite -> Rmin_right, Rmax_left in pz; try rewrite (Rabs_left (a' - a));
+          try psatzl Rdefinitions.R.
+    destruct (Req_dec z a) as [za | nza].
+      now rewrite -> za,Rplus_opp_r, Rabs_R0; psatzl Rdefinitions.R.
+    now rewrite Rabs_left; psatzl Rdefinitions.R.
+  rewrite -> RInt_const, Rmult_comm.
+  apply Rmult_lt_compat_l;[psatzl Rdefinitions.R | ].
+  destruct (Rle_dec a a') as [aa' | a'a].
+    rewrite -> Rmax_right, Rmin_left; try psatzl Rdefinitions.R.
+    rewrite <- (Rabs_right (a' - a));[tauto | psatzl Rdefinitions.R].
+  rewrite -> Rmax_left, Rmin_right; try psatzl Rdefinitions.R.
+  replace (a - a') with (- (a' - a)) by ring.
+  now rewrite <- (Rabs_left (a' - a)); try psatzl Rdefinitions.R; tauto.
+exists (eq a) R2;[intros z pz; apply ball_eq; exact pz | assumption | ].
+intros x y ax qy; rewrite <- ax; clear ax x.
+apply RInt_correct; simpl.
+destruct (filter_ex _ (filter_and _ _ atrd1 FQ2)) as [a' pa'].
+apply ex_RInt_Chasles with a'.
+  now apply exrint_close; tauto.
+eapply ex_intro; apply ifi; tauto.
+Qed.
+
+(* TODO : move to standard. *)
+Lemma inv_sqrt x : 0 < x -> / sqrt x = sqrt (/ x).
+Proof.
+intros x0.
+assert (sqrt x <> 0) by (apply Rgt_not_eq; lt0).
+apply Rmult_eq_reg_r with (sqrt x); auto.
+rewrite Rinv_l; auto.
+rewrite <- sqrt_mult_alt; try lt0.
+rewrite -> Rinv_l, sqrt_1; auto with real.
+Qed.
+
+(* TOD0 : move to standard. *)
+Lemma sqrt_pow_2 x : 0 <= x -> sqrt x ^ 2 = x.
+Proof. now intros x0; simpl; rewrite -> Rmult_1_r, sqrt_sqrt. Qed.
 
 Lemma ints : 0 < /sqrt 2 < 1.
 Proof. split; interval. Qed.
@@ -337,4 +660,16 @@ apply Rlt_le_trans with (x + sqrt (x ^ 2 + 3 * x ^ 2)).
   now apply Rplus_lt_compat_l, sqrt_lt_1; lt0.
 replace (x ^ 2 + 3 * x ^ 2) with ((2 * x) ^ 2) by ring.
 rewrite sqrt_pow2;[psatzl R | lt0].
+Qed.
+
+(* standard *)
+Lemma sqrt_lt : forall x, 1 < x -> sqrt x < x.
+Proof.
+intros x x1.
+ assert (x0 : 0 < x) by (apply Rlt_trans with (1 := Rlt_0_1)(2 := x1)).
+ assert (s0 : 0 < sqrt x) by (apply sqrt_lt_R0; assumption).
+ pattern x at 2; rewrite <- sqrt_sqrt;[|apply Rlt_le; assumption].
+ pattern (sqrt x) at 1; rewrite <- Rmult_1_l.
+ apply Rmult_lt_compat_r;[assumption | ].
+ rewrite <- sqrt_1; apply sqrt_lt_1_alt;split;[apply Rlt_le, Rlt_0_1|assumption].
 Qed.
