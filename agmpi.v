@@ -15,7 +15,7 @@ Definition w_ (n : nat) x :=
 
 Definition k_ n x := / (2 ^ n) * ln (u_ n x / w_ n x).
 
-Lemma M_between a b n : 0 < a -> 0 < b -> b <= a -> 
+Lemma M_between a b n : 0 < a -> 0 < b -> b <= a ->
    snd (ag a b n) <= M a b <= fst (ag a b n).
 Proof.
 intros a0 b0 ba; rewrite <- (M_shift _ _ n); try lt0.
@@ -123,7 +123,7 @@ set (u := sqrt (snd _)); rewrite <- (sqrt_pow_2 (snd _)); try lt0; unfold u.
 field; repeat split; lt0.
 Qed.
 
-Lemma derive_y_step x : 0 < x -> 
+Lemma derive_y_step x : 0 < x ->
   is_derive yfun x ((x - 1) / (4 * sqrt x ^ 3)).
 Proof.
 intros x0; unfold yfun; evar_last;[now auto_derive; repeat split; lt0 | ].
@@ -170,8 +170,8 @@ intros cx cy xy; induction n as [ | n IHn].
   now unfold Rdiv; rewrite !Rmult_1_l; apply Rinv_lt_contravar; lt0.
 replace (S n) with (n + 1)%nat by ring; rewrite !y_step; auto.
 assert (tmp : 1 < y_ n y) by now apply y_gt_1; psatzl R.
-assert (exd' : forall c, y_ n y <= c <= y_ n x-> 
-               derivable_pt_lim yfun c (Derive yfun c)).  
+assert (exd' : forall c, y_ n y <= c <= y_ n x->
+               derivable_pt_lim yfun c (Derive yfun c)).
   intros c cc; rewrite <- is_derive_Reals.
   now apply Derive_correct, exdy; psatzl R.
 destruct (MVT_cor2 yfun (Derive yfun) (y_ n y) (y_ n x) IHn exd') as
@@ -191,7 +191,7 @@ intros intx; rewrite (Derive_ext _ (fun x => /2 * (u_ n x + snd (ag 1 x n)))).
   destruct (ex_derive_ag n x) as [d [e Ps]]; try lt0.
   assert (ex_derive (u_ n) x) by (exists d; tauto).
   assert (ex_derive (fun x => snd (ag 1 x n)) x) by (exists e; tauto).
-  evar_last.  
+  evar_last.
     now rewrite -> Derive_scal, Derive_plus; auto.
   now field.
 intros; unfold u_; change (S n) with (1 + n)%nat.
@@ -199,8 +199,8 @@ now rewrite -> ag_shift, Rmult_comm.
 Qed.
 
 Lemma derive_snd_step n x : 0 < x < 1 ->
-  Derive (fun y => snd (ag 1 y (S n))) x = 
-  (Derive (u_ n) x  * snd (ag 1 x n) + 
+  Derive (fun y => snd (ag 1 y (S n))) x =
+  (Derive (u_ n) x  * snd (ag 1 x n) +
    Derive (fun x => snd (ag 1 x n)) x * fst (ag 1 x n))
    / (2 * sqrt (fst (ag 1 x n)) * sqrt (snd (ag 1 x n))).
 Proof.
@@ -248,7 +248,7 @@ replace (n + 1)%nat with (S n) by ring; rewrite derive_fst_step; try lt0.
 rewrite derive_snd_step; try lt0.
 unfold u_; set (a := fst (ag _ _ _)); set (b := snd (ag _ _ _)).
 set (t := sqrt a); set u := sqrt b.
-rewrite (is_derive_unique _ _ _ (proj1 P)) 
+rewrite (is_derive_unique _ _ _ (proj1 P))
        (is_derive_unique _ _ _ (proj1 (proj2 P))).
 rewrite sqrt_div; try (unfold a, b; lt0); fold t; fold u.
 rewrite <- (sqrt_sqrt a), <- (sqrt_sqrt b); try (unfold a, b; lt0).
@@ -256,7 +256,7 @@ now fold t; fold u; field; unfold t, u, a, b; repeat split; lt0.
 Qed.
 
 Lemma derive_z_step y x : 0 < x -> 0 < y ->
-  is_derive (fun z => (1 + z * y) / ((1 + z) * sqrt y)) x 
+  is_derive (fun z => (1 + z * y) / ((1 + z) * sqrt y)) x
       ((y - 1) / ((x + 1) ^ 2 * sqrt y)).
 Proof.
 intros x0 y0; evar_last; [auto_derive; repeat split; lt0 | ].
@@ -295,7 +295,7 @@ rewrite <- Rabs_Ropp, Ropp_minus_distr', Rabs_pos_eq.
   apply Rlt_le_trans with y;[psatzl R | ].
   apply Rle_trans with (sqrt (1 * y)).
     rewrite Rmult_1_l.
-    apply Rsqr_incr_0;[ | lt0 | lt0].  
+    apply Rsqr_incr_0;[ | lt0 | lt0].
     rewrite Rsqr_sqrt;[ | lt0]; unfold Rsqr; pattern y at 3.
     rewrite <- Rmult_1_r.
     apply Rmult_le_compat_l; lt0.
@@ -313,7 +313,7 @@ Lemma compare_derive_ag n x : (1 <= n)%nat -> 0 < x < 1 ->
 Proof.
 assert (help : forall a b, 0 < a -> 1 < b / a -> a < b).
   intros a b a0 bda; replace a with (a * 1) by ring.
-    replace b with (a * (b / a)) by (field; lt0). 
+    replace b with (a * (b / a)) by (field; lt0).
   now apply Rmult_lt_compat_l; lt0.
 assert (help2 : forall a b, 0 < a -> a < b -> 1 < b / a).
   intros a b a0 bda; apply Rmult_lt_reg_r with a; try lt0.
@@ -354,7 +354,7 @@ apply Rle_lt_trans with ((1 + 1 * y_ m x) / ((1 + 1) * sqrt (y_ m x))).
   now apply Rmult_le_pos; lt0.
 rewrite Rminus_lt_0.
 set (fz := fun z => (1 + z * y_ m x) / ((1 + z) * sqrt (y_ m x))).
-change (0 < fz (z_ m x) - fz 1).  
+change (0 < fz (z_ m x) - fz 1).
 assert (1 < z_ m x) by (unfold z_; apply help2; lt0).
 destruct (MVT_gen fz 1 (z_ m x)
    (fun z => ((y_ m x - 1) / ((z + 1) ^ 2 * sqrt (y_ m x))))) as
@@ -368,7 +368,7 @@ Qed.
 Lemma z_gt_1 x n : 0 < x < 1 -> (1 <= n)%nat -> 1 < z_ n x.
 Proof.
 intros intx h; induction h.
-  unfold z_. 
+  unfold z_.
   assert (help : forall a b, 0 < a < b -> 1 < b/a).
     intros a b intab; apply Rmult_lt_reg_r with a;[tauto | ].
     unfold Rdiv; rewrite -> Rmult_assoc, Rinv_l;[ | psatzl R].
@@ -383,13 +383,13 @@ intros intx h; induction h.
 replace (S m) with (m + 1)%nat by ring; rewrite z_step; auto.
 assert (y1 :=  y_gt_1 x m intx).
 assert (0 < (1 + z_ m x) * sqrt (y_ m x)).
- rewrite Rplus_comm; lt0.  
+ rewrite Rplus_comm; lt0.
 apply (Rmult_lt_reg_r ((1 + z_ m x) * sqrt (y_ m x)));[assumption | ].
 unfold Rdiv; rewrite -> Rmult_assoc, Rinv_l, Rmult_1_r, Rmult_1_l;[|lt0].
 pattern (y_ m x) at 2; rewrite <- pow2_sqrt;[|lt0].
 rewrite -> Rmult_plus_distr_r, Rmult_1_l.
 apply Rplus_lt_reg_l with (-sqrt(y_ m x) + -sqrt (y_ m x) ^ 2 * z_ m x).
-match goal with |- ?a < ?b => 
+match goal with |- ?a < ?b =>
   replace a with (-(z_ m x * sqrt (y_ m x)) * (sqrt (y_ m x) - 1)) by ring;
   replace b with (-1 * (sqrt (y_ m x) - 1)) by ring
 end.
@@ -444,11 +444,11 @@ assert (sn1 : (1 <= S n)%nat) by lia.
 assert (n1 : (1 <= n)%nat) by lia.
 assert (t' := z_gt_1 y  _ inty sn1).
 assert (dyc' : Boule ((lb + 1) / 2) (mkposreal _ d0) y).
-  now unfold Boule in dyc; apply Rabs_def2 in dyc; 
+  now unfold Boule in dyc; apply Rabs_def2 in dyc;
   unfold Boule; simpl; apply Rabs_def1; psatzl R.
-generalize (Pn n y nN' dyc'); rewrite <-(Rabs_Ropp (1 - y_ n y)), 
+generalize (Pn n y nN' dyc'); rewrite <-(Rabs_Ropp (1 - y_ n y)),
  <- (Rabs_Ropp (1 - z_ (S n) y)), !Rabs_pos_eq; try lt0; intros.
-generalize (chain_y_z_y y n inty n1), (sqrt_lt (y_ n y) t); 
+generalize (chain_y_z_y y n inty n1), (sqrt_lt (y_ n y) t);
 replace (n + 1)%nat with (S n) by ring; intros; psatzl R.
 Qed.
 
@@ -470,7 +470,7 @@ assert (Pn1' := Pn1 _ _ nN1' bx).
 assert (bx' := bx).
 apply Rabs_lt_between in bx.
 assert (intx' : 0 < x < 1) by psatzl R.
-assert (1 < y_ n x) by (apply y_gt_1; assumption). 
+assert (1 < y_ n x) by (apply y_gt_1; assumption).
 assert (1 < y_ (n + 1) x) by (apply y_gt_1; assumption).
 assert (1 < sqrt (y_ (n + 1) x)) by
  (rewrite <- sqrt_1; apply sqrt_lt_1_alt; psatzl R).
@@ -496,7 +496,7 @@ apply Rle_trans with ((z_ (S n) x - 1)/sqrt (y_ n x)).
  destruct (chain_y_z_y x (S n) intx');[lia | ].
  assert (sqrt (y_ (n + 1) x) < y_ (n + 1) x).
   apply sqrt_less; psatzl R.
- replace (S n) with (n + 1)%nat by ring; psatzl R.  
+ replace (S n) with (n + 1)%nat by ring; psatzl R.
 replace (S n) with (n + 1)%nat by ring.
 assert (n11 : (1 <= n + 1)%nat) by lia.
 generalize  (z_gt_1 x (n + 1) intx' n11); intros.
@@ -508,7 +508,7 @@ Lemma derive_snd_decrease :
  forall lb, 0 < lb < 1 ->
   exists n_0, forall n, (n_0 <= n)%nat ->
    forall x, lb < x < 1 ->
-  Derive (fun y =>  snd (ag 1 y (n + 1))) x <= 
+  Derive (fun y =>  snd (ag 1 y (n + 1))) x <=
   Derive (fun y =>  snd (ag 1 y n)) x.
 Proof.
 intros lb l0.
@@ -551,8 +551,8 @@ rewrite <- (Rmult_assoc _  _ (/ (_ * _))), (Rmult_assoc _ (/ (_ * _))).
 rewrite -> Rinv_l, Rmult_1_r; [ | lt0].
 match goal with |- ?a <= ?b => apply Rplus_le_reg_l with (Ropp b) end.
 rewrite Rplus_opp_l.
-match goal with |- ?a <= 0 => 
-  replace a with 
+match goal with |- ?a <= 0 =>
+  replace a with
     ((z_ n x ^ 2 * ((sqrt (y_ n x) - 1) ^ 2 - 1)  +
     z_ n x * ((sqrt (y_ n x) - 1) ^ 2 - 1 + 1)
      + 1) / 2) by field
@@ -630,7 +630,7 @@ apply Rlt_trans with ((1 + z_ n y * y_ n x) / ((1 + z_ n y) * sqrt (y_ n x))).
 set (zfund1 :=  fun c' => (z_ n y ^ 2 * c' + z_ n y * c' - z_ n y - 1) /
    (2 * z_ n y ^ 2 * sqrt c' ^ 3 + 4 * z_ n y * sqrt c' ^ 3 +
     2 * sqrt c' ^ 3)).
-(* TODO : streamline statement of MVT_cor2, which should not use 
+(* TODO : streamline statement of MVT_cor2, which should not use
      derivable_pt_lim. *)
   assert (zfund : forall c, y_ n y <= c <= y_ n x ->
              derivable_pt_lim zfun1 c (zfund1 c)).
@@ -648,7 +648,7 @@ set (zfund1 :=  fun c' => (z_ n y ^ 2 * c' + z_ n y * c' - z_ n y - 1) /
     unfold zfund1.
     assert (0 < z_ n y ^ 2 * c + z_ n y * c - z_ n y - 1).
       apply Rlt_trans with (z_ n y ^ 2 * 1 + z_ n y * 1 - z_ n y - 1).
-        match goal with |- 0 < ?a => 
+        match goal with |- 0 < ?a =>
           replace a with ((z_ n y + 1) * (z_ n y - 1) )by ring
         end; lt0.
       unfold Rminus; repeat apply Rplus_lt_compat_r; apply Rplus_lt_compat.
@@ -657,10 +657,10 @@ set (zfund1 :=  fun c' => (z_ n y ^ 2 * c' + z_ n y * c' - z_ n y - 1) /
     lt0.
   lt0.
 set (zfun2 := fun w => (1 + w * y_ n x) / ((1 + w) * sqrt (y_ n x))).
-set (zfund2 := fun c => ((y_ n x  - 1) * sqrt (y_ n x)) / 
+set (zfund2 := fun c => ((y_ n x  - 1) * sqrt (y_ n x)) /
                       ((c + 1) * sqrt (y_ n x)) ^ 2).
 change (zfun2 (z_ n y) < zfun2 (z_ n x)).
-assert (zfund' : 
+assert (zfund' :
     forall c, z_ n y <= c <= z_ n x -> derivable_pt_lim zfun2 c (zfund2 c)).
   intros c cc; unfold zfun2, zfund2; auto_derive; try lt0.
   simpl; field; repeat split; lt0.
@@ -672,7 +672,7 @@ assert (0 < zfund2 c) by (unfold zfund2; lt0).
 lt0.
 Qed.
 
-Lemma d_u_decr n x y : (1 <= n)%nat -> 0 < x < 1 -> 0 < y < 1 -> x < y -> 
+Lemma d_u_decr n x y : (1 <= n)%nat -> 0 < x < 1 -> 0 < y < 1 -> x < y ->
   0 < Derive (u_ n) y <= Derive (u_ n) x.
 Proof.
 intros n1 cx cy xy.
@@ -685,12 +685,12 @@ induction n1 as [ | n pn IHn].
   now rewrite !d1; psatzl R.
 assert (1 < z_ n y) by now apply z_gt_1.
 split.
-  replace (Derive (u_ (S n)) y) with 
+  replace (Derive (u_ (S n)) y) with
        ((2 * Derive (u_ (S n)) y / Derive (u_ n) y) * Derive (u_ n) y / 2);
     [ | field; psatzl R].
   assert (0 < (1 + z_ n y) / 2) by psatzl R.
   now rewrite <- ratio_z; lt0.
-replace (Derive (u_ (S n)) y) with 
+replace (Derive (u_ (S n)) y) with
      ((2 * Derive (u_ (S n)) y / Derive (u_ n) y) * Derive (u_ n) y / 2);
   [rewrite <- ratio_z; auto | field; psatzl R].
 replace (Derive (u_ (S n)) x) with
@@ -704,8 +704,8 @@ assert (tmp := z_decr x y n pn cx cy xy); psatzl R.
 Qed.
 
 Lemma cv_du :
-  forall lb (d : posreal), 0 < lb < 1 -> d = (1 - lb) / 2 :> R -> 
-  CVU (fun n x => Derive (u_ n) x) 
+  forall lb (d : posreal), 0 < lb < 1 -> d = (1 - lb) / 2 :> R ->
+  CVU (fun n x => Derive (u_ n) x)
   (fun x => Lim_seq (fun n => Derive (u_ n) x))
   ((lb + 1) / 2) d.
 Proof.
@@ -716,7 +716,7 @@ assert (cl1 : (lb + 2) / 3 < 1) by psatzl R.
 assert (l1 : lb / 3 < (lb + 2) / 3) by psatzl R.
 assert (l0 : 0 < lb / 3) by psatzl R.
 assert (d0 : 0 < ((2 * lb + 1) / 3 - (2 * lb / 3)) / 2) by psatzl R.
-assert (c1 : lb / 3 < (2 * lb / 3 + ((2 * lb + 1) / 3)) / 2 - 
+assert (c1 : lb / 3 < (2 * lb / 3 + ((2 * lb + 1) / 3)) / 2 -
              mkposreal _ d0).
   simpl; psatzl R.
 assert (c2 : (2 * lb / 3 + ((2 * lb + 1) / 3))/ 2 + mkposreal _ d0 <
@@ -780,11 +780,11 @@ assert (ub_lim :  Rbar_le (Lim_seq (fun n0 => Derive (u_ n0) x))
     now assert (tmp := compare_derive_ag m x tmp1 intx''); psatzl R.
   induction mn as [ | m nlem IHm]; auto with real.
   apply Rle_trans with (2 := IHm); replace (S m) with (m + 1)%nat by ring.
-  apply Pn0. 
+  apply Pn0.
     apply le_trans with (2 := nlem), le_trans with (2 := nn).
     now unfold N; assert (tmp1 := Nat.le_max_r N1 N0); lia.
   now psatzl R.
-assert (lb_lim : Rbar_le 
+assert (lb_lim : Rbar_le
                 (Lim_seq (fun _ => Derive (u_ n) x))
                 (Lim_seq (fun n0 => Derive (u_ n0) x))).
   apply Lim_seq_le_loc.
@@ -803,18 +803,18 @@ apply Rle_lt_trans with (Rabs (Derive (fun x => snd (ag 1 x n)) x -
   rewrite Lim_seq_const in lb_lim; rewrite Lim_seq_const in ub_lim.
    simpl in lb_lim; simpl in ub_lim.
   destruct (Lim_seq (fun n => Derive (u_ n) x)) as [r | | ].
-      now simpl; psatzl R.   
+      now simpl; psatzl R.
     now simpl in ub_lim.
   easy.
 assert (cmpd : 0 < Derive (u_ n) x < Derive (fun y => snd (ag 1 y n)) x).
   now apply compare_derive_ag.
 rewrite Rabs_right;[ | psatzl R].
 apply Rle_lt_trans with (2 := cmpdlb).
-assert (cmplb : 0 < Derive (u_ (N + 2)) lb < 
+assert (cmplb : 0 < Derive (u_ (N + 2)) lb <
            Derive (fun y => snd (ag 1 y (N + 2))) lb).
   now assert (tmp1 : (1 <= N + 2)%nat) by lia; apply compare_derive_ag.
 match goal with |- ?a <= ?b =>
-  replace a with ((1 - /z_ n x) * 
+  replace a with ((1 - /z_ n x) *
                  Derive (fun y => snd(ag 1 y n)) x) by (unfold z_; field; lt0);
   replace b with ((1 - /z_ (N + 2) lb) *
                   Derive (fun y => snd (ag 1 y (N + 2))) lb)
@@ -895,7 +895,7 @@ assert (dv_u : forall n x, Boule ((lb + 1) / 2) d x ->
   rewrite <- is_derive_Reals; apply Derive_correct.
   destruct (ex_derive_ag n x' x'0) as [d1 [d2 [Pd1 _]]].
   now exists d1; exact Pd1.
-assert (t := 
+assert (t :=
          CVU_derivable u_ _ ff _
          _ d (cv_du _ _ lbin dq) cv_u dv_u).
   now eapply ex_intro; rewrite is_derive_Reals; apply t.
@@ -924,7 +924,7 @@ assert (tmp3 : forall n x, Boule ((lb + 1) / 2) d x ->
   assert (xp : 0 < x) by psatzl R.
   destruct (ex_derive_ag n x xp) as [du [dv [isdu _]]].
   now apply Derive_correct; exists du; apply isdu.
-assert 
+assert
   (tmp := CVU_derivable u_ (fun n => Derive (u_ n)) ff
           (fun x => Lim_seq (fun n => Derive (u_ n) x)) ((lb + 1) / 2) d tmp1
           tmp2 tmp3); clear tmp1 tmp2 tmp3.
@@ -944,7 +944,7 @@ intros intx; apply Rlt_le_trans with (/2); [lt0 | ].
 assert (lim_du : is_lim_seq (fun n => Derive (u_ n) x) (Derive ff x)).
   assert (xhalf0 : 0 < x / 2 < 1) by psatzl R.
   assert (dpos : 0 < (1 - x / 2) / 2) by psatzl R.
-  rewrite is_lim_seq_Reals; 
+  rewrite is_lim_seq_Reals;
   apply (CVU_cv (fun n => Derive (u_ n)) (Derive ff) ((x / 2 + 1) / 2)
              (mkposreal _ dpos)).
     apply (cv_u_ff' (x / 2) (mkposreal _ dpos) xhalf0 (refl_equal _)).
@@ -968,10 +968,10 @@ now rewrite (_ : forall u v, u ^ 2 - v ^ 2 = (u - v) * (u + v));
    [lt0| intros; ring].
 Qed.
 
-Lemma is_derive_w n x : 0 < x < 1 -> 
+Lemma is_derive_w n x : 0 < x < 1 ->
   is_derive (w_ n) x
    (/ (2 * sqrt (u_ n x ^ 2 - snd (ag 1 x n) ^ 2)) *
-              (2 * u_ n x * Derive (u_ n) x - 
+              (2 * u_ n x * Derive (u_ n) x -
                2 * snd (ag 1 x n) *
                Derive (fun x => snd (ag 1 x n)) x)).
 Proof.
@@ -979,7 +979,7 @@ intros [x0 x1]; unfold w_.
   rewrite Rmult_comm; apply (is_derive_comp sqrt).
   assert (t := ag_le n 1 x Rlt_0_1 x0).
   assert (t' := ag_lt n 1 x (conj x0 x1)).
-  auto_derive. 
+  auto_derive.
     enough (snd (ag 1 x n) ^ 2 < fst (ag 1 x n) ^ 2) by psatzl R.
     now apply Rmult_le_0_lt_compat; lt0.
   now rewrite (_ : forall u v, u ^ 2 - v ^ 2 = (u - v) * (u + v));
@@ -999,7 +999,7 @@ simpl; unfold scal; simpl; unfold mult, one; simpl; ring.
 Qed.
 
 Lemma is_derive_k n x : 0 < x < 1 -> is_derive (k_ n) x
-     (/(2 ^ n) * (/(u_ n x / w_ n x) * 
+     (/(2 ^ n) * (/(u_ n x / w_ n x) *
          ((Derive (u_ n) x * w_ n x - Derive (w_ n) x * u_ n x) /
          (w_ n x) ^ 2))).
 Proof.
@@ -1031,7 +1031,7 @@ intros dif; assert (dif' := dif).
 apply (pow_lt _ 2) in dif; rewrite sqrt_pow_2 in dif; cycle 1.
   enough (b' ^ 2 <= a' ^ 2) by psatzl R.
   now apply pow_incr; psatzl R.
-rewrite <- !Rsqr_pow2 in dif. 
+rewrite <- !Rsqr_pow2 in dif.
 assert (t : forall A B, 0 < A - B -> B < A) by (intros; psatzl R).
 apply t in dif; apply Rsqr_incrst_0 in dif; try lt0; clear t.
 rewrite pow2_sqrt;[ | lt0].
@@ -1100,7 +1100,7 @@ replace (Derive (k_ (S n)) x) with
   symmetry; apply is_derive_unique.
   apply (is_derive_ext_loc (fun x : R_AbsRing => / 2 ^ S n *
           ln ((u_ n x + snd (ag 1 x n)) / (u_ n x - snd (ag 1 x n))))); cycle 1.
-    exact derf.     
+    exact derf.
   assert (m0 : 0 < Rmin x (1 - x)) by (apply Rmin_glb_lt; lt0).
   exists (mkposreal _ m0); simpl; intros y bay; apply eqf.
   revert bay; rewrite ball_Rabs.
@@ -1129,7 +1129,7 @@ replace (u_ n x ^ 2 - snd (ag 1 x n) ^ 2) with
   now unfold u_; lt0.
 replace (fst (ag 1 x n) ^ 3 * snd (ag 1 x n) ^ 2 -
              fst (ag 1 x n) * snd (ag 1 x n) ^ 4) with
-     ((fst (ag 1 x n) * snd (ag 1 x n) ^ 2) * 
+     ((fst (ag 1 x n) * snd (ag 1 x n) ^ 2) *
        (fst (ag 1 x n)  - snd (ag 1 x n)) * (fst (ag 1 x n) + snd (ag 1 x n)))
     by ring; lt0.
 Qed.
@@ -1156,7 +1156,7 @@ induction n.
       now apply (is_derive_pow _ 2), is_derive_id.
     now rewrite Rmult_1_r; lt0.
   now simpl; unfold minus, plus, opp, zero, one; simpl; field; lt0.
-replace (Derive (k_ (S n)) x) with 
+replace (Derive (k_ (S n)) x) with
   ((Derive (k_ n) x / snd (ag 1 x n) ^ 2) * snd (ag 1 x (S n)) ^ 2).
   now rewrite IHn; field; destruct (ag_le n 1 x); lt0.
 rewrite derive_k_div_snd_ag; auto; field; destruct (ag_le (S n) 1 x); lt0.
@@ -1213,7 +1213,7 @@ replace (2 ^ S n) with (2 ^ n * 2) by (simpl; ring); rewrite Rmult_assoc.
  rewrite M_ag_diff_squares_step; psatzl R.
 Qed.
 
-Lemma Rint_ellf_sqrt_equiv : 
+Lemma Rint_ellf_sqrt_equiv :
   filterlim (fun x => RInt (ellf 1 x) 0 (sqrt x) / ln(/sqrt x))
      (at_right 0) (locally 1).
 Proof.
@@ -1284,10 +1284,10 @@ assert (cmp' : forall y : R,
   rewrite -> Ropp_0, Rplus_0_r, Rabs_right;[ | lt0].
   intros xd; apply Rlt_le_trans with (1 := xd).
   apply Rle_trans with ((delta1 / 2) ^ 2 / 2).
-    apply Rmult_le_compat_r; try lt0. 
+    apply Rmult_le_compat_r; try lt0.
     now apply Rle_trans with (1 := Rmin_r _ _), Rmin_l.
   now fold ((delta1 / 2) ^ 2); assert (t := pow2_ge_0 (delta1 / 2)); psatzl R.
-assert (scal : 
+assert (scal :
          RInt (fun t : R => / sqrt (((delta1/2) ^ 2 + 1) * (t ^ 2 + x ^ 2)))
              0 (sqrt x) = /sqrt ((delta1 / 2) ^ 2 + 1) *
              arcsinh(/ sqrt x)).
@@ -1312,7 +1312,7 @@ rewrite <- Rabs_Ropp, -> Rabs_right, Ropp_minus_distr.
    (rewrite -> pow_i, Rplus_0_l, sqrt_1, Rinv_1;[auto | lia]).
   assert (/sqrt ((delta1 / 2) ^ 2 + 1) <= /sqrt (0 ^ 2 + 1)).
   apply Rle_Rinv;[lt0 | lt0 | apply sqrt_le_1_alt, Rplus_le_compat_r, pow_incr].
-    now destruct delta1; simpl; psatzl R. 
+    now destruct delta1; simpl; psatzl R.
   rewrite <- (Rabs_pos_eq (_ - _)), <- Rabs_Ropp, Ropp_minus_distr';[| psatzl R].
   apply (Pd1 (delta1 / 2)).
   now rewrite -> ball_Rabs, Rabs_right; destruct delta1; simpl; psatzl R.
@@ -1346,7 +1346,7 @@ evar_last.
   now apply (filterlim_Rbar_inv (Finite 1)); injection; lt0.
 simpl; rewrite Rinv_1; reflexivity.
 Qed.
-  
+
 Lemma w_lt_u n x : 0 < x < 1 -> w_ n x < u_ n x.
 Proof.
 intros intx.
@@ -1390,7 +1390,7 @@ assert (limw : is_lim_seq (fun n => w_ n x) 0).
   destruct (fun h => is_lim_seq_geom (/2) h (ball 0 eps)) as [N Pn].
       now rewrite Rabs_right; lt0.
     now apply locally_ball.
-  exists (N + 1)%nat; intros n Nn. 
+  exists (N + 1)%nat; intros n Nn.
   assert (0 < fst (ag 1 x n) ^ 2 - snd (ag 1 x n) ^ 2).
     rewrite help; assert (t := ag_lt n 1 x intx).
     now destruct (ag_le n 1 x); lt0.
@@ -1440,7 +1440,7 @@ apply is_lim_seq_ext with
   now split;[apply Rlt_not_eq; lt0| split;[lt0 |apply Rgt_not_eq, M0; lt0]].
 apply: (is_lim_seq_mult _ _ 1 (PI/2 * ff x / ff(sqrt (1 - x ^ 2)))); cycle 2.
     now unfold is_Rbar_mult; cbn -[pow]; rewrite Rmult_1_l.
-  apply (filterlim_comp _ _ _ (fun n => (w_ n x / u_ n x)) 
+  apply (filterlim_comp _ _ _ (fun n => (w_ n x / u_ n x))
              (fun y => ff y / (- PI/(2 * ln y))) _ (at_right 0)).
     intros P [eps Peps].
     destruct (limwu (ball 0 eps) (locally_ball _ _)) as [bound pb].
@@ -1495,7 +1495,7 @@ Lemma CVU_derive_k_n :
    (forall y, Boule c delta y -> lb < y < ub) ->
    CVU (fun n x => Derive (k_ n) x) (fun x => ff x ^ 2/(x * (1 - x ^ 2))) c delta.
 intros lb ub [ub0 ul] lb1 x delta Pb.
-assert (ctpoly : forall y, lb <= y <= ub -> 
+assert (ctpoly : forall y, lb <= y <= ub ->
            continuity_pt (fun z => z * (1 - z ^ 2)) y) by (intros; reg).
 destruct (continuity_ab_min
             (fun x => x * (1 - x ^ 2)) lb ub (Rlt_le _ _ ul) ctpoly) as
@@ -1510,7 +1510,7 @@ assert (bnd : forall y n, 0 < y < 1 -> u_ n y - snd(ag 1 y n) <= 1 / 2 ^ n).
   now apply Rmult_le_compat_r; lt0.
 intros eps ep.
 assert (dpos : 0 < eps * (bot * (1 - bot ^ 2))) by lt0.
-destruct (cv_div2 1 (ball 0 (mkposreal _ dpos))) as [N Pn]. 
+destruct (cv_div2 1 (ball 0 (mkposreal _ dpos))) as [N Pn].
   now apply locally_ball.
 exists (N + 1)%nat; intros n y nN dyx.
 assert (nN' : (n >= N)%nat) by lia.
@@ -1557,7 +1557,7 @@ rewrite -> t, Rabs_pos_eq; clear t.
   now rewrite Rabs_right; psatzl R.
 apply Rmult_le_pos.
   destruct (bound_modulus_convergence_snd_ag n y) as [c1 c2]; try psatzl R.
-  replace (ff y ^ 2 - snd (ag 1 y n) ^ 2) with 
+  replace (ff y ^ 2 - snd (ag 1 y n) ^ 2) with
      ((ff y + snd (ag 1 y n)) * (ff y - snd (ag 1 y n))) by ring.
   destruct (ag_le n 1 y); try psatzl R.
   now apply Rmult_le_pos; psatzl R.
@@ -1588,7 +1588,7 @@ assert (cv_k_n : forall y : R,
          ((fun x : R => PI / 2 * ff x / ff (sqrt (1 - x ^ 2))) y)).
   intros y dyx; unfold Boule in dyx; apply Rabs_lt_between in dyx.
   rewrite <- is_lim_seq_Reals; apply is_lim_k; lt0.
-assert (cvu_dk_n : CVU (fun n x => Derive (k_ n) x) 
+assert (cvu_dk_n : CVU (fun n x => Derive (k_ n) x)
           (fun x => ff x ^ 2 / (x * (1 - x ^ 2))) x delta).
   apply (CVU_derive_k_n (x - delta) (x + delta));
   [assert (tmp := cond_pos delta); psatzl R | psatzl R | ].
@@ -1608,7 +1608,7 @@ assert (ctf :forall y : R,
     now apply Pd1; exact zy.
   replace (1 - y ^ 2) with ((1 + y) * (1 - y)) by ring; lt0.
 rewrite is_derive_Reals.
-apply (Ranalysis5.derivable_pt_lim_CVU k_ 
+apply (Ranalysis5.derivable_pt_lim_CVU k_
            (fun n x => Derive (k_ n) x)
            (fun x => (PI/2) * ff x / ff (sqrt (1 - x ^ 2)))
            (fun x => ff x ^ 2 / (x * (1 - x ^ 2))) x x delta (Boule_center _ _)
@@ -1694,7 +1694,7 @@ Proof.
 assert (pi_0 := PI_RGT_0).
 assert (ints2 : 0 < /sqrt 2 < 1) by exact ints.
 assert (dfs := derive_ff_pos _ ints2).
-replace (PI / (2 * sqrt 2)) with 
+replace (PI / (2 * sqrt 2)) with
   (ff (/sqrt 2) ^ 3 / Derive ff (/sqrt 2)); cycle 1.
   now rewrite PI_from_ff_ff'; field; split; lt0.
 apply is_lim_seq_mult with (ff (/sqrt 2) ^ 3) (/ Derive ff (/sqrt 2)); cycle 2.
@@ -1736,7 +1736,7 @@ Lemma agmpi0 : agmpi 0 =
 Proof.
 assert (dag1 : Derive (fun x => (1 + x) / 2) (/sqrt 2) = / 2).
   now apply is_derive_unique; auto_derive; auto; field.
-rewrite ag_step; unfold ag, fst, snd; rewrite sqrt_pow_2; [ | lt0]. 
+rewrite ag_step; unfold ag, fst, snd; rewrite sqrt_pow_2; [ | lt0].
 rewrite dag1; simpl; set (u := sqrt 2).
 replace 2 with (u ^ 2) by (unfold u; rewrite pow2_sqrt; lt0).
 field; unfold u; lt0.
@@ -1746,7 +1746,7 @@ Lemma cv_agmpi : is_lim_seq agmpi PI.
 Proof.
 assert (ints : 0 < /sqrt 2 < 1) by exact ints.
 assert (le1s : forall n, (1 <= S n)%nat) by (intros; lia).
-apply (is_lim_seq_ext (fun n => 2 * sqrt 2 * 
+apply (is_lim_seq_ext (fun n => 2 * sqrt 2 *
                 ((snd (ag 1 (/sqrt 2) (n + 1)) ^ 2 * u_ (n + 1) (/sqrt 2))
                   / Derive (u_ (n + 1)) (/sqrt 2)))).
   induction n as [ | n IHn].
@@ -1771,7 +1771,7 @@ apply is_lim_seq_mult with (2 * sqrt 2) (PI / (2 * sqrt 2));
 now apply cv_ff_3_over_ff'.
 Qed.
 
-Lemma over_ystep : forall x, 1 < x -> (1 + x)/(2 * sqrt x) <= 1 + (x - 1)^2/8.
+Lemma over_ystep : forall x, 1 < x -> yfun x <= 1 + (x - 1)^2/8.
 Proof.
 assert (sqrt3 : forall x, 0 < x -> sqrt x ^ 3 = x * sqrt x).
   intros x x0; replace (sqrt x ^ 3) with (sqrt x ^ 2 * sqrt x) by ring.
@@ -1780,9 +1780,9 @@ assert (d1 : forall x, 0 < x -> is_derive yfun x ((x - 1)/(4 * (sqrt x) ^ 3))).
   intros; unfold yfun; auto_derive;[repeat split; auto; lt0 |].
   now field_simplify; try lt0; rewrite sqrt_pow_2; lt0.
 assert (d2 : forall x, 0 < x ->
-           is_derive (fun y => (y - 1) / (4 * sqrt y ^ 3)) x 
+           is_derive (fun y => (y - 1) / (4 * sqrt y ^ 3)) x
            ((3 - x) / (8 * sqrt x ^ 5))).
-  intros x x0; auto_derive.  
+  intros x x0; auto_derive.
     now repeat split; lt0.
   set (u := sqrt x); rewrite <- (sqrt_pow_2 x); try lt0; fold u; field.
   now unfold u; lt0.
@@ -1842,26 +1842,37 @@ intros ina; induction n as [ | n IH].
   assert (t := y_gt_1 a 1 ina).
   now rewrite -> pow_O, Rpower_1, Rminus_eq_0, Rpower_O, plus_0_l; psatzl R.
 split;[assert (t := y_gt_1 a (S n + 1) ina); psatzl R | ].
-replace (S n + 1)%nat with ((n + 1) + 1)%nat by ring.    
+replace (S n + 1)%nat with ((n + 1) + 1)%nat by ring.
 apply Rle_trans with ((y_ (n + 1) a - 1)^2/8);
   [ apply majoration_y_n_plus_one; assumption | ].
-assert (help : forall a, a = (a * 8) / 8) by (intros; field). 
+assert (help : forall a, a = (a * 8) / 8) by (intros; field).
 pattern (Rpower (y_ 1 a - 1) (2 ^ S n) / Rpower 8 (2 ^ S n - 1)).
 rewrite -> help; clear help; apply Rmult_le_compat_r;[lt0 | ].
 apply Rle_trans with ((Rpower (y_ 1 a - 1)(2 ^ n) / Rpower 8 (2 ^ n - 1)) ^ 2).
- now apply pow_incr; auto.
+  now apply pow_incr; auto.
+apply Req_le.
 replace ((Rpower (y_ 1 a - 1) (2 ^ n) / Rpower 8 (2 ^ n - 1)) ^ 2) with
   ((Rpower (y_ 1 a - 1) (2 ^ n)) ^ 2 / (Rpower 8 (2 ^ n - 1)) ^ 2) by
   (field; apply Rgt_not_eq; unfold Rpower; apply exp_pos).
 rewrite <- !(Rpower_pow 2); simpl (INR 2); try psatzl R; try apply exp_pos.
-rewrite -> Rpower_mult, (Rmult_comm (2 ^ n) 2). 
-unfold Rdiv; rewrite Rmult_assoc; apply Rmult_le_compat_l.
- apply Rlt_le; apply exp_pos.
-rewrite Rpower_mult; pattern 8 at 3; rewrite <- Rpower_1;[ | psatzl R].
-pattern 1 at 27; rewrite <- Ropp_involutive, Rpower_Ropp.
-rewrite <- Rinv_mult_distr; try (apply Rgt_not_eq, exp_pos).
-rewrite <- Rpower_plus; simpl; right;
- apply f_equal with (f := fun x => /Rpower 8 x); ring.
+rewrite -> Rpower_mult, (Rmult_comm (2 ^ n) 2).
+unfold Rdiv; rewrite Rmult_assoc; apply (f_equal (Rmult _)).
+rewrite -> Rpower_mult, Rmult_minus_distr_r, Rmult_1_l.
+replace (2 ^ n * 2 - 2) with ((2 ^ S n - 1) - 1) by (simpl; ring).
+unfold Rminus; rewrite -> Rpower_plus, Rpower_Ropp, Rpower_1; try lt0; field.
+now apply Rgt_not_eq, exp_pos.
+Qed.
+
+Lemma majoration_y_n' n a : 0 < a < 1 ->
+  0 <= y_ (n + 1) a - 1 <=
+        8 * Rpower ((y_ 1 a - 1) / 8) (2 ^ n).
+Proof.
+intros inta; destruct (majoration_y_n n a inta) as [y0 yb].
+split;[apply y0 | apply Rle_trans with (1 := yb), Req_le ].
+assert (t := y_gt_1 a 1 inta).
+unfold Rdiv; rewrite <- (Rpower_mult_distr _ _ (2 ^ n)); unfold Rminus; try lt0.
+rewrite -> Rpower_plus, Rpower_Ropp, Rpower_1, Rpower_Rinv; try lt0.
+field; apply Rgt_not_eq, exp_pos.
 Qed.
 
 Lemma ineq2 : (1 + ((1 + sqrt 2)/(2 * sqrt (sqrt 2))))/
@@ -1893,34 +1904,14 @@ exact ineq2.
 Qed.
 
 Lemma majoration_y_n_vs2 n :
-  0 <= y_ (n + 1) (/sqrt 2) - 1 <= 8 * Rpower 500 (- (2 ^ n)).
+  0 <= y_ (n + 1) (/sqrt 2) - 1 <= 8 * Rpower 531 (- (2 ^ n)).
 Proof.
-destruct (majoration_y_n n _ ints) as [t1 t2]; split; [ psatzl R | ].
+destruct (majoration_y_n' n _ ints) as [t1 t2]; split; [ psatzl R | ].
 apply Rle_trans with (1 := t2); clear t1 t2.
-set (hd := Rpower (y_ 1 (/ sqrt 2) - 1) (2 ^ n)).
-unfold Rminus, Rdiv; rewrite -> Rpower_plus, Rinv_mult_distr, Rpower_Ropp,
-  Rinv_involutive, Rpower_1, <- Rmult_assoc, (Rmult_comm 8);
-  try (psatzl R || apply Rgt_not_eq, exp_pos).
-apply Rmult_le_compat_r;[ psatzl R | ].
-rewrite <- Rpower_Ropp; unfold hd; clear hd.
-pattern (2 ^ n) at 1; replace (2 ^ n) with (-1 * (- 2 ^ n)) by ring.
-rewrite <- Rpower_mult, Rpower_mult_distr;[ | apply exp_pos | lt0].
-rewrite !(fun x => Rpower_Ropp x (2 ^ n)); apply Rle_Rinv; try apply exp_pos.
-apply Rle_Rpower_l.
-  apply pow_le; lt0.
-split;[psatzl R | ].
-rewrite -> Rpower_Ropp, Rpower_1;[| assert (t:= y_gt_1 (/sqrt 2) 1 ints); lt0].
-rewrite <- (Rinv_involutive 500), <- (Rinv_involutive 8); try psatzl R.
-assert (0 < y_ 1 (/sqrt 2) - 1).
-  now assert (t' := y_gt_1 (/sqrt 2) 1 ints); psatzl R.
-rewrite <- Rinv_mult_distr; try psatzl R.
-apply Rle_Rinv; try psatzl R.
-replace (/500) with (8/500 * /8) by field; apply Rmult_le_compat_r.
-  now psatzl R.
-replace 1%nat with (0 + 1)%nat by ring; rewrite y_step; auto; try psatzl R.
-  rewrite y_0; unfold yfun.
-  now interval.
-exact ints.
+apply Rmult_le_compat_l; [lt0 | ].
+replace 1%nat with (0 + 1)%nat by ring; rewrite -> y_step, y_0;[|exact ints].
+rewrite -> Rpower_Ropp, <- Rpower_Rinv;[ | psatzl R].
+apply Rle_Rpower_l;[apply pow_le; psatzl R | unfold yfun; split; interval].
 Qed.
 
 Lemma s_to_sum s n p :
@@ -1936,7 +1927,7 @@ Qed.
 
 Lemma sequence_to_series :
   forall s (l : R), is_lim_seq s l ->
-  forall n, is_lim_seq (sum_f_R0 (fun i => s (n + i)%nat - s (n + i + 1)%nat)) 
+  forall n, is_lim_seq (sum_f_R0 (fun i => s (n + i)%nat - s (n + i + 1)%nat))
      (s n - l).
 Proof.
 intros s l cv n; apply (is_lim_seq_ext (fun i => s n - s (n + i + 1)%nat)).
@@ -1949,83 +1940,55 @@ now rewrite <- (is_lim_seq_incr_n s (n + 1)).
 Qed.
 
 Lemma bound_agmpi n : (1 <= n)%nat ->
-  0 <= agmpi (n + 1) - PI <= 4 * agmpi 0 * Rpower 500 (- 2 ^ n).
+  0 <= agmpi (n + 1) - PI <= 4 * agmpi 0 * Rpower 531 (- 2 ^ n).
 Proof.
 intros n1.
 assert (ydecr : forall p, (1 <= p)%nat -> y_(S p) (/sqrt 2) <= y_ p (/sqrt 2)).
- intros p p1; destruct (chain_y_z_y (/sqrt 2) p ints p1).
- assert (y0 := y_gt_1 _ p ints).
- assert (t : sqrt (y_ p (/sqrt 2)) <= y_ p (/sqrt 2)).
-  rewrite <- (Rmult_1_r (sqrt (y_ p (/ sqrt 2)))).
-  pattern (y_ p (/sqrt 2)) at 2; rewrite <- pow2_sqrt;
-  [simpl | psatzl R].
-  apply Rmult_le_compat_l;[apply Rlt_le, sqrt_lt_R0; psatzl R | ].
-  rewrite Rmult_1_r; pattern 1 at 1; rewrite <- sqrt_1.
-  apply sqrt_le_1_alt, Rlt_le; assumption.
- replace (S p) with (p + 1)%nat by ring; psatzl R.
+  intros p p1; destruct (chain_y_z_y (/sqrt 2) p ints p1).
+  assert (y0 := y_gt_1 _ p ints).
+  assert (t : sqrt (y_ p (/sqrt 2)) <= y_ p (/sqrt 2)).
+    now apply Rlt_le, gt1_imp_sqrt_lt.
+  now replace (S p) with (p + 1)%nat by ring; psatzl R.
 assert (step1:
- forall p, (1 <= p)%nat -> 0 <= agmpi p - agmpi (S p) <= agmpi p/2 *
-                 (z_ (S p) (/sqrt 2) - y_(S p) (/sqrt 2))).
- intros p p1; simpl.
- assert (help : forall a b c, c <> 0 -> a - b/c = (a * c - b)/c) by
+ forall p, (1 <= p)%nat -> 0 <= agmpi p - agmpi (S p) <=
+                agmpi p / 2 * (y_ p (/sqrt 2) - y_(S p) (/sqrt 2))).
+  intros p p1; simpl; replace (S p) with (p + 1)%nat by ring.
+  assert (sp1 : (1 <= p + 1)%nat) by lia.
+  destruct (chain_y_z_y (/sqrt 2) p ints p1) as [yltz zltsy].
+  assert (zp := z_gt_1 _ _ ints sp1).
+  assert (help1 : forall a b c, c <> 0 -> a - b/c = (a * c - b)/c) by
   (intros; field; auto).
- assert (sp1 : (1 <= S p)%nat) by lia.
- destruct (chain_y_z_y (/sqrt 2) p ints p1).
- assert (zp := z_gt_1 _ _ ints sp1).
- rewrite help; clear help;[| psatzl R].
- rewrite <- Rmult_minus_distr_l.
- assert (help : forall a b, (1 + a - (1 + b)) = a - b) by (intros; ring).
- rewrite help; clear help.
- split;[repeat apply Rmult_le_pos | ].
-    apply Rlt_le, agm0.  
-   replace (S p) with (p + 1)%nat by ring; psatzl R.
-  apply Rlt_le, Rinv_0_lt_compat; psatzl R.
- unfold Rdiv; rewrite !Rmult_assoc; apply Rmult_le_compat_l.
-  now apply Rlt_le, agm0.
- rewrite Rmult_comm; apply Rmult_le_compat_r.
-  replace (S p) with (p + 1)%nat by ring; psatzl R.
- now apply Rle_Rinv; lt0.
-assert (agmpi_decr : forall n, (1 <= n)%nat -> agmpi n <= agmpi 1). 
-intros p p1; induction p1.
- apply Rle_refl.
-destruct (step1 m p1); psatzl R.
-assert (step2 : forall p, (1 <= p)%nat ->
-  0 <= agmpi p - agmpi (S p) <=
-       agmpi p / 2 * (y_ p (/sqrt 2) - y_(S p) (/sqrt 2))).
- intros p p1; destruct (step1 p p1) as [it it2]; split;[assumption | ].
- assert (y0 := y_gt_1 _ p ints).
- assert (t : sqrt (y_ p (/sqrt 2)) <= y_ p (/sqrt 2)).
-  rewrite <- (Rmult_1_r (sqrt (y_ p (/ sqrt 2)))).
-  pattern (y_ p (/sqrt 2)) at 2; rewrite <- pow2_sqrt;
-  [simpl | psatzl R].
-  apply Rmult_le_compat_l;[apply Rlt_le, sqrt_lt_R0; psatzl R | ].
-  rewrite Rmult_1_r; pattern 1 at 1; rewrite <- sqrt_1.
-  apply sqrt_le_1_alt, Rlt_le; assumption.
- apply (Rle_trans _ _ _ it2); apply Rmult_le_compat_l.
-  assert (g0 := agm0 p); psatzl R.
- apply Rplus_le_compat_r.
- destruct (chain_y_z_y _ p ints p1) as [_ zs].
- now replace (S p) with (p + 1)%nat by ring; apply (Rle_trans _ _ _ zs t).
+  rewrite -> help1, <- Rmult_minus_distr_l;[| psatzl R].
+  assert (help2 : forall a b, (1 + a - (1 + b)) = a - b) by (intros; ring).
+  rewrite help2.
+  split;[repeat apply Rmult_le_pos | ]; try lt0.
+    now apply Rlt_le, agm0.
+  unfold Rdiv; rewrite !Rmult_assoc; apply Rmult_le_compat_l.
+    now apply Rlt_le, agm0.
+  rewrite Rmult_comm.
+  apply Rmult_le_compat;[| |apply Rle_Rinv | apply Rplus_le_compat_r]; try lt0.
+  now apply Rle_trans with (1 := zltsy), Rlt_le, gt1_imp_sqrt_lt, y_gt_1, ints.
+assert (agmpi_decr : forall n, (1 <= n)%nat -> agmpi n <= agmpi 1).
+  now intros p p1; induction p1;[apply Rle_refl | destruct (step1 m p1); lt0].
 assert (t := sequence_to_series agmpi PI cv_agmpi).
 assert (cvy : is_lim_seq (fun n => y_ n (/sqrt 2)) 1).
   apply is_lim_seq_Reals.
-  assert (i2 : 0 < /2 < 1) by psatzl R.
-  assert (d0 : 0 < /4) by psatzl R.
+  assert (0 < /2 < 1 /\ 0 < / 4) as [i2 d0] by psatzl R.
   set (d := mkposreal _ d0).
   assert (d1 : d = (1 - /2) / 2 :> R) by (simpl; psatzl R).
   assert (t' := CVU_y _ i2 d d1).
   apply (CVU_cv y_ (fun _ => 1) ((/2 + 1) / 2) d t').
-  now unfold Boule; simpl; apply Rabs_def1; interval.
+  now apply Rabs_def1; simpl; interval.
 assert (cvy' :
           is_lim_seq (fun n => agmpi 1 / 2 * (y_ n (/sqrt 2))) (agmpi 1 / 2)).
   apply is_lim_seq_mult with (agmpi 1 / 2) 1; auto.
-     now apply is_lim_seq_const.
-   now unfold is_Rbar_mult, Rbar_mult'; rewrite Rmult_1_r.
+    now apply is_lim_seq_const.
+  now unfold is_Rbar_mult, Rbar_mult'; rewrite Rmult_1_r.
 assert (t' := sequence_to_series _ _ cvy'); lazy beta in t'.
 assert (vv :agmpi (n + 1) - PI <= agmpi 1 / 2 * (y_ (n + 1) (/sqrt 2) - 1)).
   rewrite -> Rmult_minus_distr_l, Rmult_1_r.
   apply (fun h => is_lim_seq_le _ _ _ _ h (t (n + 1)%nat) (t' (n + 1)%nat)).
-  assert (cmp : forall p, 
+  assert (cmp : forall p,
   sum_f_R0 (fun i => agmpi ((n + 1) + i) - agmpi ((n + 1) + i + 1)) p <=
   sum_f_R0 (fun i => agmpi 1 / 2 * y_ ((n + 1) + i ) (/sqrt 2) -
              agmpi 1 / 2 * y_ ((n + 1) + i + 1) (/sqrt 2)) p).
@@ -2034,34 +1997,29 @@ assert (vv :agmpi (n + 1) - PI <= agmpi 1 / 2 * (y_ (n + 1) (/sqrt 2) - 1)).
       rewrite -> !help, plus_0_r.
       replace (n + 1 + 1)%nat with (S (n + 1)) by ring.
       assert (n2 : (1 <= n + 1)%nat) by lia.
-      destruct (step2 _ n2) as [_ st]; apply (Rle_trans _ _ _ st).
+      destruct (step1 _ n2) as [_ st]; apply (Rle_trans _ _ _ st).
       rewrite <- Rmult_minus_distr_l.
       apply Rmult_le_compat_r.
       assert (w := ydecr _ n2); psatzl R.
-      apply Rmult_le_compat_r;[psatzl R | apply agmpi_decr; assumption].
+      now apply Rmult_le_compat_r;[psatzl R | apply agmpi_decr; assumption].
     assert (help : forall m f, sum_f_R0 f (S m) = sum_f_R0 f m + f (S m))
      by reflexivity.
     rewrite -> !help; apply Rplus_le_compat;[apply IH | ].
     replace (n + 1 + S p + 1)%nat with (S (n + 1 + S p)) by ring.
     assert (nsp1 : (1 <= n + 1 + S p)%nat) by lia.
-    destruct (step2 _ nsp1) as [_ it]; apply (Rle_trans _ _ _ it).
+    destruct (step1 _ nsp1) as [_ it]; apply (Rle_trans _ _ _ it).
     rewrite <- Rmult_minus_distr_l.
     apply Rmult_le_compat_r.
       assert (w := ydecr _ nsp1); psatzl R.
     now apply Rmult_le_compat_r;[psatzl R | apply agmpi_decr; assumption].
   exact cmp.
 assert (rgt : agmpi 1 / 2 * (y_ (n + 1) (/ sqrt 2) - 1) <=
-          agmpi 1 * 4 * Rpower 500 (- (2 ^ n))).
-  unfold Rdiv; rewrite !Rmult_assoc; apply Rmult_le_compat_l.
+          agmpi 1 * 4 * Rpower 531 (- (2 ^ n))).
+  unfold Rdiv; rewrite !(Rmult_assoc (agmpi 1)); apply Rmult_le_compat_l.
     now apply Rlt_le, agm0.
-  replace (2 * (2 * Rpower 500 (-2^ n))) with (/2 * (8 * Rpower 500 (-2^n)))
-   by field.
-  apply Rmult_le_compat_l; [assert (t2 := y_gt_1 _ 1 ints); psatzl R | ].
-  apply Rmult_le_compat_l; [assert (t2 := z_gt_1 _ 1 ints (le_n _)); lt0 | ].
-  apply Rmult_le_compat_l; [psatzl R | ].
-  now apply majoration_y_n_vs2.
+  now assert (t2 := majoration_y_n_vs2 n); psatzl R.
 rewrite (Rmult_comm 4).
-assert (agmpi (n + 1) - PI <= agmpi 0 * 4 * Rpower 500 (-2 ^ n)).
+assert (agmpi (n + 1) - PI <= agmpi 0 * 4 * Rpower 531 (-2 ^ n)).
  apply (Rle_trans _ _ _ vv), (Rle_trans _ _ _ rgt).
  apply Rmult_le_compat_r;[apply Rlt_le, exp_pos | ].
  apply Rmult_le_compat_r;[psatzl R | apply Rlt_le, agmpi_1_0].
@@ -2082,7 +2040,7 @@ apply Rle_trans with (1 := ub).
 assert (explb : 25/10 < exp 1) by interval.
 assert (lft : 4 * agmpi 0 < exp 3).
   now apply Rlt_trans with (15);[simpl |]; interval.
-apply Rle_trans with (exp 3 * Rpower 500 (-2 ^ 19)).
+apply Rle_trans with (exp 3 * Rpower 531 (-2 ^ 19)).
   now apply Rmult_le_compat_r; apply Rlt_le; [apply exp_pos | assumption].
 unfold Rpower; rewrite <- exp_plus.
 now apply Rlt_le, exp_increasing; interval.

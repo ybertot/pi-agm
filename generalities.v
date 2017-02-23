@@ -716,3 +716,18 @@ apply (is_derive_ext_loc f1).
   now symmetry; apply is_derive_unique, d1; psatzl R.
 apply d2; psatzl R.
 Qed.
+
+Lemma Rpower_Rinv x y : 0 < x -> Rpower (/ x) y = / (Rpower x y).
+Proof.
+intros x0; rewrite <- (Rpower_1 x) at 1; auto; rewrite <- Rpower_Ropp.
+now rewrite -> Rpower_mult, <- Ropp_mult_distr_l, Rmult_1_l, Rpower_Ropp.
+Qed.
+
+Lemma gt1_imp_sqrt_lt x : 1 < x -> sqrt x < x.
+Proof.
+intros x1; set (y := x - 1); replace x with (y + 1) by (unfold y; ring).
+rewrite <- (sqrt_pow2 (y + 1)) at 2; [ | unfold y; psatzl R].
+apply sqrt_lt_1; try (unfold y; lt0).
+now rewrite <- (Rmult_1_r (y + 1)) at 1; simpl; apply Rmult_lt_compat_l;
+  unfold y; lt0.
+Qed.
