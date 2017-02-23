@@ -1164,9 +1164,9 @@ Qed.
 
 Lemma M_ag_diff_squares_step : (* does not depend on any lemma after ag_lt *)
   forall a b n, 0 < a -> 0 < b -> b < a ->
-    2 * M (fst (ag a b (S n)))
+    M (fst (ag a b (S n)))
              (sqrt (fst (ag a b (S n)) ^ 2 - snd (ag a b (S n)) ^ 2)) =
-      M (fst (ag a b n)) (sqrt (fst (ag a b n) ^ 2 - snd (ag a b n) ^ 2)).
+    /2 *  M (fst (ag a b n)) (sqrt (fst (ag a b n) ^ 2 - snd (ag a b n) ^ 2)).
 Proof.
 intros a b n a0 b0 ba.
 assert (pos_ag := ag_le n a b a0 b0 (Rlt_le _ _ ba)).
