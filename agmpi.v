@@ -587,8 +587,8 @@ replace (S n + 1)%nat with (S (S n)) by ring.
 rewrite (derive_fst_step (S n)); auto; psatzl R.
 Qed.
 
-Lemma ratio_u n x : (1 <= n)%nat -> 0 < x < 1 ->
-   (1 + z_ n x)/2 = Derive (u_ (S n)) x/Derive (u_ n) x.
+Lemma ratio_z n x : (1 <= n)%nat -> 0 < x < 1 ->
+   1 + z_ n x = 2 * Derive (u_ (S n)) x/Derive (u_ n) x.
 Proof.
 intros n1 cx.
 assert (u'_step : Derive (u_ (S n)) x =
@@ -601,6 +601,16 @@ assert (u'_step : Derive (u_ (S n)) x =
   now intros t; unfold u_; rewrite ag_step; simpl; field.
 assert (0 < Derive (u_ n) x) by now destruct (compare_derive_ag _ _ n1 cx).
 rewrite u'_step; unfold z_; field; psatzl R.
+Qed.
+
+Lemma ratio_y n x : 0 < x < 1 ->
+  1 + y_ n x = (2 * u_ (S n) x * snd (ag 1 x (S n)) ^ 2 ) /
+              (u_ n x * snd (ag 1 x n) ^ 2).
+Proof.
+intros intx.
+assert (t := ag_le n 1 x Rlt_0_1 (proj1 intx) (Rlt_le _ _ (proj2 intx))).
+unfold y_, u_; rewrite ag_step; destruct (ag 1 x n) as [a b]; simpl in t |- *.
+now rewrite -> Rmult_1_r, sqrt_sqrt; [field |]; lt0.
 Qed.
 
 Lemma z_decr x y n : (1 <= n)%nat -> 0 < x < 1 -> 0 < y < 1 -> x < y ->
@@ -676,19 +686,20 @@ induction n1 as [ | n pn IHn].
 assert (1 < z_ n y) by now apply z_gt_1.
 split.
   replace (Derive (u_ (S n)) y) with 
-       ((Derive (u_ (S n)) y / Derive (u_ n) y) * Derive (u_ n) y);
+       ((2 * Derive (u_ (S n)) y / Derive (u_ n) y) * Derive (u_ n) y / 2);
     [ | field; psatzl R].
   assert (0 < (1 + z_ n y) / 2) by psatzl R.
-  now rewrite <- ratio_u; lt0.
+  now rewrite <- ratio_z; lt0.
 replace (Derive (u_ (S n)) y) with 
-     ((Derive (u_ (S n)) y / Derive (u_ n) y) * Derive (u_ n) y);
-  [rewrite <- ratio_u; auto | field; psatzl R].
+     ((2 * Derive (u_ (S n)) y / Derive (u_ n) y) * Derive (u_ n) y / 2);
+  [rewrite <- ratio_z; auto | field; psatzl R].
 replace (Derive (u_ (S n)) x) with
-     ((Derive (u_ (S n)) x / Derive (u_ n) x) * Derive (u_ n) x);
-  [rewrite <- ratio_u; auto | field; psatzl R].
-apply Rlt_le, Rle_lt_trans with ((1 + z_ n y) / 2 * Derive (u_ n) x).
-  apply Rmult_le_compat_l; try lt0.
-apply Rmult_lt_compat_r; try lt0.
+     ((2 * Derive (u_ (S n)) x / Derive (u_ n) x) * Derive (u_ n) x / 2);
+  [rewrite <- ratio_z; auto | field; psatzl R].
+apply Rle_trans with ((1 + z_ n y) / 2 * Derive (u_ n) x).
+  now unfold Rdiv; rewrite !Rmult_assoc; apply Rmult_le_compat_l; lt0.
+unfold Rdiv; rewrite -> Rmult_assoc, (Rmult_comm (/ 2)), <- Rmult_assoc.
+repeat apply Rmult_le_compat_r; try lt0.
 assert (tmp := z_decr x y n pn cx cy xy); psatzl R.
 Qed.
 
@@ -1719,57 +1730,45 @@ Lemma agmpi_step n :
   end.
 Proof. destruct n as [ | p]; reflexivity. Qed.
 
-Lemma cv_agm : is_lim_seq agmpi PI.
+Lemma agmpi0 : agmpi 0 =
+   2 * sqrt 2 * (snd (ag 1 (/sqrt 2) 1) ^ 2 * fst (ag 1 (/sqrt 2) 1)  /
+                 Derive (fun x => fst (ag 1 x 1)) (/sqrt 2)).
+Proof.
+assert (dag1 : Derive (fun x => (1 + x) / 2) (/sqrt 2) = / 2).
+  now apply is_derive_unique; auto_derive; auto; field.
+rewrite ag_step; unfold ag, fst, snd; rewrite sqrt_pow_2; [ | lt0]. 
+rewrite dag1; simpl; set (u := sqrt 2).
+replace 2 with (u ^ 2) by (unfold u; rewrite pow2_sqrt; lt0).
+field; unfold u; lt0.
+Qed.
+
+Lemma cv_agmpi : is_lim_seq agmpi PI.
 Proof.
 assert (ints : 0 < /sqrt 2 < 1) by exact ints.
+assert (le1s : forall n, (1 <= S n)%nat) by (intros; lia).
 apply (is_lim_seq_ext (fun n => 2 * sqrt 2 * 
                 ((snd (ag 1 (/sqrt 2) (n + 1)) ^ 2 * u_ (n + 1) (/sqrt 2))
                   / Derive (u_ (n + 1)) (/sqrt 2)))).
-  induction n.
-    simpl Peano.plus; unfold u_; rewrite ag_step; unfold ag, fst, snd.
-    rewrite sqrt_pow_2; [ | lt0].
-    assert (Derive (fun x => (1 + x) / 2) (/ sqrt 2) = /2) as -> .
-      now apply is_derive_unique; auto_derive; auto; field.
-    unfold agmpi; set (u := sqrt 2); rewrite <- (sqrt_pow_2 2); try psatzl R.
-    now unfold u; field; lt0.
-  destruct (ex_derive_ag (n + 1) (/sqrt 2) (proj1 ints))
-           as [du [dv [isdu [isdv [dunn [dvp dup]]]]]].
-  assert (dup' : (1 <= n + 1)%nat) by lia; apply dup in dup'.
-  assert (ex_derive (u_ (n + 1)) (/sqrt 2)) by (exists du; exact isdu).
-  assert (ex_derive (fun x => snd (ag 1 x (n + 1))) (/sqrt 2)) by
-    (exists dv; exact isdv).
-  assert (0 < Derive (u_ (n + 1)) (/sqrt 2)) by
-    now rewrite (is_derive_unique _ _ _ isdu).
-  assert (0 < Derive (fun x => snd (ag 1 x (n + 1))) (/sqrt 2)) by
-    now rewrite (is_derive_unique _ _ _ isdv). 
-  rewrite -> agmpi_step, <- IHn, !Rmult_assoc; repeat apply f_equal; simpl (S n + 1)%nat.
-  replace (Derive (u_ (S (n + 1))) (/sqrt 2)) with
-    (/2 * (Derive (u_ (n + 1)) (/sqrt 2) +
-        Derive (fun x => snd (ag 1 x (n + 1))) (/sqrt 2))).
-    replace (snd (ag 1 (/sqrt 2) (S (n + 1))) ^ 2) with
-     (u_ (n + 1) (/sqrt 2) * snd (ag 1  (/sqrt 2) (n + 1))).
-      unfold u_; rewrite ag_step.
-      replace (S n) with (n + 1)%nat by ring; unfold y_, z_.
-      assert (0 < snd (ag 1 (/ sqrt 2) (n + 1))).
-        apply Rlt_le_trans with (/sqrt 2); try psatzl R.
-        now destruct (ag_le (n + 1) 1 (/sqrt 2)); try lt0.
-      now unfold u_; simpl; field; repeat split; lt0.
-    rewrite ag_step; unfold snd at 2; rewrite sqrt_pow_2; unfold u_; auto.
-    now destruct (ag_le (n + 1) 1 (/sqrt 2)); try lt0.
-  rewrite (Derive_ext (u_ (S _)) 
-      (fun x => /2 * (u_ (n + 1) x + snd (ag 1 x (n + 1))))).
-    rewrite -> Derive_scal, Derive_plus; reflexivity || assumption.
-   now intros; unfold u_; rewrite ag_step; simpl; field.
+  induction n as [ | n IHn].
+    simpl Peano.plus; rewrite agmpi0; unfold u_; reflexivity.
+  simpl (Peano.plus); rewrite agmpi_step.
+  assert (t := ag_le (S n) 1 (/sqrt 2) Rlt_0_1 (proj1 ints)
+            (Rlt_le _ _ (proj2 ints))).
+  assert (t' := compare_derive_ag (S n) (/sqrt 2) (le1s _) ints).
+  assert (t'' := compare_derive_ag (S (S n)) (/sqrt 2) (le1s _) ints).
+  unfold Rdiv; rewrite -> ratio_z, ratio_y, <- IHn, !Rmult_assoc; auto; try lia.
+  replace (S n + 1)%nat with (S (S n)) by ring; unfold u_ in t, t', t'' |- *.
+  replace (n + 1)%nat with (S n) by ring.
+  field; try lt0.
 apply (is_lim_seq_subseq
          (fun n => 2 * sqrt 2 *
               (snd (ag 1 (/sqrt 2) n) ^ 2 * u_ n (/sqrt 2)
               / Derive (u_ n) (/sqrt 2))) PI (fun x : nat => (x + 1)%nat)).
   now apply eventually_subseq_loc, filter_forall; intros; lia.
 replace PI with ((2 * sqrt 2) * (PI/(2 * sqrt 2))) by (field; lt0).
-apply is_lim_seq_mult with (2 * sqrt 2) (PI / (2 * sqrt 2)).
-    now apply is_lim_seq_const.
-  now apply cv_ff_3_over_ff'.
-reflexivity.
+apply is_lim_seq_mult with (2 * sqrt 2) (PI / (2 * sqrt 2));
+  [apply is_lim_seq_const | | easy].
+now apply cv_ff_3_over_ff'.
 Qed.
 
 Lemma over_ystep : forall x, 1 < x -> (1 + x)/(2 * sqrt x) <= 1 + (x - 1)^2/8.
@@ -2007,7 +2006,7 @@ assert (step2 : forall p, (1 <= p)%nat ->
  apply Rplus_le_compat_r.
  destruct (chain_y_z_y _ p ints p1) as [_ zs].
  now replace (S p) with (p + 1)%nat by ring; apply (Rle_trans _ _ _ zs t).
-assert (t := sequence_to_series agmpi PI cv_agm).
+assert (t := sequence_to_series agmpi PI cv_agmpi).
 assert (cvy : is_lim_seq (fun n => y_ n (/sqrt 2)) 1).
   apply is_lim_seq_Reals.
   assert (i2 : 0 < /2 < 1) by psatzl R.
@@ -2069,7 +2068,7 @@ assert (agmpi (n + 1) - PI <= agmpi 0 * 4 * Rpower 500 (-2 ^ n)).
 split;[ | assumption].
 assert (PI <= agmpi (n + 1));[ | psatzl R].
 assert (cv_agm' : is_lim_seq (fun n => agmpi (n + 1)) PI).
-  now apply is_lim_seq_incr_n, cv_agm.
+  now apply is_lim_seq_incr_n, cv_agmpi.
 apply (fun h => is_lim_seq_decr_compare _ PI cv_agm' h n).
 intros p; destruct (step1 (p + 1)%nat);[lia | ].
 replace (S p + 1)%nat with (S (p + 1)) by ring; psatzl R.
