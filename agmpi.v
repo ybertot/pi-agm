@@ -1172,23 +1172,21 @@ intros a b n a0 b0 ba.
 assert (pos_ag := ag_le n a b a0 b0 (Rlt_le _ _ ba)).
 assert (dif := ag_lt n a b (conj b0 ba)).
 assert (dif2 := ag_lt (S n) a b (conj b0 ba)); revert dif2.
-replace (ag a b (S n)) with ((fst (ag a b n) + snd (ag a b n)) / 2,
-                             sqrt (fst (ag a b n) * snd (ag a b n))); cycle 1.
-  now replace (S n) with (1 + n)%nat by ring; rewrite ag_shift.
-destruct (ag a b n) as [a' b']; simpl in pos_ag, dif; simpl fst; simpl snd.
+rewrite ag_step.
+destruct (ag a b n) as [an bn]; simpl in pos_ag, dif; simpl fst; simpl snd.
 intros dif2.
 assert (help : forall A B, 0 < B < A -> 0 < A ^ 2 - B ^ 2).
   intros A B H; replace (A ^ 2 - B ^ 2) with ((A - B) * (A + B)) by ring; lt0.
-assert (b'0 : 0 < b') by psatzl R.
-assert (0 < a' ^ 2 - b' ^ 2) by (apply help; lt0).
-assert (d1 : 0 < sqrt (a' * b')) by lt0.
+assert (bn0 : 0 < bn) by psatzl R.
+assert (0 < an ^ 2 - bn ^ 2) by (apply help; lt0).
+assert (d1 : 0 < sqrt (an * bn)) by lt0.
 assert (d2 := help _ _ (conj d1 dif2)).
-rewrite <- (M_shift ((a' + b') / 2) _ 1);[| |apply sqrt_lt_R0]; try lt0.
+rewrite <- (M_shift ((an + bn) / 2) _ 1);[| |apply sqrt_lt_R0]; try lt0.
 unfold ag, fst, snd; rewrite sqrt_pow_2; try lt0.
-replace (((a' + b')/2) ^ 2 - a' * b') with (((a' - b')/2) ^ 2) by field.
+replace (((an + bn)/2) ^ 2 - an * bn) with (((an - bn)/2) ^ 2) by field.
 rewrite sqrt_pow2;[|psatzl R].
-replace ((a' + b') / 2 + (a' - b') / 2) with a' by field.
-replace ((a' + b')/2 * ((a' - b') / 2)) with ((a' ^ 2 - b' ^ 2)/(2 ^ 2)) by field.
+replace ((an + bn) / 2 + (an - bn) / 2) with an by field.
+replace ((an + bn)/2 * ((an - bn) / 2)) with ((an ^ 2 - bn ^ 2)/(2 ^ 2)) by field.
 rewrite sqrt_div_alt;[|psatzl R].
 unfold Rdiv; rewrite -> sqrt_pow2, !(Rmult_comm _ (/2)), M_scal; lt0.
 Qed.
