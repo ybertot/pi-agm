@@ -1942,7 +1942,7 @@ Qed.
 Lemma bound_agmpi n : (1 <= n)%nat ->
   0 <= agmpi (n + 1) - PI <= 4 * agmpi 0 * Rpower 531 (- 2 ^ n).
 Proof.
-intros n1.
+intros n1; assert (n2 : (1 <= n + 1)%nat) by lia.
 assert (ydecr : forall p, (1 <= p)%nat -> y_(S p) (/sqrt 2) <= y_ p (/sqrt 2)).
   intros p p1; destruct (chain_y_z_y (/sqrt 2) p ints p1).
   assert (y0 := y_gt_1 _ p ints).
@@ -1968,8 +1968,10 @@ assert (step1:
   rewrite Rmult_comm.
   apply Rmult_le_compat;[| |apply Rle_Rinv | apply Rplus_le_compat_r]; try lt0.
   now apply Rle_trans with (1 := zltsy), Rlt_le, gt1_imp_sqrt_lt, y_gt_1, ints.
-assert (agmpi_decr : forall n, (1 <= n)%nat -> agmpi n <= agmpi 1).
-  now intros p p1; induction p1;[apply Rle_refl | destruct (step1 m p1); lt0].
+assert (agmpi_decr : forall n m, (m <= n)%nat -> (1 <= m)%nat ->
+          agmpi n <= agmpi m).
+  intros p p1 h; induction h as [ | p p1p IH]; intros pp1;[apply Rle_refl |].
+  now apply Rle_trans with (2 := (IH pp1)); destruct (step1 p);try lia; lt0.
 assert (t := sequence_to_series agmpi PI cv_agmpi).
 assert (cvy : is_lim_seq (fun n => y_ n (/sqrt 2)) 1).
   apply is_lim_seq_Reals.
@@ -1980,28 +1982,25 @@ assert (cvy : is_lim_seq (fun n => y_ n (/sqrt 2)) 1).
   apply (CVU_cv y_ (fun _ => 1) ((/2 + 1) / 2) d t').
   now apply Rabs_def1; simpl; interval.
 assert (cvy' :
-          is_lim_seq (fun n => agmpi 1 / 2 * (y_ n (/sqrt 2))) (agmpi 1 / 2)).
-  apply is_lim_seq_mult with (agmpi 1 / 2) 1; auto.
+          is_lim_seq (fun p => agmpi (n + 1) / 2 * (y_ p (/sqrt 2)))
+               (agmpi (n + 1) / 2)).
+  apply is_lim_seq_mult with (agmpi (n + 1) / 2) 1; auto.
     now apply is_lim_seq_const.
   now unfold is_Rbar_mult, Rbar_mult'; rewrite Rmult_1_r.
 assert (t' := sequence_to_series _ _ cvy'); lazy beta in t'.
-assert (vv :agmpi (n + 1) - PI <= agmpi 1 / 2 * (y_ (n + 1) (/sqrt 2) - 1)).
+assert (step2 :agmpi (n + 1) - PI <=
+              agmpi (n + 1) / 2 * (y_ (n + 1) (/sqrt 2) - 1)).
   rewrite -> Rmult_minus_distr_l, Rmult_1_r.
   apply (fun h => is_lim_seq_le _ _ _ _ h (t (n + 1)%nat) (t' (n + 1)%nat)).
   assert (cmp : forall p,
   sum_f_R0 (fun i => agmpi ((n + 1) + i) - agmpi ((n + 1) + i + 1)) p <=
-  sum_f_R0 (fun i => agmpi 1 / 2 * y_ ((n + 1) + i ) (/sqrt 2) -
-             agmpi 1 / 2 * y_ ((n + 1) + i + 1) (/sqrt 2)) p).
+  sum_f_R0 (fun i => agmpi (n + 1) / 2 * y_ ((n + 1) + i ) (/sqrt 2) -
+             agmpi (n + 1) / 2 * y_ ((n + 1) + i + 1) (/sqrt 2)) p).
     induction p as [ | p IH].
       assert (help : forall f, sum_f_R0 f 0 = f 0%nat) by reflexivity.
       rewrite -> !help, plus_0_r.
       replace (n + 1 + 1)%nat with (S (n + 1)) by ring.
-      assert (n2 : (1 <= n + 1)%nat) by lia.
-      destruct (step1 _ n2) as [_ st]; apply (Rle_trans _ _ _ st).
-      rewrite <- Rmult_minus_distr_l.
-      apply Rmult_le_compat_r.
-      assert (w := ydecr _ n2); psatzl R.
-      now apply Rmult_le_compat_r;[psatzl R | apply agmpi_decr; assumption].
+      now rewrite <- Rmult_minus_distr_l; destruct (step1 _ n2) as [_ st].
     assert (help : forall m f, sum_f_R0 f (S m) = sum_f_R0 f m + f (S m))
      by reflexivity.
     rewrite -> !help; apply Rplus_le_compat;[apply IH | ].
@@ -2011,18 +2010,19 @@ assert (vv :agmpi (n + 1) - PI <= agmpi 1 / 2 * (y_ (n + 1) (/sqrt 2) - 1)).
     rewrite <- Rmult_minus_distr_l.
     apply Rmult_le_compat_r.
       assert (w := ydecr _ nsp1); psatzl R.
-    now apply Rmult_le_compat_r;[psatzl R | apply agmpi_decr; assumption].
+    now apply Rmult_le_compat_r;[psatzl R | apply agmpi_decr; lia].
   exact cmp.
-assert (rgt : agmpi 1 / 2 * (y_ (n + 1) (/ sqrt 2) - 1) <=
-          agmpi 1 * 4 * Rpower 531 (- (2 ^ n))).
-  unfold Rdiv; rewrite !(Rmult_assoc (agmpi 1)); apply Rmult_le_compat_l.
+assert (step3 : agmpi (n + 1) / 2 * (y_ (n + 1) (/ sqrt 2) - 1) <=
+          agmpi (n + 1) * 4 * Rpower 531 (- (2 ^ n))).
+  unfold Rdiv; rewrite !(Rmult_assoc (agmpi (n + 1))); apply Rmult_le_compat_l.
     now apply Rlt_le, agm0.
   now assert (t2 := majoration_y_n_vs2 n); psatzl R.
 rewrite (Rmult_comm 4).
 assert (agmpi (n + 1) - PI <= agmpi 0 * 4 * Rpower 531 (-2 ^ n)).
- apply (Rle_trans _ _ _ vv), (Rle_trans _ _ _ rgt).
+ apply (Rle_trans _ _ _ step2), (Rle_trans _ _ _ step3).
  apply Rmult_le_compat_r;[apply Rlt_le, exp_pos | ].
- apply Rmult_le_compat_r;[psatzl R | apply Rlt_le, agmpi_1_0].
+ apply Rmult_le_compat_r;[psatzl R | ].
+ now apply Rle_trans with (1:= agmpi_decr _ _ n2 (le_n _)), Rlt_le, agmpi_1_0.
 split;[ | assumption].
 assert (PI <= agmpi (n + 1));[ | psatzl R].
 assert (cv_agm' : is_lim_seq (fun n => agmpi (n + 1)) PI).
