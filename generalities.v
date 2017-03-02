@@ -525,3 +525,134 @@ apply sqrt_lt_1; try (unfold y; lt0).
 now rewrite <- (Rmult_1_r (y + 1)) at 1; simpl; apply Rmult_lt_compat_l;
   unfold y; lt0.
 Qed.
+
+Lemma is_RInt_gen_at_right_at_point (f : R -> R) (a : R) F {FF : ProperFilter F}
+  v :
+  locally a (continuous f) -> is_RInt_gen f (at_right a) F v ->
+  is_RInt_gen f (at_point a) F v.
+Proof.
+intros [delta1 pd1].
+destruct (pd1 a (ball_center a delta1)
+          (ball (f a) (mkposreal _ Rlt_0_1)) (locally_ball _ _)) as
+    [delta2 Pd2].
+intros [fi [ifi vfi]].
+set (M := Rabs (f a) + 1).
+assert (M0 : 0 < M) by (assert (t:= Rabs_pos (f a)); unfold M; fourier).
+assert (close : forall y, y <> a -> ball a delta2 y -> Rabs (f y) < M).
+  intros y ay b_y; unfold M.
+  replace (f y) with (f a + (f y - f a)) by ring.
+  apply Rle_lt_trans with (1 := Rabs_triang _ _).
+  now apply Rplus_lt_compat_l, Pd2; auto.
+destruct ifi as [Q2 R2 FQ2 FR2 ifi].
+assert (atrd1 : at_right a (ball a delta1)) by (exists delta1; tauto).
+assert (exrint_close : forall a', ball a delta1 a' -> ex_RInt f a a').
+  intros a' baa'.
+  apply (ex_RInt_continuous f); intros z pz; apply pd1.
+  destruct (Rle_dec a a') as [aa' | a'a].
+    rewrite -> Rmin_left, Rmax_right in pz; auto.
+    change (Rabs (z - a) < delta1).
+    rewrite Rabs_right; cycle 1.
+      destruct pz; fourier.
+    destruct pz; apply Rle_lt_trans with (a' - a); try fourier.
+    rewrite <- (Rabs_right (a' - a)); try fourier.
+    tauto.
+  change (Rabs (z - a) < delta1).
+  apply Rnot_le_lt in a'a.
+  destruct (Rle_dec a z) as [az | za].
+    rewrite -> Rmin_right, Rmax_left in pz; destruct pz; try fourier.
+    rewrite Rabs_right; try fourier.
+    case delta1; intros; simpl; fourier.
+  apply Rnot_le_lt in za.
+  rewrite -> Rmin_right, Rmax_left in pz; try fourier.
+  rewrite Rabs_left; [ | fourier].
+  destruct pz; apply Rle_lt_trans with (a - a'); try fourier.
+  rewrite <- (Rabs_right (a - a')); try fourier.
+  now change (ball a' delta1 a); apply ball_sym; tauto.
+exists (fun p => RInt f (fst p) (snd p)); split; cycle 1.
+  intros P [eps Peps].
+  assert (pre_ep2 : 0 < eps / 2 * /M).
+    apply Rmult_lt_0_compat;[ | now apply Rinv_0_lt_compat].
+    now destruct eps; simpl; fourier.
+  set (ep2 := mkposreal _ pre_ep2).
+  destruct (vfi (ball v (pos_div_2 eps))) as [Q R FQ FR vfi'].
+    now apply locally_ball.
+  exists (eq a) (fun y => R y /\ R2 y).
+      now intros y; apply (ball_eq a y).
+    now apply filter_and.
+  intros x y ax [Ry R2y]; simpl; rewrite <- ax; clear ax x.
+  apply Peps.
+  assert (atrd2 : at_right a (ball a delta2)) by (exists delta2; tauto).
+  assert (atre2 : at_right a (ball a ep2)) by (exists ep2; tauto).
+  destruct (filter_ex _ (filter_and _ _ atrd1 (filter_and _ _ atrd2
+                          (filter_and _ _ FQ (filter_and _ _ FQ2 atre2))))) as
+      [a' Pa'].
+  replace (pos eps) with (eps/2 + M * (eps / 2 * / M)); cycle 1.
+    now field; apply Rgt_not_eq.
+  apply ball_triangle with (RInt f a' y).
+    replace (RInt f a' y) with (fi (a', y)).
+      now apply vfi'; tauto.
+    now symmetry; apply is_RInt_unique, ifi; tauto.
+  assert (ex_RInt f a a') by (apply exrint_close; tauto).
+  change (Rabs (RInt f a y - RInt f a' y) < M * (eps / 2 * / M)).
+  apply Rle_lt_trans with (RInt (fun x => Rabs (f x)) (Rmin a a') (Rmax a a')).
+    replace (RInt f a y - RInt f a' y) with (RInt f a a'); cycle 1.
+      apply Rplus_eq_reg_r with (RInt f a' y).
+      now rewrite RInt_Chasles;[ring | | eapply ex_intro; apply ifi]; tauto.
+    destruct (Rle_dec a a') as [aa' | a'a].
+      rewrite -> Rmin_left, Rmax_right; try fourier.
+      apply abs_RInt_le; assumption.
+    apply Rnot_le_lt in a'a.
+    rewrite <- RInt_swap, Rabs_Ropp, Rmin_right, Rmax_left; try fourier.
+  apply abs_RInt_le;[ apply Rlt_le | apply ex_RInt_swap]; assumption.
+  apply Rle_lt_trans with (RInt (fun _ => M) (Rmin a a') (Rmax a a')).
+  apply RInt_le.
+          now apply Rminmax.
+        apply (ex_RInt_continuous (fun x => Rabs (f x))).
+        rewrite -> Rmin_left, Rmax_right; try apply Rminmax.
+        intros z pz; apply continuous_comp;[ | now apply continuous_Rabs].
+        apply pd1, Rle_lt_trans with (Rabs (a' - a));[ | tauto].
+        unfold abs, minus, plus, opp; simpl.
+        destruct (Rle_dec a a') as [aa' | a'a].
+          now rewrite -> Rmin_left, Rmax_right in pz; destruct pz;
+            try rewrite !Rabs_right; fourier.
+        rewrite -> Rmin_right, Rmax_left in pz; destruct pz;
+          apply Rnot_le_lt in a'a;
+          try rewrite (Rabs_left (a' - a)); try fourier.
+        destruct (Req_dec z a) as [za | nza].
+          rewrite -> za,Rplus_opp_r, Rabs_R0; fourier.
+        rewrite Rabs_left; try fourier.
+        now apply Rnot_le_lt; intros abs; case nza; apply Rle_antisym; fourier.
+      now apply ex_RInt_const.
+    intros z pz; apply Rlt_le, close.
+      destruct (Rle_dec a a') as [aa' | a'a].
+        rewrite -> Rmin_left, Rmax_right in pz; destruct pz; try fourier.
+        now apply Rgt_not_eq; assumption.
+      rewrite -> Rmin_right, Rmax_left in pz; destruct pz;
+      apply Rnot_le_lt in a'a; try fourier.
+      now apply Rlt_not_eq; assumption.
+    apply Rlt_trans with (Rabs (a' - a));[ | tauto].
+    unfold abs, minus, plus, opp; simpl.
+    destruct (Rle_dec a a') as [aa' | a'a].
+      now rewrite -> Rmin_left, Rmax_right in pz; destruct pz;
+        try rewrite !Rabs_right; fourier.
+    rewrite -> Rmin_right, Rmax_left in pz; destruct pz;
+      try rewrite (Rabs_left (a' - a)); apply Rnot_le_lt in a'a; try fourier.
+    destruct (Req_dec z a) as [za | nza].
+      now rewrite -> za,Rplus_opp_r, Rabs_R0; fourier.
+    now rewrite Rabs_left; fourier.
+  rewrite -> RInt_const, Rmult_comm.
+  apply Rmult_lt_compat_l;[fourier | ].
+  destruct (Rle_dec a a') as [aa' | a'a].
+    rewrite -> Rmax_right, Rmin_left; try fourier.
+    now rewrite <- (Rabs_right (a' - a));[tauto | fourier].
+  rewrite -> Rmax_left, Rmin_right; apply Rnot_le_lt in a'a ; try fourier.
+  replace (a - a') with (- (a' - a)) by ring.
+  now rewrite <- (Rabs_left (a' - a)); try fourier; tauto.
+exists (eq a) R2;[intros z pz; apply ball_eq; exact pz | assumption | ].
+intros x y ax qy; rewrite <- ax; clear ax x.
+apply RInt_correct; simpl.
+destruct (filter_ex _ (filter_and _ _ atrd1 FQ2)) as [a' pa'].
+apply ex_RInt_Chasles with a'.
+  now apply exrint_close; tauto.
+eapply ex_intro; apply ifi; tauto.
+Qed.
