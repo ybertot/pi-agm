@@ -84,14 +84,10 @@ Qed.
 Lemma scal_ell a b k : 0 < a -> 0 < b -> 0 < k ->
   ell (k * a) (k * b) = /k * ell a b.
 Proof.
-intros a0 b0 k0.
-generalize (iota_correct _ (ex_un_ell a b a0 b0)).
-unfold ell at 2; set (v := iota _); intros intv.
+intros a0 b0 k0; assert (int_ellab := is_RInt_gen_ell _ _ a0 b0).
 assert (ka0 : 0 < k * a) by now lt0.
 assert (kb0 : 0 < k * b) by now lt0.
-generalize (iota_correct _ (ex_un_ell _ _ ka0 kb0)); unfold ell.
-set (w := iota _); intros intw.
-destruct (ex_un_ell (k * a) (k * b) ka0 kb0) as [ww [_ Pww]].
+assert (int_ellk := is_RInt_gen_ell _ _ ka0 kb0).
 assert (ellfq : filter_prod (Rbar_locally m_infty) (Rbar_locally p_infty)
           (fun p => forall x, Rmin (fst p) (snd p) < x < Rmax (fst p) (snd p) ->
               /k * (/k * ellf a b (/k * x + 0)) = ellf (k * a) (k * b) x)).
@@ -105,9 +101,7 @@ assert (ellfq : filter_prod (Rbar_locally m_infty) (Rbar_locally p_infty)
   rewrite Rinv_mult_distr;[ | apply Rgt_not_eq; lt0 | lt0].
   rewrite Rplus_0_r (Rmult_comm (/k) x).
   now rewrite Rinv_mult_distr ?Rmult_assoc;[ | lt0 | lt0].
-rewrite -(Pww _ intw).
-enough (is_RInt_gen (ellf (k * a) (k * b)) (Rbar_locally m_infty)
-          (Rbar_locally p_infty) (/k * v)) by now apply Pww.
+symmetry; apply ell_unique; auto.
 apply (is_RInt_gen_ext _ _ _ ellfq).
 apply (is_RInt_gen_scal (fun x => /k * ellf a b (/k * x + 0)) (/k)).
 apply (is_RInt_gen_comp_lin (ellf a b)).
@@ -148,11 +142,10 @@ Lemma half_elliptic a b v1 v2 : 0 < a -> 0 < b ->
   is_RInt_gen (ellf a b) (at_point 0) (Rbar_locally p_infty) v2 ->
   v1 = 2 * v2.
 Proof.
-intros a0 b0 pv1 pv2; destruct (ex_un_ell a b) as [w [p1 pw]]; auto.
-assert (wv1 := pw _ pv1); rewrite <- wv1; clear pv1 wv1.
+intros a0 b0 V pv2; symmetry; rewrite (ell_unique _ _ _ a0 b0 V); clear V.
 enough (low : is_RInt_gen (ellf a b) (Rbar_locally m_infty) (at_point 0) v2).
   assert (whole := is_RInt_gen_Chasles _ _ _ _ low pv2).
-  rewrite (pw _ whole); unfold plus; simpl; ring.
+  now rewrite -(ell_unique _ _ _ _ _ whole); auto; unfold plus; simpl; ring.
 replace v2 with ((-1) * - v2) by ring.
 apply is_RInt_gen_ext with (fun x => (-1) * (-1 * (ellf a b ((-1 * x) + 0)))).
   exists (Rgt 0) (fun x => x = 0).
@@ -428,15 +421,9 @@ assert (c0 : 0 < c) by psatzl R.
 assert (d0 : 0 < d) by (rewrite deq; lt0).
 destruct (ex_un_ell a b) as [w [wp wq]]; auto.
 assert (xi := ex_intro _ w wp : ex_RInt_gen _ _ _).
-assert (oinfty : filter_Rlt (Rbar_locally m_infty) (Rbar_locally p_infty)).
-  now apply (filter_Rlt_witness 0); exists 0; intros; psatzl R.
-assert (minfty0 : filter_Rlt (Rbar_locally m_infty) (at_point 0)).
-  apply (filter_Rlt_witness (-1));[exists (-1); intros; psatzl R | ].
-  now intros y b_y; replace y with 0;[psatzl R | apply ball_eq].
-assert (pinfty0 : filter_Rlt (at_point 0) (Rbar_locally p_infty)).
-  apply (filter_Rlt_witness 1);[|exists 1; intros; psatzl R].
-  now intros x b_x; replace x with 0;[psatzl R | apply ball_eq].
-destruct (ex_RInt_gen_cut 0 _ _ _ oinfty minfty0 pinfty0 xi) as [w2 w2p].
+destruct (ex_RInt_gen_cut 0 _ _ _ 
+   (filter_Rlt_m_infty_at_point _) (filter_Rlt_at_point_p_infty _) xi)
+   as [w2 w2p].
 set (s x := (x - a * b/x)  /2).
 set (s' x := (1 + (a * b) / x ^ 2) / 2).
 enough (half : is_RInt_gen (ellf a b)
@@ -506,34 +493,19 @@ Lemma quarter_elliptic x : 0 < x -> ell 1 x = 4 * RInt (ellf 1 x) 0 (sqrt x).
 Proof.
 intros x0.
 (* destruct (ex_un_ell 1 x) as [v1 [Pv1 qv1]]; try lt0. *)
-assert (m0 : filter_Rlt (Rbar_locally m_infty) (at_point 0)).
-  exists (-1), (Rgt (-1)) (Rlt (-1)).
-      now exists (-1); intros; psatzl R.
-    now intros y bay; replace y with 0;[psatzl R | apply ball_eq ].
-  now simpl; intros; psatzl R.
-assert (p0 : filter_Rlt (at_point 0) (Rbar_locally p_infty)).
-  exists 1, (Rgt 1) (Rlt 1).
-      now intros y bay; replace y with 0;[psatzl R | apply ball_eq ].
-    now exists 1; intros; psatzl R.
-  now simpl; intros; psatzl R.
 unfold ell.
 generalize (iota_correct _ (ex_un_ell _ _ Rlt_0_1 x0)).
 set (v := iota _); intros Pv.
 destruct (ex_RInt_gen_cut 0 _ _
-          (ellf 1 x) filter_Rlt_m_infty_p_infty
-          m0 p0 (ex_intro _ _ Pv)) as [v2 Pv2]; simpl in v, v2.
+          (ellf 1 x) 
+          (filter_Rlt_m_infty_at_point _) (filter_Rlt_at_point_p_infty _)
+               (ex_intro _ _ Pv)) as [v2 Pv2]; simpl in v, v2.
 assert (0 < sqrt x) by lt0.
-assert (m0x : filter_Rlt (at_point 0) (at_point (sqrt x))).
-  exists (sqrt x / 2), (Rgt (sqrt x / 2)) (Rlt (sqrt x / 2)).
-      now intros y bay; replace y with 0;[lt0 | apply ball_eq ].
-    now intros y bay; replace y with (sqrt x);[psatzl R | apply ball_eq ].
-  now simpl; intros; psatzl R.
+assert (m0x : filter_Rlt (at_point 0) (at_point (sqrt x)))
+  by now apply filter_Rlt_at_point.
 assert (mxp : filter_Rlt (at_point (sqrt x)) (Rbar_locally p_infty)).
-  exists (2 * sqrt x), (Rgt (2 * sqrt x)) (Rlt (2 * sqrt x)).
-      now intros y bay; replace y with (sqrt x);[lt0 | apply ball_eq ].
-    now exists (2 * sqrt x); intros; psatzl R.
-  now simpl; intros; psatzl R.
-destruct (ex_RInt_gen_cut (sqrt x) (at_point 0) _ (ellf 1 x) p0 m0x mxp
+  now apply filter_Rlt_at_point_p_infty.
+destruct (ex_RInt_gen_cut (sqrt x) (at_point 0) _ (ellf 1 x) m0x mxp
              (ex_intro _ _ Pv2)) as [v3 Pv3].
 assert (ex_RInt (ellf 1 x) 0 (sqrt x)) as [v4 Pv4].
   apply: ex_RInt_continuous; intros z _; unfold ellf.
