@@ -129,11 +129,11 @@ Proof. split; interval. Qed.
 
 (* standard *)
 Lemma CVU_derivable :
-  forall f f' g g' c d,
-   CVU f' g' c d ->
-   (forall x, Boule c d x -> Un_cv (fun n => f n x) (g x)) ->
-   (forall n x, Boule c d x -> derivable_pt_lim (f n) x (f' n x)) ->
-   forall x, Boule c d x -> derivable_pt_lim g x (g' x).
+  forall f f' g g' c r,
+   CVU f' g' c r ->
+   (forall x, Boule c r x -> Un_cv (fun n => f n x) (g x)) ->
+   (forall n x, Boule c r x -> derivable_pt_lim (f n) x (f' n x)) ->
+   forall x, Boule c r x -> derivable_pt_lim g x (g' x).
 Proof.
 intros f f' g g' c d cvu cvp dff' x bx.
 set (rho_ :=
@@ -372,9 +372,9 @@ apply is_RInt_unique, is_RInt_derive.
 now intros; apply: ex_derive_continuous; auto_derive; repeat split; lt0.
 Qed.
 
-Lemma equiv_trans F (FF : Filter F) f g h :
+Lemma equiv_trans F {FF : Filter F} (f g h : R -> R) :
   F (fun x => g x <> 0) -> F (fun x => h x <> 0) ->
-  filterlim (fun x : R => f x / g x) F (locally 1) ->
+  filterlim (fun x => f x / g x) F (locally 1) ->
   filterlim (fun x => g x / h x) F (locally 1) ->
   filterlim (fun x => f x / h x) F (locally 1).
 Proof.
