@@ -2,11 +2,11 @@
 
 Require Import Reals Coquelicot.Coquelicot Fourier.
 
-Definition filter_Rlt F G :=
-  exists m, filter_prod F G (fun p => fst p < m < snd p).
+Definition filter_Rlt F1 F2 :=
+  exists m, filter_prod F1 F2 (fun p => fst p < m < snd p).
 
-Lemma filter_Rlt_witness m (F G  : (R -> Prop) -> Prop) :
-  F (Rgt m) -> G (Rlt m) ->  filter_Rlt F G.
+Lemma filter_Rlt_witness m (F1 F2  : (R -> Prop) -> Prop) :
+  F1 (Rgt m) -> F2 (Rlt m) ->  filter_Rlt F1 F2.
 Proof.
 exists m; split with (Rgt m) (Rlt m); simpl; auto with real.
 Qed.
@@ -17,7 +17,7 @@ Proof.
 apply (filter_Rlt_witness 0); exists 0; tauto.
 Qed.
 
-Example filter_Rlt_m_infty_at_left b :
+Lemma filter_Rlt_m_infty_at_left b :
   filter_Rlt (Rbar_locally m_infty) (at_left b).
 Proof.
 apply (filter_Rlt_witness (b - 1)).
@@ -32,7 +32,7 @@ rewrite Rmult_1_l; simpl.
 fourier.
 Qed.
 
-Example filter_Rlt_at_right_p_infty b :
+Lemma filter_Rlt_at_right_p_infty b :
   filter_Rlt (at_right b) (Rbar_locally p_infty).
 Proof.
 apply (filter_Rlt_witness (b + 1)).
@@ -50,7 +50,7 @@ Qed.
 Lemma Rplus_minus_cancel1 : forall a b, a + b - a = b.
 Proof. intros; ring. Qed.
 
-Example filter_Rlt_locally a b : a < b ->
+Lemma filter_Rlt_locally a b : a < b ->
   filter_Rlt (Rbar_locally a) (Rbar_locally b).
 Proof.
 intros ab.
@@ -86,14 +86,14 @@ apply ball_sym in yb; apply AbsRing_norm_compat2 in yb.
 now rewrite Rmult_1_l; simpl; auto with real.
 Qed.
 
-Example filter_Rlt_left_right  a b : a <= b ->
+Lemma filter_Rlt_left_right  a b : a <= b ->
   filter_Rlt (at_left a) (at_right b).
 intros ab; apply (filter_Rlt_witness a).
   now exists pos_half; intros y _; apply Rgt_lt.
 now exists pos_half; intros y _ yb ; apply Rle_lt_trans with b.
 Qed.
 
-Example filter_Rlt_right_left a b : a < b ->
+Lemma filter_Rlt_right_left a b : a < b ->
   filter_Rlt (at_right a) (at_left b).
 Proof.
 intros ab.
@@ -248,7 +248,7 @@ assert (cc : cauchy (filtermap (fun p => RInt f (fst p) (snd p))
     apply Rle_lt_trans with (1 := Rle_abs _).
     replace (RInt _ _ _ + _) with
       ((RInt g a d - gl) - (RInt g b c - gl))
-    by (rewrite <- (RInt_Chasles g a b d), <- (RInt_Chasles g b c d); 
+    by (rewrite <- (RInt_Chasles g a b d), <- (RInt_Chasles g b c d);
             try tauto; ring).
     apply Rle_lt_trans with (1 := Rabs_triang _ _), Rplus_lt_compat.
       replace (RInt g a d) with (Ig(a, d)).
@@ -266,7 +266,7 @@ assert (cc : cauchy (filtermap (fun p => RInt f (fst p) (snd p))
       apply Rnot_lt_le; tauto].
 assert (main : forall eps:posreal, filtermap (fun p => RInt f (fst p) (snd p))
               (filter_prod F G)
-               (ball (lim (filtermap (fun p => RInt f (fst p) (snd p)) 
+               (ball (lim (filtermap (fun p => RInt f (fst p) (snd p))
                              (filter_prod F G))) eps)).
   intros eps; apply complete_cauchy;
      [apply filtermap_proper_filter;apply filter_prod_proper| exact cc].
