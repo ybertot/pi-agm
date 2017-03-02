@@ -55,31 +55,6 @@ Definition ell (a b : R) :=
   iota (fun v => is_RInt_gen (ellf a b)
                    (Rbar_locally m_infty) (Rbar_locally p_infty) v).
 
-(* This lemma could be for any normed module, but this requires
-  that is_RInt_unique should also be for any normed module. *)
-Lemma ex_RInt_gen_unique
-  (F G : (R -> Prop) -> Prop) {FF : ProperFilter F}
-  {FG : ProperFilter G} (f : R -> R) :
-  ex_RInt_gen f F G -> exists ! v, is_RInt_gen f F G v.
-Proof.
-intros [v Pv]; exists v; split;[exact Pv | intros w [fw [w1 w2]]].
-destruct Pv as [fv [v1 v2]].
-apply ball_eq; intros eps.
-assert (tw := w2 (ball w (pos_div_2 eps)) (locally_ball _ _)).
-assert (tv := v2 (ball v (pos_div_2 eps)) (locally_ball _ _)).
-(* Here it is annoying that I have to fix the filter to make it work. *)
-destruct (filter_ex _
-         (filter_and (F := filter_prod F G) _ _ tv
-            (filter_and (F := filter_prod F G)_ _ tw
-               (filter_and (F := filter_prod F G)_ _ v1 w1))))
-   as [[c d] [b1 [b2 [i1 i2]]]]; simpl in i1, i2.
-apply is_RInt_unique in i1; apply is_RInt_unique in i2.
-assert (vw : fv (c,d) = fw (c, d)) by (rewrite <- i1; exact i2).
-rewrite vw in b1.
-replace (pos eps) with (pos_div_2 eps + pos_div_2 eps) by (simpl; field).
-now apply ball_triangle with (fw (c, d)); auto; apply ball_sym.
-Qed.
-
 Lemma ex_un_ell a b : 0 < a -> 0 < b ->
   exists ! v,
     is_RInt_gen (ellf a b) (Rbar_locally m_infty) (Rbar_locally p_infty) v.
@@ -358,71 +333,6 @@ Lemma variable_change_for_agm : forall s t a b, 0 < t -> 0 < a -> 0 < b ->
   ((1 + a * b / t ^ 2) / 2) ^ 2 =
  (t ^ 2 + a ^ 2) * (t ^ 2 + b ^ 2).
 Proof. intros s t a b t0 a0 b0 q; rewrite q; field; split; lt0. Qed.
-
-Lemma ex_RInt_gen_cut (a : R) (F G: (R -> Prop) -> Prop)
-   {FF : ProperFilter F} {FG : ProperFilter G} (f : R -> R) :
-   filter_Rlt F G -> filter_Rlt F (at_point a) -> filter_Rlt (at_point a) G ->
-   ex_RInt_gen f F G -> ex_RInt_gen f (at_point a) G.
-Proof.
-intros lFG lFa laG [l [g [ifg vfg]]].
-set (v := R_complete_lim (filtermap (fun x => RInt f a x) G)).
-exists v, (fun p => RInt f (fst p) (snd p)).
-destruct laG as [m [S1 S2 p1 p2 laG]]; cbn in laG.
-destruct ifg as [S3 S4 p3 p4 ifg].
-destruct lFa as [m' [S5 S6 p5 p6 lFa]]; cbn in lFa.
-assert (S6 a) by (apply p6, ball_center).
-assert (S1 a) by (apply p1, ball_center).
-split.
-  exists (eq a) (fun y => S2 y /\ S4 y).
-      now unfold at_point; intros; apply ball_eq.
-    now apply filter_and; auto.
-  simpl; intros x y <- ay; apply RInt_correct.
-  destruct (filter_ex _ (filter_and _ _ p5 p3)).
-  apply (ex_RInt_Chasles_2 f x);[split; apply Rlt_le;
-     [destruct (lFa x a) | destruct(laG a y)]; (psatzl R || tauto) | ].
-   exists (g(x, y)); apply ifg; tauto.
-assert (t': forall eps : posreal, exists x,
-         filtermap (fun x => RInt f a x) G (ball x eps)).
-  intros eps.
-  destruct (vfg (ball l (pos_div_2 eps)))
-    as [S7 S8 p7 p8 vfg']; [now apply locally_ball |].
-  destruct (filter_ex (F := G)
-                (fun y => S8 y /\ S4 y /\ S2 y)) as [y Py].
-    repeat apply filter_and; tauto.
-  exists (RInt f a y); destruct (filter_ex (F := F)
-                        (fun x => S7 x /\ S3 x /\ S5 x)) as [x Px].
-    repeat apply filter_and; tauto.
-  unfold filtermap; apply (filter_imp (fun y => S8 y /\ S4 y /\ S2 y)).
-  intros z PZ; change (Rabs (RInt f a z - RInt f a y) < eps).
-  replace (RInt f a z - RInt f a y) with
-          ((RInt f x a + RInt f a z) - (RInt f x a + RInt f a y)) by ring.
-    assert (ex_RInt f x y) by (exists (g(x, y)); apply ifg; tauto).
-    assert (ex_RInt f x z) by (exists (g(x, z)); apply ifg; tauto).
-    assert (x < a) by (destruct (lFa x a); psatzl R || tauto).
-    assert (a < y) by (destruct (laG a y); psatzl R || tauto).
-    assert (a < z) by (destruct (laG a z); psatzl R || tauto).
-    assert (ex_RInt f x a).
-      apply (ex_RInt_Chasles_1 f x a y);[psatzl R | assumption].
-    rewrite !RInt_Chasles; auto;
-       try (apply (ex_RInt_Chasles_2 f x); auto; psatzl R); cycle 1.
-    change (ball (RInt f x y) eps (RInt f x z)).
-    replace (pos eps) with (pos_div_2 eps + pos_div_2 eps) by (simpl; field).
-    replace (RInt f x y) with (g(x, y))
-      by (symmetry; apply is_RInt_unique, ifg; tauto).
-    replace (RInt f x z) with (g(x, z))
-      by (symmetry; apply is_RInt_unique, ifg; tauto).
-    apply (ball_triangle _ l); [apply ball_sym | ]; apply vfg'; tauto.
-  repeat apply filter_and; tauto.
-intros P [eps Pe].
-assert (t := (R_complete
-            (filtermap (fun x => RInt f a x) G) _
-            t' eps)).
-apply (filter_imp (ball v eps)); [exact Pe | ].
-(* This is way too clever for me to be satisfied. *)
-apply: (Filter_prod (at_point a) G _ (eq a) _ _ t).
-  now unfold at_point; apply: ball_eq.
-intros x y <-; tauto.
-Qed.
 
 Local Lemma var_change_lim_p_infty a : 0 < a ->
   is_lim (fun x => (x - a/x)/2) p_infty p_infty.

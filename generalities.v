@@ -84,235 +84,29 @@ apply filterlim_filter_le_1 with (2 := liminf).
 apply filter_prod_le; intros P;[apply eqF | apply eqG].
 Qed.
 
-Lemma is_RInt_gen_at_point_at_right (f : R -> R) (a : R) F {FF : ProperFilter F}
-  v : locally a (continuous f) -> is_RInt_gen f (at_point a) F v ->
-  filter_Rlt (at_point a) F ->  is_RInt_gen f (at_right a) F v.
+(* This lemma could be for any normed module, but this requires
+  that is_RInt_unique should also be for any normed module. *)
+Lemma ex_RInt_gen_unique
+  (F G : (R -> Prop) -> Prop) {FF : ProperFilter F}
+  {FG : ProperFilter G} (f : R -> R) :
+  ex_RInt_gen f F G -> exists ! v, is_RInt_gen f F G v.
 Proof.
-intros [delta1 pd1] [inf [isinf limf]] [m [P Q FP FQ cmp]]; simpl in cmp.
-destruct (pd1 a (ball_center a delta1)
-          (ball (f a) (mkposreal _ Rlt_0_1)) (locally_ball _ _)) as
-    [delta2 Pd2].
-destruct isinf as [P1 Q1 FP1 FQ1 isinf].
-assert (pa : P a) by (apply FP; intros; apply ball_center).
-exists (fun p => RInt f (fst p) (snd p)); split.
-  exists (fun x => m > x /\ a < x) (fun x => Q x /\ Q1 x).
-      destruct (filter_ex _ FQ) as [y Qy].
-      destruct (cmp _ _ pa Qy).
-      assert (ma : 0 < m - a) by psatzl R.
-      exists (mkposreal _ ma); simpl; intros z; unfold ball; simpl.
-      unfold AbsRing_ball, ball, minus, plus, opp, abs; simpl.
-      now intros B az; revert B; rewrite Rabs_right; psatzl R.
-    now apply filter_and.
-  intros x y xm fq; simpl; apply RInt_correct.
-  apply: (ex_RInt_Chasles_2 _ a).
-    destruct (cmp a y pa); try tauto; psatzl R.
-  exists (inf (a, y)); apply isinf; try tauto.
-  now apply FP1; intros; apply ball_center.
-intros P2 [eps P2eps].
-set (M := Rabs (f a) + 1).
-assert (M0 : 0 < eps / M) by (unfold M; lt0).
-assert (close : forall y, y <> a -> ball a delta2 y -> Rabs (f y) < M).
-  intros y ay b_y; unfold M.
-  replace (f y) with (f a + (f y - f a)) by ring.
-  apply Rle_lt_trans with (1 := Rabs_triang _ _).
-  now apply Rplus_lt_compat_l, Pd2; auto.
-assert (exrint_close : forall a', ball a delta1 a' -> ex_RInt f a a').
-  intros a' baa'.
-  apply: ex_RInt_continuous; intros z pz; apply pd1.
-  destruct (Rle_dec a a') as [aa' | a'a].
-    rewrite -> Rmin_left, Rmax_right in pz; auto.
-    change (Rabs (z - a) < delta1).
-    rewrite Rabs_right; cycle 1.
-      psatzl Rdefinitions.R.
-    apply Rle_lt_trans with (a' - a); try psatzl Rdefinitions.R.
-    rewrite <- (Rabs_right (a' - a)); try psatzl Rdefinitions.R.
-    tauto.
-  change (Rabs (z - a) < delta1).
-  destruct (Rle_dec a z) as [az | za].
-    rewrite -> Rmin_right, Rmax_left in pz; try psatzl Rdefinitions.R.
-    assert (za' : z = a) by psatzl Rdefinitions.R.
-    now rewrite -> za', Rminus_eq_0, Rabs_R0; case delta1; tauto.
-  rewrite -> Rmin_right, Rmax_left in pz; try psatzl Rdefinitions.R.
-  rewrite Rabs_left; cycle 1.
-  psatzl Rdefinitions.R.
-  apply Rle_lt_trans with (a - a'); try psatzl Rdefinitions.R.
-  rewrite <- (Rabs_right (a - a')); try psatzl Rdefinitions.R.
-  now change (ball a' delta1 a); apply ball_sym; tauto.
-destruct (limf (ball v (pos_div_2 eps))) as [Ql Rl FQl FRl vfi'].
-  now apply locally_ball.
-assert (pre_ep2 : 0 < eps / 2 * /M) by lt0.
-set (ep2 := mkposreal _ pre_ep2).
-assert (at_right a (fun x => ball a delta1 x /\ ball a ep2 x /\
-                             ball a delta2 x /\ a < x /\ x < m)).
-  repeat apply filter_and; try (now apply filter_le_within, locally_ball).
-    now exists ep2; intros; tauto.
-  destruct (filter_ex _ FQ) as [y' Py'].
-  assert (ma0 : 0 < m - a).
-    now destruct (cmp a y'); auto; psatzl R.
-  exists (mkposreal _ ma0); simpl; intros y.
-  intros bay ay; change (Rabs (y - a) < m - a) in bay.
-  now rewrite -> Rabs_right in bay; psatzl R.
-assert (F (fun y => Q y /\ Rl y /\ Q1 y)).
-  now repeat apply filter_and; auto.
-exists (fun x => ball a delta1 x /\ ball a ep2 x /\
-                 ball a delta2 x /\ a < x /\ x < m)
-          (fun y => Q y /\ Rl y /\ Q1 y); auto.
-intros x y bx Ry; apply P2eps; simpl.
+intros [v Pv]; exists v; split;[exact Pv | intros w [fw [w1 w2]]].
+destruct Pv as [fv [v1 v2]].
+apply ball_eq; intros eps.
+assert (tw := w2 (ball w (pos_div_2 eps)) (locally_ball _ _)).
+assert (tv := v2 (ball v (pos_div_2 eps)) (locally_ball _ _)).
+(* Here it is annoying that I have to fix the filter to make it work. *)
+destruct (filter_ex _
+         (filter_and (F := filter_prod F G) _ _ tv
+            (filter_and (F := filter_prod F G)_ _ tw
+               (filter_and (F := filter_prod F G)_ _ v1 w1))))
+   as [[c d] [b1 [b2 [i1 i2]]]]; simpl in i1, i2.
+apply is_RInt_unique in i1; apply is_RInt_unique in i2.
+assert (vw : fv (c,d) = fw (c, d)) by (rewrite <- i1; exact i2).
+rewrite vw in b1.
 replace (pos eps) with (pos_div_2 eps + pos_div_2 eps) by (simpl; field).
-assert (Rabs (RInt f a x) < pos_div_2 eps).
-  apply Rle_lt_trans with ((x - a) * M).
-    apply abs_RInt_le_const;[apply Rlt_le; tauto | | ].
-      now apply: exrint_close; tauto.
-    intros t atx.
-    replace (f t) with (f a + (f t - f a)) by ring.
-    apply Rle_trans with (1 := Rabs_triang _ _).
-    apply Rplus_le_compat;[apply Rle_refl | ].
-    apply Rlt_le, (Pd2 t).
-    change (Rabs (t - a) < delta2); rewrite Rabs_right;[ | psatzl R].
-    apply Rle_lt_trans with (x - a);[psatzl R | ].
-    now rewrite <- (Rabs_right (x - a));[tauto | psatzl R].
-  replace (pos (pos_div_2 eps)) with (ep2 * M).
-    rewrite <- (Rabs_right (x - a));[|psatzl R].
-    now apply Rmult_lt_compat_r;[unfold M; lt0 | tauto].
-  simpl; field; unfold M; lt0.
-apply ball_triangle with (RInt f a y); cycle 1.
-  change (Rabs (RInt f x y - RInt f a y) < pos_div_2 eps).
-  replace (RInt f a y) with (RInt f a x + RInt f x y); cycle 1.
-  apply RInt_Chasles.
-      now apply: exrint_close; tauto.
-    apply: (ex_RInt_Chasles_2 f a).
-      split;[apply Rlt_le; tauto | apply Rlt_le, Rlt_trans with m; try tauto].
-    now destruct (cmp a y); tauto.
-  exists (inf (a, y)); apply isinf.
-    now apply FP1; intros; apply ball_center.
-  now tauto.
-  now rewrite [_ - _](_ : _ = - RInt f a x) ?Rabs_Ropp;[ | ring].
-rewrite (is_RInt_unique f a y (inf(a, y))); cycle 1.
-  now apply isinf;[apply FP1; intros; apply ball_center | tauto].
-now apply vfi';[apply FQl; intros; apply ball_center | tauto].
-Qed.
-
-Lemma is_RInt_gen_at_right_at_point (f : R -> R) (a : R) F {FF : ProperFilter F}
-  v :
-  locally a (continuous f) -> is_RInt_gen f (at_right a) F v ->
-  is_RInt_gen f (at_point a) F v.
-Proof.
-intros [delta1 pd1].
-destruct (pd1 a (ball_center a delta1)
-          (ball (f a) (mkposreal _ Rlt_0_1)) (locally_ball _ _)) as
-    [delta2 Pd2].
-intros [fi [ifi vfi]].
-set (M := Rabs (f a) + 1).
-assert (M0 : 0 < M) by (unfold M; lt0).
-assert (close : forall y, y <> a -> ball a delta2 y -> Rabs (f y) < M).
-  intros y ay b_y; unfold M.
-  replace (f y) with (f a + (f y - f a)) by ring.
-  apply Rle_lt_trans with (1 := Rabs_triang _ _).
-  now apply Rplus_lt_compat_l, Pd2; auto.
-destruct ifi as [Q2 R2 FQ2 FR2 ifi].
-assert (atrd1 : at_right a (ball a delta1)) by (exists delta1; tauto).
-assert (exrint_close : forall a', ball a delta1 a' -> ex_RInt f a a').
-  intros a' baa'.
-  apply: ex_RInt_continuous; intros z pz; apply pd1.
-  destruct (Rle_dec a a') as [aa' | a'a].
-    rewrite -> Rmin_left, Rmax_right in pz; auto.
-    change (Rabs (z - a) < delta1).
-    rewrite Rabs_right; cycle 1.
-      psatzl Rdefinitions.R.
-    apply Rle_lt_trans with (a' - a); try psatzl Rdefinitions.R.
-    rewrite <- (Rabs_right (a' - a)); try psatzl Rdefinitions.R.
-  tauto.
-  change (Rabs (z - a) < delta1).
-  destruct (Rle_dec a z) as [az | za].
-    rewrite -> Rmin_right, Rmax_left in pz; try psatzl Rdefinitions.R.
-    assert (za' : z = a) by psatzl Rdefinitions.R.
-    now rewrite -> za', Rminus_eq_0, Rabs_R0; case delta1; tauto.
-  rewrite -> Rmin_right, Rmax_left in pz; try psatzl Rdefinitions.R.
-  rewrite Rabs_left; cycle 1.
-  psatzl Rdefinitions.R.
-  apply Rle_lt_trans with (a - a'); try psatzl Rdefinitions.R.
-  rewrite <- (Rabs_right (a - a')); try psatzl Rdefinitions.R.
-  now change (ball a' delta1 a); apply ball_sym; tauto.
-exists (fun p => RInt f (fst p) (snd p)); split; cycle 1.
-  intros P [eps Peps].
-  assert (pre_ep2 : 0 < eps / 2 * /M) by lt0.
-  set (ep2 := mkposreal _ pre_ep2).
-  destruct (vfi (ball v (pos_div_2 eps))) as [Q R FQ FR vfi'].
-    now apply locally_ball.
-  exists (eq a) (fun y => R y /\ R2 y).
-      exact: ball_eq.
-    now apply filter_and.
-  intros x y ax [Ry R2y]; simpl; rewrite <- ax; clear ax x.
-  apply Peps.
-  assert (atrd2 : at_right a (ball a delta2)) by (exists delta2; tauto).
-  assert (atre2 : at_right a (ball a ep2)) by (exists ep2; tauto).
-  destruct (filter_ex _ (filter_and _ _ atrd1 (filter_and _ _ atrd2
-                          (filter_and _ _ FQ (filter_and _ _ FQ2 atre2))))) as
-      [a' Pa'].
-  replace (pos eps) with (eps/2 + M * (eps / 2 * / M)) by (field; lt0).
-  apply ball_triangle with (RInt f a' y).
-    replace (RInt f a' y) with (fi (a', y)).
-      now apply vfi'; tauto.
-    now symmetry; apply is_RInt_unique, ifi; tauto.
-  assert (ex_RInt f a a') by (apply exrint_close; tauto).
-  change (Rabs (RInt f a y - RInt f a' y) < M * (eps / 2 * / M)).
-  apply Rle_lt_trans with (RInt (fun x => Rabs (f x)) (Rmin a a') (Rmax a a')).
-  replace (RInt f a y - RInt f a' y) with (RInt f a a'); cycle 1.
-    apply Rplus_eq_reg_r with (RInt f a' y).
-    now rewrite RInt_Chasles;[ring | | eapply ex_intro; apply ifi]; tauto.
-  destruct (Rle_dec a a') as [aa' | a'a].
-    rewrite -> Rmin_left, Rmax_right; try psatzl Rdefinitions.R.
-    apply abs_RInt_le; assumption.
-  rewrite <- RInt_swap, Rabs_Ropp, Rmin_right, Rmax_left;
-        try psatzl Rdefinitions.R.
-  apply abs_RInt_le; try psatzl Rdefinitions.R.
-  apply ex_RInt_swap; assumption.
-  apply Rle_lt_trans with (RInt (fun _ => M) (Rmin a a') (Rmax a a')).
-  apply RInt_le.
-          now apply Rminmax.
-        apply: ex_RInt_continuous.
-        rewrite -> Rmin_left, Rmax_right; try apply Rminmax.
-        intros z pz; apply continuous_comp;[ | now apply continuous_Rabs].
-        apply pd1, Rle_lt_trans with (Rabs (a' - a));[ | tauto].
-        unfold abs, minus, plus, opp; simpl.
-        destruct (Rle_dec a a') as [aa' | a'a].
-          now rewrite -> Rmin_left, Rmax_right in pz; try rewrite !Rabs_right;
-          psatzl Rdefinitions.R.
-        rewrite -> Rmin_right, Rmax_left in pz; try rewrite (Rabs_left (a' - a));
-          try psatzl Rdefinitions.R.
-        destruct (Req_dec z a) as [za | nza].
-          rewrite -> za,Rplus_opp_r, Rabs_R0; psatzl Rdefinitions.R.
-        now rewrite Rabs_left; psatzl Rdefinitions.R.
-      now apply ex_RInt_const.
-    intros z pz; apply Rlt_le, close.
-      destruct (Rle_dec a a') as [aa' | a'a].
-        now rewrite -> Rmin_left, Rmax_right in pz; psatzl Rdefinitions.R.
-      now rewrite -> Rmin_right, Rmax_left in pz; psatzl Rdefinitions.R.
-    apply Rlt_trans with (Rabs (a' - a));[ | tauto].
-    unfold abs, minus, plus, opp; simpl.
-    destruct (Rle_dec a a') as [aa' | a'a].
-      now rewrite -> Rmin_left, Rmax_right in pz; try rewrite !Rabs_right;
-          psatzl Rdefinitions.R.
-    rewrite -> Rmin_right, Rmax_left in pz; try rewrite (Rabs_left (a' - a));
-          try psatzl Rdefinitions.R.
-    destruct (Req_dec z a) as [za | nza].
-      now rewrite -> za,Rplus_opp_r, Rabs_R0; psatzl Rdefinitions.R.
-    now rewrite Rabs_left; psatzl Rdefinitions.R.
-  rewrite -> RInt_const, Rmult_comm.
-  apply Rmult_lt_compat_l;[psatzl Rdefinitions.R | ].
-  destruct (Rle_dec a a') as [aa' | a'a].
-    rewrite -> Rmax_right, Rmin_left; try psatzl Rdefinitions.R.
-    rewrite <- (Rabs_right (a' - a));[tauto | psatzl Rdefinitions.R].
-  rewrite -> Rmax_left, Rmin_right; try psatzl Rdefinitions.R.
-  replace (a - a') with (- (a' - a)) by ring.
-  now rewrite <- (Rabs_left (a' - a)); try psatzl Rdefinitions.R; tauto.
-exists (eq a) R2;[intros z pz; apply ball_eq; exact pz | assumption | ].
-intros x y ax qy; rewrite <- ax; clear ax x.
-apply RInt_correct; simpl.
-destruct (filter_ex _ (filter_and _ _ atrd1 FQ2)) as [a' pa'].
-apply ex_RInt_Chasles with a'.
-  now apply exrint_close; tauto.
-eapply ex_intro; apply ifi; tauto.
+now apply ball_triangle with (fw (c, d)); auto; apply ball_sym.
 Qed.
 
 (* TODO : move to standard. *)
