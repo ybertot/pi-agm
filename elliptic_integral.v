@@ -5,6 +5,8 @@ Import mathcomp.ssreflect.ssreflect.
 
 Hint Mode ProperFilter' - + : typeclass_instances.
 
+Definition ellf (a b x : R) := /sqrt ((x ^ 2 + a ^ 2) * (x ^ 2 + b ^ 2)).
+
 Lemma elliptic_integrable a b : 0 < a -> 0 < b ->
 ex_RInt_gen
  (fun x => /sqrt ((x ^ 2 + a ^ 2) * (x ^ 2 + b ^ 2)))
@@ -49,8 +51,6 @@ assert (h : 0 < (z ^ 2 + a ^ 2) * (z ^ 2 + b ^ 2)).
 now split;[exact h | split;[apply Rgt_not_eq, sqrt_lt_R0, h | ] ].
 Qed.
 
-Definition ellf (a b : R) x := /sqrt ((x ^ 2 + a ^ 2) * (x ^ 2 + b ^ 2)).
-
 Definition ell (a b : R) :=
   iota (fun v => is_RInt_gen (ellf a b)
                    (Rbar_locally m_infty) (Rbar_locally p_infty) v).
@@ -63,6 +63,22 @@ intros a0 b0.
 (* Question: why do I have to apply Rbar_locally_filter? *)
 apply ex_RInt_gen_unique; try apply Rbar_locally_filter.
 now apply elliptic_integrable.
+Qed.
+
+Lemma is_RInt_gen_ell a b : 0 < a -> 0 < b ->
+  is_RInt_gen (ellf a b) (Rbar_locally m_infty) (Rbar_locally p_infty) 
+  (ell a b).
+Proof.
+now intros a0 b0; generalize (iota_correct _ (ex_un_ell a b a0 b0)).
+Qed.
+
+Lemma ell_unique a b v : 0 < a -> 0 < b ->
+  is_RInt_gen (ellf a b) (Rbar_locally m_infty) (Rbar_locally p_infty) v ->
+  v = ell a b.
+Proof.
+intros a0 b0 intv.
+destruct (ex_RInt_gen_unique _ _ _ (ex_intro _ v intv)) as [w [_ Pw]].
+now rewrite <- (Pw _ intv); apply Pw, is_RInt_gen_ell.
 Qed.
 
 Lemma scal_ell a b k : 0 < a -> 0 < b -> 0 < k ->
