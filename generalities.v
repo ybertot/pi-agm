@@ -190,7 +190,7 @@ assert (CVU rho_ rho c d ).
          forall y, Boule c d y -> x <> y ->
          Rabs ((f n y - f n x)/(y - x) - (f p y - f p x)/(y - x)) < eps/4).
   intros n p nN pN y b_y xny.
-  assert (mm0 : (Rmin x y = x /\ Rmax x y = y) \/ 
+  assert (mm0 : (Rmin x y = x /\ Rmax x y = y) \/
                 (Rmin x y = y /\ Rmax x y = x)).
    destruct (Rle_dec x y).
     rewrite -> Rmin_left, Rmax_right; psatzl R.
@@ -252,7 +252,7 @@ assert (CVU rho_ rho c d ).
     rewrite R_dist_sym; apply Rlt_le, Pd;split;[split;[exact I | psatzl R] | ].
     simpl; unfold R_dist.
     unfold Rminus; rewrite -> (Rplus_comm y), Rplus_assoc, Rplus_opp_r, Rplus_0_r.
-    rewrite Rabs_pos_eq;[ | psatzl R].      
+    rewrite Rabs_pos_eq;[ | psatzl R].
     apply Rlt_le_trans with (Rmin (Rmin d' d2) delta);[psatzl R | ].
     apply Rle_trans with (Rmin d' d2); apply Rmin_l.
    apply Rle_trans with (1 := R_dist_tri _ _ (rho_ p (y + Rmin (Rmin d' d2) delta/2))).
@@ -279,7 +279,7 @@ assert (CVU rho_ rho c d ).
    apply Rlt_le, Pd2; split;[split;[exact I | psatzl R] | ].
    simpl; unfold R_dist.
    unfold Rminus; rewrite -> (Rplus_comm y), Rplus_assoc, Rplus_opp_r, Rplus_0_r.
-   rewrite Rabs_pos_eq;[ | psatzl R].      
+   rewrite Rabs_pos_eq;[ | psatzl R].
    apply Rlt_le_trans with (Rmin (Rmin d' d2) delta); [psatzl R |].
    apply Rle_trans with (Rmin d' d2).
     solve[apply Rmin_l].
@@ -367,7 +367,7 @@ lazy beta; replace (sqrt x / x) with (/ sqrt x); cycle 1.
   now rewrite <- (sqrt_sqrt x) at 3; try lt0; field; lt0.
 replace (0 / x) with 0 by (unfold Rdiv; ring).
 rewrite <- (Rminus_0_r (arcsinh _)); rewrite <- arcsinh_0 at 2.
-apply is_RInt_unique, is_RInt_derive. 
+apply is_RInt_unique, is_RInt_derive.
   now intros z intz; rewrite is_derive_Reals; apply derivable_pt_lim_arcsinh.
 now intros; apply: ex_derive_continuous; auto_derive; repeat split; lt0.
 Qed.
