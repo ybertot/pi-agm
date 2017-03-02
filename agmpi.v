@@ -1580,9 +1580,9 @@ assert (dern :
   intros y n dyx; unfold Boule in dyx; apply Rabs_lt_between in dyx.
   now apply Derive_correct; eapply ex_intro; apply is_derive_k; lt0.
 assert (dern' :
-          forall y n, Boule x delta y ->
+          forall n y, Boule x delta y ->
           derivable_pt_lim (k_ n) y (Derive (k_ n) y)).
-  now intros y n boy; rewrite <- is_derive_Reals; apply dern; auto.
+  now intros n y boy; rewrite <- is_derive_Reals; apply dern; auto.
 assert (cv_k_n : forall y : R,
        Boule x delta y ->
        Un_cv (fun n : nat => k_ n y)
@@ -1594,26 +1594,8 @@ assert (cvu_dk_n : CVU (fun n x => Derive (k_ n) x)
   apply (CVU_derive_k_n (x - delta) (x + delta));
   [assert (tmp := cond_pos delta); psatzl R | psatzl R | ].
   now intros y dy; unfold Boule in dy; apply Rabs_lt_between in dy; psatzl R.
-assert (ctf :forall y : R,
-       Boule x delta y ->
-       continuity_pt (fun x : R => ff x ^ 2 / (x * (1 - x ^ 2))) y).
- intros y dyx; unfold Boule in dyx; apply Rabs_lt_between in dyx.
- reg.
-  intros eps ep0.
-  assert (inty : 0 < y < 1) by psatzl R.
-  destruct (continuous_ff y inty (ball (ff y) (mkposreal _ ep0))) as [d1 Pd1].
-      now apply locally_ball.
-    exists d1.
-    split;[destruct d1; simpl; psatzl R | ].
-    unfold dist; simpl; unfold R_dist; intros z [dz zy].
-    now apply Pd1; exact zy.
-  replace (1 - y ^ 2) with ((1 + y) * (1 - y)) by ring; lt0.
 rewrite is_derive_Reals.
-apply (Ranalysis5.derivable_pt_lim_CVU k_
-           (fun n x => Derive (k_ n) x)
-           (fun x => (PI/2) * ff x / ff (sqrt (1 - x ^ 2)))
-           (fun x => ff x ^ 2 / (x * (1 - x ^ 2))) x x delta (Boule_center _ _)
-           dern' cv_k_n cvu_dk_n ctf).
+apply (CVU_derivable _ _ _ _ x delta cvu_dk_n cv_k_n dern' x (Boule_center _ _)).
 Qed.
 
 Lemma PI_from_ff_ff' :
