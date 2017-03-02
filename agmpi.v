@@ -1325,8 +1325,9 @@ apply: ex_RInt_continuous; intros; unfold ellf; apply:ex_derive_continuous.
 now auto_derive; repeat split; lt0.
 Qed.
 
-Lemma ff_at_0 : filterlim (fun x => ff x / (- PI / (2 * ln x)))
+Lemma M1x_at_0 : filterlim (fun x => M 1 x / (- PI / (2 * ln x)))
                   (at_right 0) (locally 1).
+Proof.
 assert (pi_0 := PI_RGT_0).
 apply filterlim_ext_loc with
   (fun x => / (RInt (ellf 1 x) 0 (sqrt x) / ln (/ sqrt x))).
@@ -1445,7 +1446,7 @@ apply: (is_lim_seq_mult _ _ 1 (PI/2 * ff x / ff(sqrt (1 - x ^ 2)))); cycle 2.
     intros P [eps Peps].
     destruct (limwu (ball 0 eps) (locally_ball _ _)) as [bound pb].
     now exists bound; intros n Pn; apply Peps; auto.
-  exact ff_at_0.
+  exact M1x_at_0.
 apply is_lim_seq_ext with
    (fun n => (PI / 2) * / (2 ^ n * ff (w_ n x / u_ n x))).
   intros n; unfold k_.
