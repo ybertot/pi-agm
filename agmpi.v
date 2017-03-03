@@ -201,29 +201,21 @@ intros; unfold u_; change (S n) with (1 + n)%nat.
 now rewrite -> ag_shift, Rmult_comm.
 Qed.
 
-Lemma derive_snd_step n x : 0 < x < 1 ->
-  Derive (fun y => snd (ag 1 y (S n))) x =
+Lemma derive_snd_step n x (intx : 0 < x < 1) :
+  Derive (fun y => v_ (S n) y) x =
   (Derive (u_ n) x  * v_ n x +
    Derive (fun x => v_ n x) x * u_ n x)
    / (2 * sqrt (u_ n x) * sqrt (v_ n x)).
 Proof.
-intros intx.
-destruct (ex_derive_ag n x) as [d [e Ps]]; try lt0.
-destruct (ag_le n 1 x); try lt0.
-rewrite (Derive_ext _ (fun x => sqrt (u_ n x * v_ n x))).
-  assert (ex_derive (u_ n) x) by (exists d; tauto).
-  assert (ex_derive (fun x => v_ n x) x) by (exists e; tauto).
-  evar_last.
-    apply is_derive_unique; apply is_derive_sqrt.
-      apply: is_derive_mult.
-          now apply Derive_correct; exact (ex_intro _ _ (proj1 Ps)).
-        now apply Derive_correct; exact (ex_intro _ _ (proj1 (proj2 Ps))).
-      now intros; apply Rmult_comm.
-    now unfold u_, v_; lt0.
-  unfold plus, mult; simpl; rewrite sqrt_mult; try (unfold u_, v_; lt0).
-  now unfold u_, v_; field; split; lt0.
-intros; unfold u_, v_; change (S n) with (1 + n)%nat.
-now rewrite -> ag_shift.
+destruct (ex_derive_ag n x) as [d [e Ps]]; destruct (ag_le n 1 x); try lt0.
+rewrite (Derive_ext _ (fun x => sqrt (u_ n x * v_ n x))); cycle 1.
+  intros; unfold u_, v_; change (S n) with (1 + n)%nat.
+  now rewrite -> ag_shift.
+assert (ex_derive (u_ n) x) by (exists d; tauto).
+assert (ex_derive (fun x => v_ n x) x) by (exists e; tauto).
+match goal with |- _ ?f _ = _ => evar_last; auto_derive_fun f; intros D end.
+  now apply is_derive_unique, D; intuition; unfold u_, v_; lt0.
+now rewrite sqrt_mult; unfold u_, v_; try lt0; field; split; lt0.
 Qed.
 
 Definition z_ n x := Derive (fun x => v_ n x) x / Derive (u_ n) x.
