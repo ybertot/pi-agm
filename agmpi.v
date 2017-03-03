@@ -511,7 +511,7 @@ Lemma derive_snd_decrease :
  forall lb, 0 < lb < 1 ->
   exists n_0, forall n, (n_0 <= n)%nat ->
    forall x, lb < x < 1 ->
-  Derive (fun y =>  snd (ag 1 y (n + 1))) x <=
+  Derive (fun y =>  v_ (n + 1) y) x <=
   Derive (fun y =>  v_ n y) x.
 Proof.
 intros lb l0.
@@ -536,7 +536,7 @@ assert (main : Derive (u_(n + 1)) x =
   rewrite derive_fst_step; [ | now auto ].
   unfold z_, u_, v_; field.
   now rewrite (is_derive_unique _ _ _ du)(is_derive_unique _ _ _ dv); psatzl R.
-replace (Derive (fun x => snd (ag 1 x (n + 1))) x) with
+replace (Derive (fun x => v_ (n + 1) x) x) with
     (z_ (n + 1) x * Derive (u_ (n + 1)) x) by
   (unfold z_, v_; field; rewrite (is_derive_unique _ _ _ dU); lt0).
 assert (0 < z_ n x) by (assert (t := z_gt_1 x n intx n1); psatzl R).
