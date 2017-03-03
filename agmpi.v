@@ -17,6 +17,12 @@ Definition w_ (n : nat) x :=
 
 Definition k_ n x := / (2 ^ n) * ln (u_ n x / w_ n x).
 
+Lemma u_step n x : u_ (S n) x = (u_ n x + v_ n x) / 2.
+Proof. now unfold u_, v_; rewrite ag_step. Qed.
+
+Lemma v_step n x : v_ (S n) x = sqrt (u_ n x * v_ n x).
+Proof. now unfold u_, v_; rewrite ag_step. Qed.
+
 Lemma M_between a b n : 0 < a -> 0 < b -> b <= a ->
    snd (ag a b n) <= M a b <= fst (ag a b n).
 Proof.
@@ -70,31 +76,26 @@ intros x0; induction n.
   now exists 0, 1; split;[ | split];[ | | repeat split; try lia; psatzl R];
     unfold u_, v_; simpl; auto_derive; auto.
 destruct IHn as [d1 [d2 [dd1 [dd2 [d1_0 [d2_0 d1gt]]]]]].
-exists ((d1 + d2) / 2), ((u_ n x * d2 + v_ n x * d1) /
-                       (2 * sqrt(u_ n x * v_ n x))).
 assert (0 < u_ n x /\ 0 < v_ n x).
   destruct (Rle_dec x 1) as [x1 | x1'].
     now unfold u_, v_; assert (t := ag_le n 1 x Rlt_0_1 x0 x1); psatzl R.
   destruct n as [|p]; [unfold u_, v_; simpl; psatzl R | ].
   unfold u_, v_.
   now rewrite ag_swap; destruct (ag_le (S p) x 1 x0 Rlt_0_1); try psatzl R; lia.
+econstructor; econstructor.
 split.
-  apply (is_derive_ext (fun y => /2 * (u_ n y + v_ n y))).
-    unfold u_, v_; intros y; replace (S n) with (1 + n)%nat by ring; rewrite ag_shift.
-    now simpl; field.
-  replace ((d1 + d2) / 2) with (/2 * (d1 + d2)) by field.
-  now apply/is_derive_scal/is_derive_plus.
+  eapply (is_derive_ext _ _ x _ (fun x => eq_sym (u_step n x))).
+  auto_derive;[split;[exists d1 |split;[exists d2 | ]] | ]; auto.
 split.
-  apply (is_derive_ext (fun y => sqrt (u_ n y * v_ n y))).
-    now intros y; unfold v_; replace (S n) with (1 + n)%nat by ring; rewrite ag_shift.
-  evar_last.
-    apply is_derive_sqrt; try lt0.
-    apply: is_derive_mult;[exact dd1 | exact dd2 | exact Rmult_comm].
-  unfold plus, mult; simpl.
-  now rewrite -> (Rmult_comm d1), (Rplus_comm (_ * d1)).
-split;[lt0 | split;[ | now intros _; lt0]].
-apply Rmult_lt_0_compat;[ | lt0].
-now apply Rplus_lt_le_0_compat;[lt0 | apply Rmult_le_pos]; lt0.
+  eapply (is_derive_ext _ _ _ _ (fun x => eq_sym (v_step n x))).
+  now auto_derive;[split;[exists d1 |split;[exists d2 | split; lt0]] | ].
+apply is_derive_unique in dd1; simpl in dd1; rewrite dd1.
+apply is_derive_unique in dd2; simpl in dd2; rewrite dd2.
+split;[lt0 | split; [ | now intros; lt0]].
+apply Rmult_lt_0_compat;[rewrite !Rmult_1_l | lt0].
+assert (0 < u_ n x * d2) by lt0.
+apply Rplus_le_lt_0_compat || apply Rplus_lt_le_0_compat; auto.
+now apply Rmult_le_pos; psatzl R.
 Qed.
 
 Lemma ag_lt n a b : 0 < b < a -> snd (ag a b n) < fst (ag a b n).
