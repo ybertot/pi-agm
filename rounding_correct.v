@@ -469,12 +469,18 @@ Lemma z_error e' y z h h' :
 Proof.
 intros smalle' smalle inty intz he' h'e'; lazy zeta.
 apply Rabs_def2 in he'; apply Rabs_def2 in h'e'.
+(* these are necessary for interval in its current version (3.1.1) *)
+assert (1 <= y <= 51/50) by psatzl R.
+assert (1 <= z <= 6/5) by psatzl R.
+assert (-/20 <= h <= /20) by psatzl R.
+assert (-/20 <= h' <= /20) by psatzl R.
 assert (prp : 18/20 < (y + h) * (z + h')).
- apply Rlt_trans with (19/20 * (19/20));[psatzl R | ].
- apply Rmult_le_0_lt_compat; psatzl R.
+(* this is longer than a previous proof, but I hope interval will progress
+  and accept strict bounds for inputs. *)
+  now interval with (i_bisect y).
 destruct (r_mult_spec  (y + h) (z + h')) as [nlb nub]; try psatzl R.
 destruct (r_sqrt_spec (y + h)) as [slb sub]; try psatzl R.
-assert (syhgt99 : 19/20 < sqrt (y + h)) by approx_sqrt.
+assert (syhgt99 : 19/20 < sqrt (y + h)) by interval.
 assert (rslb : 18/20 < r_sqrt (y + h)) by psatzl R.
 destruct (r_mult_spec (1 + (z + h')) (r_sqrt (y + h))) as [dlb dub]; try psatzl R.
 assert (dlb' : 18/20 < (1 + (z + h')) * (r_sqrt (y + h))).
