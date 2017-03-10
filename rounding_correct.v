@@ -75,7 +75,6 @@ Qed.
 Lemma y_step_decr : forall y, 1 < y -> (1 + y)/(2 * sqrt y) < y.
 intros y cy.
 assert (1 < sqrt y) by (rewrite <- sqrt_1; apply sqrt_lt_1_alt; psatzl R).
-Search _ (Rsqr _ < Rsqr _).
 apply Rsqr_incrst_0; try psatzl R.
   rewrite Rsqr_div; try psatzl R.
   rewrite Rsqr_mult, Rsqr_sqrt; try psatzl R.
