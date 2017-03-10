@@ -17,17 +17,6 @@ Lemma z_s n x (n1 : (1 <= n)%nat) (intx : 0 < x < 1) : z_ (S n) x =
     (1 + z_ n x * y_ n x) / ((1 + z_ n x) * sqrt (y_ n x)).
 Proof. now replace (S n) with (n + 1)%nat by ring; rewrite z_step. Qed.
 
-Lemma prod_lb : forall n, (1 <= n)%nat -> 2/3 < agmpi n/(2 + sqrt 2).
-Proof.
-intros n n1; case (eq_nat_dec n 1) as [nis1 | ngt1];[rewrite nis1; simpl|].
-  now rewrite z_1, y_s, y_0; auto using vs2_bnd; unfold yfun; interval.
-destruct n as [|k];[lia | replace (S k) with (k + 1)%nat by ring ].
-assert (k1 : (1 <= k)%nat) by lia.
-assert (t := bound_agmpi _ k1).
-apply Rlt_le_trans with (PI / (2 + sqrt 2));[interval | ].
-apply Rmult_le_compat_r;[interval | psatzl R].
-Qed.
-
 Lemma y_1_ub : y_ 1 (/ sqrt 2) < 1016/1000.
 Proof. now rewrite y_s, y_0;[unfold yfun | split]; interval. Qed.
 
@@ -1569,7 +1558,7 @@ generalize (prod_bnd _ p1); intros.
    psatzl R.
   apply Z.lt_le_incl, h2_pos.
  apply hR_pos; rewrite <- plus_n_O in smallnp.
-(* TODO : remove condition on an arbitrary error in prod_lb and prod_bnd *)
+(* TODO : remove condition on an arbitrary error in and prod_bnd *)
  apply Rabs_def2 in cprd; psatzl R.
 assert (0 <= h2)%Z by (apply Z.lt_le_incl, h2_pos).
 assert (/4 < hR y).
