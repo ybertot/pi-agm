@@ -49,6 +49,13 @@ let n' := (n * 10 ^ (10 ^ 3 + 4) / precision)%bigZ in
 let (q, r) := BigZ.div_eucl n' (10 ^ 4) in
   (((217 <? r)%bigZ && (r <? 9783)%bigZ)%bool, q).
 
+Definition hundred_thousand_digit_pi :=
+let precision := (2 ^ 332207)%bigZ in
+let n := hpi precision 17 in
+let n' := (n * 10 ^ (10 ^ 3 + 4) / precision)%bigZ in
+let (q, r) := BigZ.div_eucl n' (10 ^ 4) in
+  ((21 * 17 + 7 <? r)%bigZ && (r <? 10000 - (21 * 17 + 7))%bigZ, q)%bool.
+
 Definition million_digit_pi :=
 let precision := (2 ^ 3321942)%bigZ in
 let n := hpi precision 20 in
