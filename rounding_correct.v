@@ -394,40 +394,8 @@ assert (high2 : r_div (1 + (y + h)) (2 * (r_sqrt (y + h))) <=
   apply Rmult_le_compat_l;[tauto | ].
   apply Rlt_le, vmapprox; psatzl R.
  rewrite Rplus_assoc, Rmult_plus_distr_l, Rmult_1_r; apply Rplus_le_compat_l.
- assert (big_step : forall y, 9/10 < y < 76/50 -> (1 + y)/(2 * sqrt y) < 1023/1000).
-   clear; intros y cy.
-   case (Rle_lt_dec y 1).
-     intros y1; apply Rlt_trans with ((1 + 9/10) / (2 * sqrt (9/10)));
-       [ | interval].
-  assert (t : forall c, 9/10 <= c <= y ->
-                derivable_pt_lim (fun y => (1 + y)/(2 * sqrt y)) c
-                 ((fun x => ((x - 1) / (4 * x * sqrt x))) c)).
-    now intros; rewrite <- is_derive_Reals; apply derive_y_step; psatzl R.
-  assert (t2 : 9/10 < y) by psatzl R.
-  destruct (MVT_cor2 (fun y => (1 + y) / (2 * sqrt y))
-                         (fun x => ((x - 1) / (4 * x * sqrt x)))
-                 _ _ t2 t) as [c [difeq intc]].
-  apply Rminus_lt; rewrite difeq.
-  apply Ropp_lt_cancel; rewrite Ropp_0, Ropp_mult_distr_l.
-  apply Rmult_lt_0_compat;[ | psatzl R].
-  unfold Rdiv; rewrite Ropp_mult_distr_l; apply Rmult_lt_0_compat;[psatzl R |].
-  apply Rinv_0_lt_compat, Rmult_lt_0_compat;[| apply sqrt_lt_R0]; psatzl R.
-  intro y1; apply Rlt_trans with ((1 + 76/50) / (2 * sqrt (76/50))).
-  rewrite Rminus_lt_0.
-  assert (t : forall c, y <= c <= 76/50 ->
-                derivable_pt_lim (fun y => (1 + y)/(2 * sqrt y)) c
-                 ((fun x => ((x - 1) / (4 * x * sqrt x))) c)).
-    now intros; rewrite <- is_derive_Reals; apply derive_y_step; psatzl R.
-  assert (t2 : y < 76/50) by psatzl R.
-  destruct (MVT_cor2 (fun y => (1 + y) / (2 * sqrt y))
-                         (fun x => ((x - 1) / (4 * x * sqrt x)))
-                 _ _ t2 t) as [c [difeq intc]].
-  rewrite difeq.
-  apply Rmult_lt_0_compat;[ | psatzl R].
-  apply Rmult_lt_0_compat;[psatzl R | ].
-  apply Rinv_0_lt_compat, Rmult_lt_0_compat;[psatzl R | ].
-  apply sqrt_lt_R0; psatzl R.
-  now interval.
+ assert (big_step : forall y, 9/10 <= y <= 76/50 -> (1 + y)/(2 * sqrt y) < 1023/1000).
+   now clear; intros; interval with (i_bisect y).
  apply Rle_trans with (1023/1000 * (124/100 * e));[ | psatzl R].
  apply Rmult_le_compat; try psatzl R.
   apply Rlt_le, big_step; psatzl R.
