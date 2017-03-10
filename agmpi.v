@@ -214,8 +214,8 @@ rewrite (Derive_ext _ (fun x => sqrt (u_ n x * v_ n x))); cycle 1.
   now rewrite -> ag_shift.
 assert (ex_derive (u_ n) x) by (exists d; tauto).
 assert (ex_derive (fun x => v_ n x) x) by (exists e; tauto).
-match goal with |- _ ?f _ = _ => evar_last; auto_derive_fun f; intros D end.
-  now apply is_derive_unique, D; intuition; unfold u_, v_; lt0.
+auto_derive_fun (fun y => sqrt (u_ n y * v_ n y)); intros D.
+evar_last;[apply is_derive_unique, D; intuition; unfold u_, v_; lt0 | ].
 now rewrite sqrt_mult; unfold u_, v_; try lt0; field; split; lt0.
 Qed.
 
@@ -522,7 +522,6 @@ destruct (ex_derive_ag (n + 1) x (proj1 intx)) as
    [vdU [vdV [dU [dV [dUnn [dVp dUp]]]]]].
 assert (n2 : (1 <= n + 1)%nat) by lia.
 assert (dUp' := n2); apply dUp in dUp'.
-(* rewrite -> (is_derive_unique _ _ _ dv). (is_derive_unique _ _ _ dV). *)
 assert (main : Derive (u_(n + 1)) x =
              Derive (fun y => v_ n y) x * (z_ n x + 1)/(2 * z_ n x)).
   replace (n + 1)%nat with (S n) by ring.
@@ -1895,7 +1894,7 @@ apply Rle_trans with (1 := t2); clear t1 t2.
 apply Rmult_le_compat_l; [lt0 | ].
 replace 1%nat with (0 + 1)%nat by ring; rewrite -> y_step, y_0;[|exact ints].
 rewrite -> Rpower_Ropp, <- Rpower_Rinv;[ | psatzl R].
-apply Rle_Rpower_l;[apply pow_le; psatzl R | unfold yfun; split; interval].
+apply Rle_Rpower_l;[apply pow_le; psatzl R | unfold yfun]. split; interval.
 Qed.
 
 Lemma s_to_sum s n p :
@@ -2016,16 +2015,38 @@ intros p; destruct (step1 (p + 1)%nat);[lia | ].
 replace (S p + 1)%nat with (S (p + 1)) by ring; psatzl R.
 Qed.
 
-Lemma iter_million : 0 <= agmpi 20 - PI <= Rpower 10 (-(10 ^ 6 + 10 ^ 4)).
+Lemma iter_million : 0 <= agmpi 20 - PI < Rpower 10 (-(10 ^ 6 + 4)).
 Proof.
 assert (big : (1 <= 19)%nat) by lia.
 destruct (bound_agmpi _ big) as [p ub]; split;[exact p | ].
-apply Rle_trans with (1 := ub).
-assert (explb : 25/10 < exp 1) by interval.
-assert (lft : 4 * agmpi 0 < exp 3).
-  now apply Rlt_trans with (15);[simpl |]; interval.
-apply Rle_trans with (exp 3 * Rpower 531 (-2 ^ 19)).
-  now apply Rmult_le_compat_r; apply Rlt_le; [apply exp_pos | assumption].
-unfold Rpower; rewrite <- exp_plus.
-now apply Rlt_le, exp_increasing; interval.
+apply Rle_lt_trans with (1 := ub); unfold Rpower.
+rewrite <-(exp_ln (4 * agmpi 0)), <- exp_plus; simpl agmpi; [ |lt0].
+now apply exp_increasing; interval.
+Qed.
+
+(* This lemma just shows that interval already can compute PI. *)
+Lemma PI_interval : 3141592653/10 ^ 9 < PI < 3141592654/10 ^ 9.
+Proof. split; interval with (i_prec 40). Qed.
+
+Lemma first_computation :  3141592653/10 ^ 9 < PI < 3141592654/10 ^ 9.
+Proof.
+set (s := / sqrt 2).
+assert (0 < s < 1) by (unfold s; split; interval).
+assert (help : forall n, y_ (S n) s = yfun (y_ n s)).
+  now intros n; replace (S n) with (n + 1)%nat by ring; rewrite y_step.
+set (zfun := fun a b => (1 + b * a) / ((1 + b) * sqrt a)).
+assert (hel2 : forall n, z_ (S (S n)) s = zfun (y_ (S n) s) (z_ (S n) s)).
+  intros n; replace (S (S n)) with (S n + 1)%nat by ring; rewrite z_step;
+  [reflexivity | lia | assumption].
+destruct (bound_agmpi 2) as [ub lb];[lia | ]; split; cycle 1.
+assert (swap : forall a b, 0 <= a - b -> b <= a) by (intros; psatzl R).
+apply swap in ub; apply Rle_lt_trans with (1 := ub); simpl agmpi.
+repeat rewrite -> hel2; rewrite z_1; auto; unfold zfun.
+repeat rewrite -> help; rewrite y_0; auto; unfold yfun.
+unfold s; interval with (i_prec 40).
+  assert (swap : forall a b c, a - b <= c -> a - c <= b) by (intros; psatzl R).
+  apply swap in lb; apply Rlt_le_trans with (2 := lb); simpl agmpi.
+repeat rewrite -> hel2; rewrite z_1; auto; unfold zfun.
+repeat rewrite -> help; rewrite y_0; auto; unfold yfun.
+unfold s, Rpower; interval with (i_prec 40).
 Qed.
