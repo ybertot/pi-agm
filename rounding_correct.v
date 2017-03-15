@@ -2820,16 +2820,19 @@ unfold h2, rounding_big.h2. rewrite BigZ.spec_mul; reflexivity.
 Qed.
 
 Lemma hpi_rec_morph :
- forall p n v1 v2 v3, [rounding_big.hpi_rec p n v1 v2 v3]%bigZ =
+ forall s p n v1 v2 v3,
+   [s] = hsqrt [p] (h2 [p]) ->
+   [rounding_big.hpi_rec p n s v1 v2 v3]%bigZ =
    hpi_rec [p] n [v1] [v2] [v3].
-intros p n; induction n as [ | n IHn]; intros v1 v2 v3.
- simpl.
- rewrite hmult_morph, BigZ.spec_add, hsqrt_morph, h2_morph; reflexivity.
+intros s p n v1 v2 v3 hs; revert v1 v2 v3.
+induction n as [ | n IHn]; intros v1 v2 v3.
+  simpl.
+  rewrite hmult_morph, BigZ.spec_add, hs, h2_morph; reflexivity.
 change ([let sy := rounding_big.hsqrt p v1 in
           let ny := rounding_big.hdiv p (p + v1) (2 * sy) in
           let nz := rounding_big.hdiv p (p + rounding_big.hmult p v1 v2)
                        (rounding_big.hmult p (p + v2) sy) in
-          rounding_big.hpi_rec p n ny nz
+          rounding_big.hpi_rec p n s ny nz
              (rounding_big.hmult p v3 (rounding_big.hdiv p (p + ny) (p + nz)))] =
           let sy := hsqrt [p] [v1] in
           let ny := hdiv [p] (h1 [p] + [v1]) (2 * sy) in
@@ -2843,23 +2846,24 @@ lazy zeta; rewrite IHn; clear IHn.
   !hmult_morph, !BigZ.spec_add, hsqrt_morph; reflexivity.
 Qed.
 
-Lemma hy1_morph p: [rounding_big.hy1 p] = hy1 [p].
+Lemma hsyz_morph p : let '(s, y, z) := rounding_big.hsyz p in
+   [s] = hsqrt [p] (h2 [p]) /\ [y] = hy1 [p] /\ [z] = hz1 [p].
 Proof.
-unfold rounding_big.hy1, hy1, rounding_big.hs2, hs2.
-rewrite hdiv_morph, BigZ.spec_add, BigZ.spec_mul, !hsqrt_morph, h2_morph.
-reflexivity.
-Qed.
-
-Lemma hz1_morph p : [rounding_big.hz1 p] = hz1 [p].
-Proof.
-unfold rounding_big.hz1, hz1, rounding_big.hs2, hs2.
-rewrite !hsqrt_morph, h2_morph; reflexivity.
+unfold rounding_big.hsyz, rounding_big.hs2, hy1, hz1, hs2.
+rewrite !hdiv_morph, !BigZ.spec_add, !BigZ.spec_mul, !hsqrt_morph, h2_morph.
+repeat split; reflexivity.
 Qed.
 
 Lemma hpi_morph : forall p n, [rounding_big.hpi p n]%bigZ = hpi [p]%bigZ n.
 intros p; case n as [ | n].
- simpl; rewrite BigZ.spec_add, hsqrt_morph, h2_morph; reflexivity.
-simpl; rewrite hpi_rec_morph, hdiv_morph, !BigZ.spec_add, !hy1_morph, !hz1_morph.
+  simpl.
+  rewrite BigZ.spec_add, h2_morph; unfold rounding_big.hs2.
+  rewrite hsqrt_morph, h2_morph; reflexivity.
+unfold rounding_big.hpi.
+assert (tmp := hsyz_morph p); destruct (rounding_big.hsyz p) as [[s y] z].
+destruct tmp as [s_m [y_m z_m]].
+rewrite hpi_rec_morph;[ | assumption].
+rewrite hdiv_morph, !BigZ.spec_add, y_m, z_m.
 reflexivity.
 Qed.
 

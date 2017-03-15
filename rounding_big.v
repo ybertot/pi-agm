@@ -26,21 +26,20 @@ Fixpoint hpi_rec (magnifier : bigZ)
 Definition hs2 (magnifier : bigZ) :=
   hsqrt magnifier (h2 magnifier).
 
-Definition hz1 (magnifier : bigZ) :=
-  hsqrt magnifier (hs2 magnifier).
-
-
-Definition hy1 (magnifier : bigZ) :=
-  hdiv magnifier (h1 magnifier + hs2 magnifier) (2 * hz1).
+Definition hsyz (magnifier : bigZ) :=
+  let hs2 := hs2 magnifier in
+  let hss2 := hsqrt magnifier hs2 in
+  (hs2, (hdiv magnifier (h1 magnifier + hs2) (2 * hss2)), hss2).
 
 Definition hpi (magnifier : bigZ) (n : nat) :=
 match n with
 | 0%nat =>
     (h2 magnifier + (hs2 magnifier))%bigZ
 | S p =>
-    hpi_rec magnifier p (hs2 magnifier) (hy1 magnifier) (hz1 magnifier)
-      (hdiv magnifier (h1 magnifier + hy1 magnifier)
-         (h1 magnifier + hz1 magnifier))
+    let '(s2, y1 , z1) := hsyz magnifier in
+    hpi_rec magnifier p s2 y1 z1
+      (hdiv magnifier (h1 magnifier + y1)
+         (h1 magnifier + z1))
 end.
 
 Definition thousand_digit_pi :=
