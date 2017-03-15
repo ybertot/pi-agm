@@ -167,39 +167,6 @@ pattern 1 at 1; rewrite <- Rplus_0_r; apply Rplus_lt_compat_l.
 apply Rmult_lt_0_compat;[apply pow_lt | ]; psatzl R.
 Qed.
 
-Lemma vpapprox : forall x, 0 < x < /2 -> 1 - x < / (1 + x).
-Proof.
-intros x ine; apply (Rmult_gt_reg_l (1 + x));[psatzl R | ].
-rewrite Rinv_r;[ | psatzl R].
-replace ((1 + x) * (1 - x)) with (1 - x^2) by ring.
-assert (0 < x ^ 2) by (apply pow_lt; psatzl R); psatzl R.
-Qed.
-
-Lemma derive_y_step : forall x, 0 < x ->
-  is_derive (fun z => (1 + z) / (2 * sqrt z)) x
-    ((x - 1)/(4 * x * sqrt x)).
-Proof.
-intros x x0; assert (0 < sqrt x) by now apply sqrt_lt_R0.
-auto_derive; cycle 1.
-  set (u := sqrt x).
-  replace x with (sqrt x * sqrt x) by now rewrite sqrt_sqrt; psatzl R.
-  now unfold u; clear u; field; apply Rgt_not_eq; auto.
-now split;[auto | split;[psatzl R | auto]].
-Qed.
-
-Lemma z_step_derive_z  y z : -1 < z -> (0 < y) ->
-  is_derive (fun z => (1 + y * z)/((1 + z) * sqrt y)) z
-     (sqrt y * (y - 1) / ((1 + z) ^ 2 * y)).
-Proof.
-intros zm1 y0.
-assert (0 < sqrt y) by now apply sqrt_lt_R0.
-auto_derive.
-  now apply Rgt_not_eq, Rmult_lt_0_compat; psatzl R.
-set (u := sqrt y).
-replace y with (sqrt y * sqrt y) by now rewrite sqrt_sqrt; psatzl R.
-now unfold u; clear u; field; split; apply Rgt_not_eq; psatzl R.
-Qed.
-
 (* standard *)
 Lemma pow_increasing n x y : (0 < n)%nat -> 0 < x -> x < y -> x ^ n < y ^ n.
 Proof.
@@ -213,7 +180,7 @@ Qed.
 
 
 Lemma z_step_derive_y  y z : -1 < z -> (0 < y) ->
-  is_derive (fun y => (1 + y * z)/((1 + z) * sqrt y)) y
+  is_derive (fun y => (1 + z * y)/((1 + z) * sqrt y)) y
      ((z * y - 1)/(2 * (1+z) * y * sqrt y)).
 Proof.
 intros zm1 y0; assert (0 < sqrt y) by now apply sqrt_lt_R0.
@@ -285,50 +252,13 @@ Lemma y_error e' y h :
   y1 - e' < r_div (1 + (y + h)) (2 * (r_sqrt (y + h))) < y1 + e'.
 Proof.
 assert (db1 :
-          forall c, 1 <= c < 38/25 -> 0 <= (c - 1) / (4 * c * sqrt c) < 1/8).
+          forall c, 1 <= c < 38/25 -> 0 <= (c - 1) / (4 * sqrt c ^ 3) < 1/8).
  intros c intc.
- assert (1 <= sqrt c).
-  now rewrite <- sqrt_1; apply sqrt_le_1_alt; psatzl R.
- assert (0 < / (4 * c * sqrt c)).
-  now apply Rinv_0_lt_compat, Rmult_lt_0_compat; psatzl R.
- case (Rle_lt_dec c (121/100)); intros b1.
-  split.
-   now unfold Rdiv; apply Rmult_le_pos; psatzl R.
-  apply Rle_lt_trans with (/4 / (4 * 1 * 1)); try psatzl R.
-  apply Rmult_le_compat; try psatzl R.
-  apply Rle_Rinv; try psatzl R.
-   apply Rmult_lt_0_compat; psatzl R.
-  apply Rmult_le_compat; psatzl R.
- split.
-  now unfold Rdiv; apply Rmult_le_pos; psatzl R.
- apply Rle_lt_trans with (13/25 */ (4 * (121/100) * (11/10))); try psatzl R.
- apply Rmult_le_compat; try psatzl R.
- apply Rle_Rinv; try psatzl R.
-  now apply Rmult_lt_0_compat; psatzl R.
- rewrite !Rmult_assoc; repeat apply Rmult_le_compat_l; try psatzl R.
- apply Rmult_le_compat; try psatzl R.
- apply Rsqr_incr_0; try psatzl R.
- rewrite Rsqr_sqrt; unfold Rsqr; psatzl R.
+ assert (1 <= c <= 38 / 25) by psatzl R. 
+ split; interval with (i_bisect c).
 assert (db2 :
-        forall c, 9/10 <= c <= 1 -> - /20 < (c - 1) / (4 * c * sqrt c) <= 0).
- intros c intc.
- assert (9/10 < sqrt c).
-  apply Rsqr_incrst_0; try psatzl R.
-   rewrite Rsqr_sqrt; unfold Rsqr; psatzl R.
-  now apply sqrt_pos.
- split.
-  apply Ropp_lt_cancel; unfold Rdiv; rewrite Ropp_involutive,
-    <- Ropp_mult_distr_l_reverse.
-  apply Rle_lt_trans with (/9 * / (4 * (9/10) * (9/10))); try psatzl R.
-  apply Rmult_le_compat; try psatzl R.
-   now apply Rlt_le, Rinv_0_lt_compat, Rmult_lt_0_compat; psatzl R.
-  apply Rle_Rinv; try psatzl R.
-   now apply Rmult_lt_0_compat; psatzl R.
-  apply Rmult_le_compat; psatzl R.
- assert (help : forall a, 0 <= -a -> a <= 0) by (intros; psatzl R).
- apply help; clear help; unfold Rdiv; rewrite <- Ropp_mult_distr_l_reverse.
- apply Rmult_le_pos;[psatzl R| apply Rlt_le, Rinv_0_lt_compat].
- apply Rmult_lt_0_compat; psatzl R.
+        forall c, 9/10 <= c <= 1 -> - /20 < (c - 1) / (4 * sqrt c ^ 3) <= 0).
+ intros c intc; split; interval.
 intros ce' cc cy ch; lazy zeta.
 apply Rabs_def2 in ch.
 destruct (r_sqrt_spec (y + h)) as [sc1 sc2]; try psatzl R.
@@ -408,16 +338,16 @@ split;[apply Rlt_le_trans with (2 := low)
   destruct h0 as [hlt0 | h0];[|rewrite <- h0, Rplus_0_r; psatzl R].
   assert (cyh : y < y + h) by psatzl R.
   destruct (MVT_cor2 (fun y => (1 + y)/(2 * sqrt y))
-              (fun x => (x - 1) / (4 * x * sqrt x)) y _ cyh) as [c [pc1 pc2]].
+              (fun x => (x - 1) / (4 * sqrt x ^ 3)) y _ cyh) as [c [pc1 pc2]].
    intros; rewrite <- is_derive_Reals; apply derive_y_step; psatzl R.
   rewrite pc1; apply Rmult_le_pos;[apply Rmult_le_pos | ]; try psatzl R.
   apply Rlt_le, Rinv_0_lt_compat; apply Rmult_lt_0_compat; try psatzl R.
-  apply sqrt_lt_R0; psatzl R.
+  apply pow_lt, sqrt_lt_R0; psatzl R.
  assert (help : forall a b c d, a - c < b - d -> a - b < c - d)
    by (intros; psatzl R); apply help; clear help.
  assert (cyh : y + h < y) by psatzl R.
  destruct (MVT_cor2 (fun y => (1 + y)/(2 * sqrt y))
-              (fun x => (x - 1) / (4 * x * sqrt x)) _ _ cyh) as [c [pc1 pc2]].
+              (fun x => (x - 1) / (4 * sqrt x ^ 3)) _ _ cyh) as [c [pc1 pc2]].
   intros; rewrite <- is_derive_Reals; apply derive_y_step; psatzl R.
  rewrite pc1.
  case (Rle_lt_dec 1 c); intros c1.
@@ -433,7 +363,7 @@ case (Rle_lt_dec 0 h); intros h0.
  destruct h0 as [h0 | h0]; [|rewrite <- h0, Rplus_0_r; psatzl R].
  assert (cyh : y < y + h) by psatzl R.
  destruct (MVT_cor2 (fun y => (1 + y)/(2 * sqrt y))
-              (fun x => (x - 1) / (4 * x * sqrt x)) _ _ cyh) as [c [pc1 pc2]].
+              (fun x => (x - 1) / (4 * sqrt x ^ 3)) _ _ cyh) as [c [pc1 pc2]].
   intros; rewrite <- is_derive_Reals; apply derive_y_step; psatzl R.
  assert (help : forall a b c d, a - c < d - b -> a + b < c + d)
   by (intros; psatzl R); apply help; clear help; rewrite pc1.
@@ -442,7 +372,7 @@ case (Rle_lt_dec 0 h); intros h0.
  now destruct (db1 c); psatzl R.
 assert (cyh : y + h < y) by psatzl R.
 destruct (MVT_cor2 (fun y => (1 + y)/(2 * sqrt y))
-             (fun x => (x - 1) / (4 * x * sqrt x)) _ _ cyh) as [c [pc1 pc2]].
+             (fun x => (x - 1) / (4 * sqrt x ^ 3)) _ _ cyh) as [c [pc1 pc2]].
   intros; rewrite <- is_derive_Reals; apply derive_y_step; psatzl R.
 assert (0 < sqrt c) by (apply sqrt_lt_R0; psatzl R).
 assert (0 < 4 * c * sqrt c) by (apply Rmult_lt_0_compat; psatzl R).
@@ -463,13 +393,13 @@ Qed.
 Lemma z_error e' y z h h' :
   (e' < /50) -> (e <= /4 * e') -> 1 < y < 51/50 -> 1 < z < 6/5 ->
   Rabs h < e' -> Rabs h' < e' ->
-  let v := (1 + y * z)/((1 + z) * sqrt y) in
-  v - e' < r_div (1 + r_mult (y + h) (z + h'))
+  let v := (1 + z * y)/((1 + z) * sqrt y) in
+  v - e' < r_div (1 + r_mult (z + h') (y + h))
                   (r_mult (1 + (z + h')) (r_sqrt (y + h))) < v + e'.
 Proof.
 intros smalle' smalle inty intz he' h'e' v.
-set (u := (1 + (y + h) * (z + h')) / ((1 + (z + h')) * sqrt (y + h))).
-set (u' := (1 + (y + h) * z) / ((1 + z) * sqrt (y + h))).
+set (u := (1 + (z + h') * (y + h)) / ((1 + (z + h')) * sqrt (y + h))).
+set (u' := (1 + z * (y + h)) / ((1 + z) * sqrt (y + h))).
 apply Rabs_def2 in he'; apply Rabs_def2 in h'e'.
 (* these are necessary for interval in its current version (3.1.1) *)
 assert (1 <= y <= 51/50 /\ 1 <= z <= 6/5) as [iny' inz'] by psatzl R.
@@ -479,11 +409,11 @@ assert (ppg : Rabs (u - v) < e'/ 5).
   replace (u - v) with (u - u' + (u' - v)) by ring.
   replace (e'/5) with (/10 * e' + /10 * e') by field.
   apply Rle_lt_trans with (1 := Rabs_triang _ _), Rplus_lt_compat.
-    destruct (MVT_abs (fun z => (1 + (y + h) * z)/((1 + z) * sqrt (y + h)))
-            (fun z => sqrt (y + h) * ((y + h) - 1) / ((1 + z) ^ 2 * (y + h)))
+    destruct (MVT_abs (fun z => (1 + z * (y + h))/((1 + z) * sqrt (y + h)))
+            (fun z => ((y + h) - 1) / ((z + 1) ^ 2 * sqrt (y + h)))
             z (z + h')) as [c [hc intc]].
       intros c intc; rewrite <- is_derive_Reals.
-      apply z_step_derive_z; try psatzl R.
+      apply derive_z_step; try psatzl R.
       now revert intc; destruct (Rle_dec 0 h');
         [rewrite Rmax_right, Rmin_left | rewrite Rmax_left, Rmin_right];
         psatzl R.
@@ -495,7 +425,7 @@ assert (ppg : Rabs (u - v) < e'/ 5).
     unfold u, u'; rewrite hc, filter_Rlt.Rplus_minus_cancel1.
     now apply Rmult_le_0_lt_compat;try apply Rabs_pos;
        [interval | apply Rabs_def1; tauto ].
-  destruct (MVT_abs (fun y => (1 + y * z)/((1 + z) * sqrt y))
+  destruct (MVT_abs (fun y => (1 + z * y)/((1 + z) * sqrt y))
                 (fun y => ((z * y - 1)/(2 * (1+z) * y * sqrt y)))
             y (y + h)) as [c [hc intc]].
     intros c intc; rewrite <- is_derive_Reals.
@@ -522,9 +452,9 @@ assert (help3 : forall a b, a < b -> 0 < b -> a / b <= 1).
    now unfold Rdiv; rewrite Rmult_assoc, Rinv_l; psatzl R.
 assert (help4 : forall a b c, a = (b - c) / e' -> b = c + a * e').
   now intros a b c q; rewrite q; field; psatzl R.
-assert (exists e1, r_mult (y + h) (z + h') = (y + h) * (z + h') + e1 * e' /\
-                   - 1 / 4 <= e1 <= 0) as [e1 [Q Pe1]];[| rewrite Q; clear Q].
-  destruct (r_mult_spec  (y + h) (z + h')); try psatzl R.
+assert (exists e1, r_mult (z + h') (y + h) = (z + h') * (y + h) + e1 * e' /\
+                   - 1 / 4 <= e1 <= 0) as [e1 [Q Pe1]];[ | rewrite Q; clear Q].
+  destruct (r_mult_spec  (z + h') (y + h)); try psatzl R.
   eapply ex_intro;split;[eapply help4, refl_equal | ].
   now split; [apply help1 | apply help2]; psatzl R.
 assert (exists e2, r_sqrt (y + h) = sqrt (y + h) + e2 * e' /\
@@ -539,12 +469,12 @@ assert (exists e3, r_mult (1 + (z + h')) (sqrt (y + h) + e2 * e') =
     now interval.
   eapply ex_intro; split;[eapply help4, refl_equal | ].
   now split; [apply help1 | apply help2]; psatzl R.
-assert (exists e4, r_div  (1 + ((y + h) * (z + h') + e1 * e'))
+assert (exists e4, r_div  (1 + ((z + h') * (y + h) + e1 * e'))
     ((1 + (z + h')) * (sqrt (y + h) + e2 * e') + e3 * e') =
-     (1 + ((y + h) * (z + h') + e1 * e')) /
+     (1 + ((z + h') * (y + h) + e1 * e')) /
     ((1 + (z + h')) * (sqrt (y + h) + e2 * e') + e3 * e') + e4 * e'/\
     -1/4 <= e4 <= 0) as [e4 [Q Pe4]];[|rewrite Q; clear Q].
-  destruct (r_div_spec  (1 + ((y + h) * (z + h') + e1 * e'))
+  destruct (r_div_spec  (1 + ((z + h') * (y + h) + e1 * e'))
     ((1 + (z + h')) * (sqrt (y + h) + e2 * e') + e3 * e') ); try psatzl R.
     now interval.
   eapply ex_intro;split;[eapply help4, refl_equal | ].
@@ -552,7 +482,7 @@ assert (exists e4, r_div  (1 + ((y + h) * (z + h') + e1 * e'))
 split.
   apply Rlt_le_trans with (u - e'/4 + -/4 * e'); cycle 1.
     apply Rplus_le_compat;[ | apply Rmult_le_compat_r; psatzl R].
-    apply Rle_trans with ((1 + ((y + h) * (z + h') + e1 * e')) /
+    apply Rle_trans with ((1 + ((z + h') * (y + h) + e1 * e')) /
                           ((1 + (z + h')) * (sqrt (y + h)))); cycle 1.
       apply Rmult_le_compat_l;[interval | apply Rle_Rinv; try interval].
       apply Rle_trans with ((1 + (z + h')) * (sqrt (y + h) + e2 * e')).
@@ -574,7 +504,7 @@ repeat (match goal with |- ?a + _ < _ => apply Rle_lt_trans with a end;
 apply Rlt_trans with (u + 4 / 5 * e');[ | now apply Rabs_def2 in ppg; psatzl R].
 assert (help5 : forall a b c, a - b < c -> a < b + c) by (intros; psatzl R).
 apply help5; match goal with |- ?a - _ < _ =>
-  let c := constr: ((1 + (y + h) * (z + h')) /
+  let c := constr: ((1 + (z + h') * (y + h)) /
               ((1 + (z + h')) * (sqrt (y + h) + e2 * e'))) in
   replace (a - u) with (a - c + (c - u)) by ring
   end.
@@ -584,9 +514,9 @@ apply Rplus_lt_compat.
   assert (dd1 : forall a b c, -b < c -> is_derive (fun x => a /(b + x)) c
                                   ((fun x =>  -a / (b + x) ^ 2) c)).
     now intros a b c bc; auto_derive;[psatzl R | field; psatzl R].
-  destruct (MVT_abs (fun c => (1 + (y  + h) * (z + h')) /
+  destruct (MVT_abs (fun c => (1 + (z + h') * (y  + h)) /
                         ((1 + (z + h')) * (sqrt (y + h) + e2 * e') + c))
-                (fun c => -(1 + (y + h) * (z + h')) /
+                (fun c => -(1 + (z + h') * (y + h)) /
                             ((1 + (z + h')) * (sqrt (y + h) + e2 * e') + c)^2)
             0 (e3 * e')) as [c [hc intc]].
     intros c intc; rewrite <- is_derive_Reals; apply dd1.
@@ -603,7 +533,7 @@ apply Rplus_lt_compat.
   rewrite Rminus_0_r, Rabs_left1, Ropp_mult_distr_l;[ | interval].
   now apply Rmult_lt_compat_r; psatzl R.
 replace u with
-  ((1 + (y + h) * (z + h')) / ((1 + (z + h')) * (sqrt (y + h) + 0))) by
+  ((1 + (z + h') * (y + h)) / ((1 + (z + h')) * (sqrt (y + h) + 0))) by
   (now unfold u; rewrite (Rplus_0_r)).
 apply Rle_lt_trans with (1 := Rle_abs _).
 assert (dd2 : (forall a b c d, 0 < b -> 0 < c -> -c < d ->
@@ -611,9 +541,9 @@ assert (dd2 : (forall a b c d, 0 < b -> 0 < c -> -c < d ->
               ((fun d => - a * b / (b * (c + d)) ^ 2) d))).
   intros a b c d b0 c0 cd; auto_derive;[ | field; psatzl R].
   now apply Rgt_not_eq, Rmult_lt_0_compat; psatzl R.
-destruct (MVT_abs (fun c => (1 + (y + h) * (z + h')) /
+destruct (MVT_abs (fun c => (1 + (z + h') * (y + h)) /
                              ((1 + (z + h')) * (sqrt (y + h) + c)))
-              (fun c => - (1 + (y + h) * (z + h')) * (1 + (z + h')) /
+              (fun c => - (1 + (z + h') * (y + h)) * (1 + (z + h')) /
                            ((1 + (z + h')) * (sqrt (y + h) + c)) ^ 2) 0 (e2 * e'))
      as [c [hc intc]].
   intros c intc; rewrite <- is_derive_Reals; apply dd2;[interval | interval | ].
@@ -712,7 +642,7 @@ Fixpoint rpi_rec n y z prod : R :=
   | S p =>
     let sy := r_sqrt y in
     let ny := (r_div (1 + y) (2 * (r_sqrt y))) in
-    let nz := (r_div (1 + r_mult y z) (r_mult (1 + z) sy)) in
+    let nz := (r_div (1 + r_mult z y) (r_mult (1 + z) sy)) in
     rpi_rec p  ny nz (r_mult prod (r_div (1 + ny) (1 + nz)))
   end.
 
@@ -756,7 +686,7 @@ Lemma rz_step :
   forall y z p, (1 <= p)%nat ->
   Rabs (y - y_ p (/sqrt 2)) < 2 * e ->
   Rabs (z - z_ p (/sqrt 2)) < 4 * e ->
-  Rabs (r_div (1 + r_mult y z) (r_mult (1 + z) (r_sqrt y)) -
+  Rabs (r_div (1 + r_mult z y) (r_mult (1 + z) (r_sqrt y)) -
         z_ (p + 1) (/ sqrt 2)) < 4 * e.
 intros y z p p1 cy cz.
 set (h := y - y_ p (/sqrt 2)).
@@ -773,8 +703,7 @@ assert (be44 : e <= /4 * (4 * e)) by psatzl R.
 assert (four_e : 4 * e < /50) by psatzl R.
 generalize (z_error (4 * e) (y_ p (/sqrt 2)) (z_ p (/sqrt 2)) h h'
              four_e be44 inty (int_z p p1) cy' cz).
-lazy zeta. rewrite -> (Rmult_comm (y_ p (/sqrt 2)) (z_ p (/sqrt 2))),
-   <- z_step; auto.
+lazy zeta. rewrite <- z_step; auto.
 replace (y_ p (/ sqrt 2) + h) with y by (unfold h; ring).
 replace (z_ p (/ sqrt 2) + h') with z by (unfold h'; ring).
 intros; apply Rabs_def1; psatzl R.
@@ -787,7 +716,7 @@ Lemma rprod_step :
     Rabs (z - z_ p (/sqrt 2)) < 4 * e ->
     Rabs (prod - pr p) < 4 * (3/2) * INR p * e ->
    Rabs (r_mult prod (r_div (1 + r_div (1 + y) (2 * (r_sqrt y)))
-              (1 + r_div (1 + r_mult y z) (r_mult (1 + z) (r_sqrt y))))
+              (1 + r_div (1 + r_mult z y) (r_mult (1 + z) (r_sqrt y))))
           - pr (p + 1)) < 4 * (3/2) * INR (p + 1) * e.
 intros p y z prd p1 smallnp cy cz cprd.
 assert (four_e : 4 * e < /40) by psatzl R.
@@ -805,11 +734,11 @@ assert (intz' : 1 < z_ (p + 1) (/ sqrt 2) < 6/5).
    apply z_decr_n; auto; lia.
   rewrite z_1;[ | split]; interval.
 assert (qbnd : Rabs (r_div (1 + r_div (1 + y) (2 * (r_sqrt y)))
-              (1 + r_div (1 + r_mult y z) (r_mult (1 + z) (r_sqrt y))) -
+              (1 + r_div (1 + r_mult z y) (r_mult (1 + z) (r_sqrt y))) -
                ((1 + y_ (p + 1) (/sqrt 2))/(1 + z_ (p + 1) (/sqrt 2))))
            < 13/10 * (4 * e)).
  set (h := r_div (1 + y) (2 * (r_sqrt y)) - y_ (p + 1) (/ sqrt 2)).
- set (h' := r_div (1 + r_mult y z) (r_mult (1 + z) (r_sqrt y)) - z_ (p + 1)
+ set (h' := r_div (1 + r_mult z y) (r_mult (1 + z) (r_sqrt y)) - z_ (p + 1)
              (/ sqrt 2)).
  assert (cy' : Rabs h < /2 * (4 * e)).
   apply Rlt_le_trans with (1 := ry_step p y p1 cy); psatzl R.
@@ -819,14 +748,14 @@ assert (qbnd : Rabs (r_div (1 + r_div (1 + y) (2 * (r_sqrt y)))
  replace (y_ (p + 1) (/sqrt 2) + h) with
       (r_div (1 + y) (2 * (r_sqrt y))) by (unfold h; ring).
  replace (z_ (p + 1) (/sqrt 2) + h') with
-      (r_div (1 + r_mult y z) (r_mult (1 + z) (r_sqrt y)))
+      (r_div (1 + r_mult z y) (r_mult (1 + z) (r_sqrt y)))
    by (unfold h'; ring).
  solve[auto].
 assert (i2 : 0 <= 13/10 * (4 * e) <= /100) by psatzl R.
 assert (e5K : e < /5 * (13/10 * (4 * e))) by psatzl R.
 set (h := prd - pr p).
 set (h' := r_div (1 + r_div (1 + y) (2 * (r_sqrt y)))
-              (1 + r_div (1 + r_mult y z) (r_mult (1 + z) (r_sqrt y))) -
+              (1 + r_div (1 + r_mult z y) (r_mult (1 + z) (r_sqrt y))) -
          (1 + y_ (p + 1) (/ sqrt 2)) / (1 + z_ (p + 1) (/ sqrt 2))).
 assert (pb : /2 < pr p < 921/1000) by
   (destruct (prod_bnd _ p1); try psatzl R).
@@ -847,7 +776,7 @@ generalize (product_error_step (pr p) _
 replace (pr p + h) with prd by (unfold h; ring).
 replace ((1 + y_ (p + 1) (/sqrt 2)) / (1 + z_ (p + 1) (/ sqrt 2)) + h') with
           (r_div (1 + r_div (1 + y) (2 * (r_sqrt y)))
-             (1 + r_div (1 + r_mult y z) (r_mult (1 + z) (r_sqrt y))))
+             (1 + r_div (1 + r_mult z y) (r_mult (1 + z) (r_sqrt y))))
    by (unfold h'; ring).
 rewrite <- pr_step, <- (Rmult_comm (pr p)).
 intros t; apply Rlt_le_trans with (1 := t).
@@ -1198,7 +1127,7 @@ Fixpoint hpi_rec (n : nat) (y z prod : Z) : Z :=
     0%nat => hmult (h2 + hsqrt h2) prod
   | S p =>
     let sy := hsqrt y in let ny := hdiv (h1 + y) (2 * sy) in
-    let nz := hdiv (h1 + hmult y z) (hmult (h1 + z) sy) in
+    let nz := hdiv (h1 + hmult z y) (hmult (h1 + z) sy) in
     hpi_rec p ny nz (hmult prod (hdiv (h1 + ny) (h1 + nz)))
   end.
 
@@ -1507,7 +1436,7 @@ assert (0 < 2 * hsqrt y)%Z.
  apply Z.mul_pos_pos; [reflexivity | assumption].
 assert (0 <= hsqrt y)%Z by (apply Z.lt_le_incl; assumption).
 set (ny := r_div (1 + hR y) (2 * (r_sqrt (hR y)))).
-set (nz := r_div (1 + r_mult (hR y) (hR z))
+set (nz := r_div (1 + r_mult (hR z) (hR y))
              (r_mult (1 + hR z) (r_sqrt (hR y)))).
 assert (qy : ny = hR (hdiv (h1 + y)(2 * (hsqrt y)))).
  unfold ny.
@@ -1525,15 +1454,15 @@ assert (0 < hmult (h1 + z) (hsqrt y))%Z.
  apply hR_gt_0; rewrite hmult_spec, hplus_spec, h1_spec, hsqrt_spec; auto.
  destruct (r_mult_spec (1 + hR z) (r_sqrt (hR y))); auto; try psatzl R.
 assert (qz : nz =
-             hR (hdiv (h1 + hmult y z) (hmult (h1 + z) (hsqrt y)))).
+             hR (hdiv (h1 + hmult z y) (hmult (h1 + z) (hsqrt y)))).
  unfold nz.
- rewrite hdiv_spec, hplus_spec, !hmult_spec, hplus_spec, hsqrt_spec, h1_spec;
+ now rewrite hdiv_spec, hplus_spec, !hmult_spec, hplus_spec, hsqrt_spec, h1_spec;
  auto.
 change (hR (hpi_rec (S n) y z prd) =
          rpi_rec r_div r_sqrt r_mult n ny nz
          (r_mult (hR prd) (r_div (1 + ny) (1 + nz)))).
 set (ny' := hdiv (h1 + y) (2 * hsqrt y)).
-set (nz' := hdiv (h1 + hmult y z) (hmult (h1 + z) (hsqrt y))).
+set (nz' := hdiv (h1 + hmult z y) (hmult (h1 + z) (hsqrt y))).
 replace (hpi_rec (S n) y z prd) with
        (hpi_rec n ny' nz' (hmult prd (hdiv (h1 + ny') (h1 + nz')))) by reflexivity.
 set (npr := r_mult (hR prd) (r_div (1 + ny) (1 + nz))).
@@ -2830,13 +2759,13 @@ induction n as [ | n IHn]; intros v1 v2 v3.
   rewrite hmult_morph, BigZ.spec_add, hs, h2_morph; reflexivity.
 change ([let sy := rounding_big.hsqrt p v1 in
           let ny := rounding_big.hdiv p (p + v1) (2 * sy) in
-          let nz := rounding_big.hdiv p (p + rounding_big.hmult p v1 v2)
+          let nz := rounding_big.hdiv p (p + rounding_big.hmult p v2 v1)
                        (rounding_big.hmult p (p + v2) sy) in
           rounding_big.hpi_rec p n s ny nz
              (rounding_big.hmult p v3 (rounding_big.hdiv p (p + ny) (p + nz)))] =
           let sy := hsqrt [p] [v1] in
           let ny := hdiv [p] (h1 [p] + [v1]) (2 * sy) in
-          let nz := hdiv [p] (h1 [p] + hmult [p] [v1] [v2])
+          let nz := hdiv [p] (h1 [p] + hmult [p] [v2] [v1])
                        (hmult [p] (h1 [p] + [v2]) sy) in
           hpi_rec [p] n ny nz
              (hmult [p] [v3] (hdiv [p] (h1 [p] + ny) (h1 [p] + nz)))).

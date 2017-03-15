@@ -16,7 +16,7 @@ Fixpoint hpi_rec (magnifier : bigZ)
       let sy := hsqrt magnifier y in
       let ny := hdiv magnifier (h1 magnifier + y) (2 * sy) in
       let nz :=
-        hdiv magnifier (h1 magnifier + hmult magnifier y z)
+        hdiv magnifier (h1 magnifier + hmult magnifier z y)
           (hmult magnifier (h1 magnifier + z) sy) in
       hpi_rec magnifier p s2 ny nz
         (hmult magnifier prod
