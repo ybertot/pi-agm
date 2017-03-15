@@ -1,65 +1,66 @@
 Require Import BigZ.
 
-Definition hmult (precision x y : bigZ) := (x * y / precision)%bigZ.
-Definition hdiv (precision x y : bigZ) := (x * precision / y)%bigZ.
-Definition hsqrt (precision x : bigZ) := BigZ.sqrt (precision * x).
-Definition h2 precision := (2 * precision)%bigZ.
-Definition h1 (precision : bigZ) := precision.
+Definition hmult (magnifier x y : bigZ) := (x * y / magnifier)%bigZ.
+Definition hdiv (magnifier x y : bigZ) := (x * magnifier / y)%bigZ.
+Definition hsqrt (magnifier x : bigZ) := BigZ.sqrt (magnifier * x).
+Definition h1 (magnifier : bigZ) := magnifier.
+Definition h2 magnifier := (2 * magnifier)%bigZ.
 
-Fixpoint hpi_rec (precision : bigZ)
-  (n : nat) (y z prod : bigZ) {struct n} : bigZ :=
+
+Fixpoint hpi_rec (magnifier : bigZ)
+  (n : nat) (s2 y z prod : bigZ) {struct n} : bigZ :=
   match n with
   | 0%nat =>
-      hmult precision (h2 precision + hsqrt precision (h2 precision)) prod
+      hmult magnifier (h2 magnifier + s2) prod
   | S p =>
-      let sy := hsqrt precision y in
-      let ny := hdiv precision (h1 precision + y) (2 * sy) in
+      let sy := hsqrt magnifier y in
+      let ny := hdiv magnifier (h1 magnifier + y) (2 * sy) in
       let nz :=
-        hdiv precision (h1 precision + hmult precision y z)
-          (hmult precision (h1 precision + z) sy) in
-      hpi_rec precision p ny nz
-        (hmult precision prod
-           (hdiv precision (h1 precision + ny) (h1 precision + nz)))
+        hdiv magnifier (h1 magnifier + hmult magnifier y z)
+          (hmult magnifier (h1 magnifier + z) sy) in
+      hpi_rec magnifier p s2 ny nz
+        (hmult magnifier prod
+           (hdiv magnifier (h1 magnifier + ny) (h1 magnifier + nz)))
   end.
 
-Definition hs2 (precision : bigZ) :=
-  hsqrt precision (h2 precision).
+Definition hs2 (magnifier : bigZ) :=
+  hsqrt magnifier (h2 magnifier).
 
-Definition hy1 (precision : bigZ) :=
-  hdiv precision (h1 precision + hs2 precision)
-  (2 * hsqrt precision (hs2 precision)).
+Definition hy1 (magnifier : bigZ) :=
+  hdiv magnifier (h1 magnifier + hs2 magnifier)
+  (2 * hsqrt magnifier (hs2 magnifier)).
 
-Definition hz1 (precision : bigZ) :=
-  hsqrt precision (hs2 precision).
+Definition hz1 (magnifier : bigZ) :=
+  hsqrt magnifier (hs2 magnifier).
 
-Definition hpi (precision : bigZ) (n : nat) :=
+Definition hpi (magnifier : bigZ) (n : nat) :=
 match n with
 | 0%nat =>
-    (h2 precision + hsqrt precision (h2 precision))%bigZ
+    (h2 magnifier + (hs2 magnifier))%bigZ
 | S p =>
-    hpi_rec precision p (hy1 precision) (hz1 precision)
-      (hdiv precision (h1 precision + hy1 precision)
-         (h1 precision + hz1 precision))
+    hpi_rec magnifier p (hs2 magnifier) (hy1 magnifier) (hz1 magnifier)
+      (hdiv magnifier (h1 magnifier + hy1 magnifier)
+         (h1 magnifier + hz1 magnifier))
 end.
 
 Definition thousand_digit_pi :=
-let precision := (2 ^ 3335)%bigZ in
-let n := hpi precision 10 in
-let n' := (n * 10 ^ (10 ^ 3 + 4) / precision)%bigZ in
+let magnifier := (2 ^ 3335)%bigZ in
+let n := hpi magnifier 10 in
+let n' := (n * 10 ^ (10 ^ 3 + 4) / magnifier)%bigZ in
 let (q, r) := BigZ.div_eucl n' (10 ^ 4) in
   (((217 <? r)%bigZ && (r <? 9783)%bigZ)%bool, q).
 
 Definition hundred_thousand_digit_pi :=
-let precision := (2 ^ 332207)%bigZ in
-let n := hpi precision 17 in
-let n' := (n * 10 ^ (10 ^ 3 + 4) / precision)%bigZ in
+let magnifier := (2 ^ 332207)%bigZ in
+let n := hpi magnifier 17 in
+let n' := (n * 10 ^ (10 ^ 3 + 4) / magnifier)%bigZ in
 let (q, r) := BigZ.div_eucl n' (10 ^ 4) in
   ((21 * 17 + 7 <? r)%bigZ && (r <? 10000 - (21 * 17 + 7))%bigZ, q)%bool.
 
 Definition million_digit_pi :=
-let precision := (2 ^ 3321942)%bigZ in
-let n := hpi precision 20 in
-let n' := (n * 10 ^ (10 ^ 6 + 4) / precision)%bigZ in
+let magnifier := (2 ^ 3321942)%bigZ in
+let n := hpi magnifier 20 in
+let n' := (n * 10 ^ (10 ^ 6 + 4) / magnifier)%bigZ in
 let (q, r) := BigZ.div_eucl n' (10 ^ 4) in
 (((427 <? r)%bigZ && (r <? 9573)%bigZ)%bool, q).
 
