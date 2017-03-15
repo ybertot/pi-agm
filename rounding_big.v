@@ -26,12 +26,12 @@ Fixpoint hpi_rec (magnifier : bigZ)
 Definition hs2 (magnifier : bigZ) :=
   hsqrt magnifier (h2 magnifier).
 
-Definition hy1 (magnifier : bigZ) :=
-  hdiv magnifier (h1 magnifier + hs2 magnifier)
-  (2 * hsqrt magnifier (hs2 magnifier)).
-
 Definition hz1 (magnifier : bigZ) :=
   hsqrt magnifier (hs2 magnifier).
+
+
+Definition hy1 (magnifier : bigZ) :=
+  hdiv magnifier (h1 magnifier + hs2 magnifier) (2 * hz1).
 
 Definition hpi (magnifier : bigZ) (n : nat) :=
 match n with
@@ -53,7 +53,7 @@ let (q, r) := BigZ.div_eucl n' (10 ^ 4) in
 Definition hundred_thousand_digit_pi :=
 let magnifier := (2 ^ 332207)%bigZ in
 let n := hpi magnifier 17 in
-let n' := (n * 10 ^ (10 ^ 3 + 4) / magnifier)%bigZ in
+let n' := (n * 10 ^ (10 ^ 5 + 4) / magnifier)%bigZ in
 let (q, r) := BigZ.div_eucl n' (10 ^ 4) in
   ((21 * 17 + 7 <? r)%bigZ && (r <? 10000 - (21 * 17 + 7))%bigZ, q)%bool.
 
