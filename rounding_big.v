@@ -68,3 +68,21 @@ let (q, r) := BigZ.div_eucl n' (10 ^ 4) in
 (* The following line can only be run in a version of coq
    that supports native computation. *)
 (* Time Eval native_compute in  million_digit_pi. *)
+
+Fixpoint salamin_rec (magnifier : bigZ) (n :nat) (a b am1 bm1 sum twopk : bigZ) :=
+  match n with
+    O%nat => hdiv magnifier (4 * hmult magnifier  a a) sum
+  | S p => salamin_rec magnifier p 
+            ((a + b) / 2)%bigZ (hsqrt magnifier (hmult magnifier a b)) a b
+            (let v := (am1 - bm1)%bigZ in
+               (sum - twopk * (hmult magnifier v v))%bigZ)
+            (2 * twopk)%bigZ
+  end.
+
+Definition salamin magnifier n :=
+  let s2 := hdiv magnifier magnifier (hsqrt magnifier (h2 magnifier)) in
+  let a1 := ((h1 magnifier + s2) / 2)%bigZ in
+  let b1 := hsqrt magnifier s2 in
+  let twopk := 1%bigZ in
+  salamin_rec magnifier n a1 b1 (h1 magnifier) s2 (h1 magnifier) twopk.
+
