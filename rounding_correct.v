@@ -247,7 +247,7 @@ Hypothesis r_sqrt_spec :
 
 
 Lemma y_error e' y h :
-  (e' < /10) -> (e <= /2 * e') -> 1 <= y <= 71/50 -> Rabs h < e' ->
+  e' < /10 -> e <= /2 * e' -> 1 <= y <= 71/50 -> Rabs h < e' ->
   let y1 := (1 + y)/(2 * sqrt y) in
   y1 - e' < r_div (1 + (y + h)) (2 * (r_sqrt (y + h))) < y1 + e'.
 Proof.
@@ -321,7 +321,7 @@ replace (2 * (sqrt (y + h) + e1 * e')) with
 unfold Rdiv; rewrite -> Rinv_mult_distr;
   [ | interval | unfold e''; interval].
 (* test different values of the lower bound here.  Need at least /6 if propagated
-   error is at /14 *)
+   error is at /14, and then bisection on y is needed for interval *)
 assert (- / 6 <= e'' <= 0) by (unfold e''; interval).
 apply Rle_lt_trans with (y2 * (1 - e'' + 2 * e'' ^ 2) - y2).
   apply Rplus_le_compat_r; rewrite <- Rmult_assoc.
@@ -338,7 +338,8 @@ unfold y2.
 interval_intro ((1 + (y + h)) / (2 * sqrt (y + h)) *
                   (-1 + 2 * e'') * (e1 / sqrt (y + h)) * e').
 *)
-apply Rmult_lt_compat_r;[lt0 | unfold y2; interval].
+apply Rmult_lt_compat_r;[lt0 | ].
+unfold y2; interval with (i_bisect y).
 Qed.
 
 (* bounds on y and z are chosen to fit the actual values of y_1(1/sqrt 2)
@@ -512,7 +513,7 @@ rewrite Rminus_0_r, Rabs_left1, Ropp_mult_distr_l;[ | interval].
 now apply Rmult_lt_compat_r; psatzl R.
 Qed.
 
-Lemma qst1 : forall e' y z h h', e' < /40 ->
+Lemma quotient_error : forall e' y z h h', e' < /40 ->
   Rabs h < /2 * e' -> Rabs h' < e' -> e <= /4 * e' ->
   1 < y < 51/50 -> 1 < z < 6/5 ->
   Rabs (r_div (1 + (y + h)) (1 + (z + h')) - (1 + y)/(1 + z)) <  13/10 * e'.
@@ -697,7 +698,7 @@ assert (qbnd : Rabs (r_div (1 + r_div (1 + y) (2 * (r_sqrt y)))
  assert (cy' : Rabs h < /2 * (4 * e)).
   apply Rlt_le_trans with (1 := ry_step p y p1 cy); psatzl R.
  assert (four_eK : e <= /4 * (4 * e)) by psatzl R.
- generalize (qst1 (4 * e) (y_ (p + 1) (/sqrt 2)) (z_ (p + 1) (/sqrt 2)) h h'
+ generalize (quotient_error _ (y_ (p + 1) (/sqrt 2)) (z_ (p + 1) (/sqrt 2)) h h'
       four_e cy' (rz_step y z p p1 cy cz) four_eK inty' intz').
  replace (y_ (p + 1) (/sqrt 2) + h) with
       (r_div (1 + y) (2 * (r_sqrt y))) by (unfold h; ring).
@@ -806,6 +807,7 @@ rewrite <- cvpn; assumption.
 Qed.
 
 Lemma ry1_correct : Rabs (ry1 - y_ 1 (/sqrt 2)) < 2 * e.
+Proof.
 assert (sqrt 2 - e <= r_sqrt 2 <= sqrt 2).
  assert (two_0 : 0 <= 2) by psatzl R.
  destruct (r_sqrt_spec 2 two_0); psatzl R.
@@ -857,34 +859,42 @@ apply sqrt_lt_R0; psatzl R.
 Qed.
 
 Lemma ry1_bnd : 1007/1000 < ry1 < 52/50.
-assert (1414/1000 < sqrt 2 < 1415/1000) by (split; approx_sqrt).
-assert (1410/1000 < r_sqrt 2 < 1415/1000).
- destruct (r_sqrt_spec 2); psatzl R.
-assert (1187/1000 < sqrt (r_sqrt 2) < 11896/10000)
-   by (split; approx_sqrt).
-assert (1183/1000 < r_sqrt (r_sqrt 2) < 119/100).
- destruct (r_sqrt_spec (r_sqrt 2)); psatzl R.
-split.
- apply Rlt_trans with ((1 + 141/100)/(2 * (119/100)) - e);[psatzl R | ].
- unfold ry1.
- assert (0 < 2 * (r_sqrt (r_sqrt 2))) by psatzl R.
- destruct (r_div_spec (1 + r_sqrt 2) (2 * (r_sqrt (r_sqrt 2))))
-   as [ld ud]; try psatzl R.
- apply Rlt_trans with (2 := ld), Rplus_lt_compat_r.
- apply Rmult_le_0_lt_compat; try psatzl R.
- apply Rinv_1_lt_contravar; psatzl R.
+Proof.
+assert (help1 : forall a b c, 0 < a -> b * a < c -> b <= c / a).
+   intros a b c a0 bac; apply Rmult_le_reg_r with a;[psatzl R | ].
+   now unfold Rdiv; rewrite Rmult_assoc, Rinv_l; psatzl R.
+assert (help2 : forall a b, 0 < a -> b <= 0 -> b / a <= 0).
+   intros a b a0 ba; apply Rmult_le_reg_r with a;[psatzl R | ].
+   now unfold Rdiv; rewrite Rmult_assoc, Rinv_l; psatzl R.
+assert (help4 : forall a b c, a = (b - c) / e -> b = c + a * e).
+  now intros a b c q; rewrite q; field; psatzl R.
 unfold ry1.
-destruct (r_div_spec (1 + r_sqrt 2) (2 * (r_sqrt (r_sqrt 2))));
- try psatzl R.
-apply Rlt_trans with ((1 + 1415/1000) / (1999/1000 * (1183/1000)));[|psatzl R].
-apply Rle_lt_trans with ((1 + r_sqrt 2) / (2 * (r_sqrt (r_sqrt 2))));
- [assumption | ].
-apply Rmult_le_0_lt_compat; try psatzl R.
- apply Rlt_le, Rinv_0_lt_compat; psatzl R.
-apply Rinv_1_lt_contravar; psatzl R.
+assert (large_e : 0 <= e <= / 1000) by psatzl R.
+assert (exists e1, r_sqrt 2 = sqrt 2 + e1 * e /\
+                   - 1  <= e1 <= 0) as [e1 [Q Pe1]];[ | rewrite Q; clear Q].
+  destruct (r_sqrt_spec 2); try psatzl R.
+  eapply ex_intro;split;[eapply help4, refl_equal | ].
+  now split; [apply help1 | apply help2]; psatzl R.
+assert (exists e2, r_sqrt (sqrt 2 + e1 * e) =
+             sqrt (sqrt 2 + e1 * e) + e2 * e /\
+             -1 <= e2 <= 0) as [e2 [Q Pe2]];[ | rewrite Q; clear Q].
+  destruct (r_sqrt_spec (sqrt 2 + e1 * e)); try interval.
+  eapply ex_intro; split;[eapply help4, refl_equal | ].
+  now split; [apply help1 | apply help2]; psatzl R.
+assert (exists e3, r_div (1 + (sqrt 2 + e1 * e)) 
+                     (2 * (sqrt (sqrt 2 + e1 * e) + e2 * e)) =
+            (1 + (sqrt 2 + e1 * e)) /
+             (2 * (sqrt (sqrt 2 + e1 * e) + e2 * e)) + e3 * e /\
+             -1 <= e3 <= 0) as [e3 [Q Pe3]];[ | rewrite Q; clear Q].
+  destruct (r_div_spec (1 + (sqrt 2 + e1 * e)) 
+                     (2 * (sqrt (sqrt 2 + e1 * e) + e2 * e))); try interval.
+  eapply ex_intro; split;[eapply help4, refl_equal | ].
+  split; [apply help1 | apply help2]; psatzl R.
+split; interval.
 Qed.
 
 Lemma rz1_bnd : 1183/1000 < rz1 < 119/100.
+Proof.
 assert (1414/1000 < sqrt 2 < 1415/1000) by (split; approx_sqrt).
 assert (141/100 < r_sqrt 2 < 1415/1000).
  destruct (r_sqrt_spec 2); psatzl R.
@@ -929,7 +939,7 @@ assert (four_e : 4 * e < /40) by psatzl R.
 assert (four_eK : e <= /4 * (4 * e)) by psatzl R.
 assert (bnd_y1 : 1 < y_ 1 (/sqrt 2) < 51/50).
   now rewrite y_s, y_0; unfold yfun; split; interval.
-generalize (qst1 (4 * e) (y_ 1 (/sqrt 2)) (z_ 1 (/sqrt 2)) h h' four_e
+generalize (quotient_error _ (y_ 1 (/sqrt 2)) (z_ 1 (/sqrt 2)) h h' four_e
          ty' tz four_eK bnd_y1 bnd_z1).
 replace (1 + (y_ 1 (/ sqrt 2) + h)) with (1 + ry1) by (unfold h; ring).
 replace (1 + (z_ 1 (/ sqrt 2) + h')) with (1 + rz1) by (unfold h'; ring).
