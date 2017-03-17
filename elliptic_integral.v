@@ -265,6 +265,33 @@ split; [exact IHn2 | ].
 apply Rle_trans with (2 := ana); exact IHn3.
 Qed.
 
+Lemma ag_shift n m a b : ag a b (n + m) = ag (fst (ag a b m)) (snd (ag a b m)) n.
+Proof.
+revert n a b; induction m.
+  now intros; rewrite Nat.add_0_r.
+now intros n a b; rewrite Nat.add_succ_r; simpl; apply IHm.
+Qed.
+
+Lemma fst_ag_decrease n p a b :(1 <= n <= p)%nat -> 0 < a -> 0 < b -> b <= a ->
+ fst (ag a b p) <= fst (ag a b n).
+Proof.
+intros n1p a0 b0 bla.
+replace p with ((p - n) + n)%nat by lia.
+rewrite ag_shift.
+destruct (ag_le n a b); try lt0.
+destruct (ag_le (p - n) (fst (ag a b n)) (snd (ag a b n))); lt0.
+Qed.
+
+Lemma snd_ag_grow n p a b :(1 <= n <= p)%nat -> 0 < a -> 0 < b -> b <= a ->
+ snd (ag a b n) <= snd (ag a b p).
+Proof.
+intros n1p a0 b0 bla.
+replace p with ((p - n) + n)%nat by lia.
+rewrite ag_shift.
+destruct (ag_le n a b); try lt0.
+destruct (ag_le (p - n) (fst (ag a b n)) (snd (ag a b n))); lt0.
+Qed.
+
 Lemma ex_lim_agm a b : 0 < a -> 0 < b ->
   ex_finite_lim_seq (fun n => (fst (ag a b n))).
 Proof.
@@ -656,13 +683,6 @@ assert (fact2 : is_RInt_gen (fun x =>
 unfold Rdiv; rewrite Rmult_comm.
 case (ex_RInt_gen_unique _ _ _ (ex_intro _ elm fact1)) as [w [isw qw]].
 now rewrite <- (qw _ fact2), <- (qw _ fact1); reflexivity.
-Qed.
-
-Lemma ag_shift n m a b : ag a b (n + m) = ag (fst (ag a b m)) (snd (ag a b m)) n.
-Proof.
-revert n a b; induction m.
-  now intros; rewrite Nat.add_0_r.
-now intros n a b; rewrite Nat.add_succ_r; simpl; apply IHm.
 Qed.
 
 Lemma div_pow2_le x n : 0 <= x -> x / 2 ^ n <= x.

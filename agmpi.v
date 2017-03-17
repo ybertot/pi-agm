@@ -936,9 +936,8 @@ Proof.
 now intros intx; apply (ex_derive_continuous ff), ex_derive_ff.
 Qed.
 
-Lemma derive_ff_pos x : 0 < x < 1 -> 0 < Derive ff x.
+Lemma derive_ff_ge_u n x (intx : 0 < x < 1) :  Derive (u_ n) x <= Derive ff x.
 Proof.
-intros intx; apply Rlt_le_trans with (/2); [lt0 | ].
 assert (lim_du : is_lim_seq (fun n => Derive (u_ n) x) (Derive ff x)).
   assert (xhalf0 : 0 < x / 2 < 1) by psatzl R.
   assert (dpos : 0 < (1 - x / 2) / 2) by psatzl R.
@@ -947,11 +946,26 @@ assert (lim_du : is_lim_seq (fun n => Derive (u_ n) x) (Derive ff x)).
              (mkposreal _ dpos)).
     apply (cv_u_ff' (x / 2) (mkposreal _ dpos) xhalf0 (refl_equal _)).
   apply Rabs_def1; simpl; psatzl R.
+apply (is_lim_seq_incr_compare (fun n => Derive (u_ n) x)); auto.
+intros m; replace (S m) with (m + 1)%nat by ring.
+now apply Rlt_le, u_n_derive_growing.
+Qed.
+
+Lemma derive_ff_pos x : 0 < x < 1 -> 0 < Derive ff x.
+Proof.
+intros intx; apply Rlt_le_trans with (/2); [lt0 | ].
 assert (du_1 : Derive (u_ 1) x = / 2).
   unfold u_; simpl; apply is_derive_unique; auto_derive; lt0.
-rewrite <- du_1.
-apply (is_lim_seq_incr_compare (fun n => Derive (u_ n) x)); auto.
-intros n; replace (S n) with (n + 1)%nat by ring.
+now rewrite <- du_1; apply derive_ff_ge_u.
+Qed.
+
+Lemma derive_un_growing' n p x (intx : 0 < x < 1) :
+  Derive (u_ n) x <= Derive (u_(n + p)) x.
+Proof.
+induction p as [|p IHp].
+  now rewrite -> Nat.add_0_r; apply Req_le.
+apply Rle_trans with (1 := IHp).
+replace (n + (S p))%nat with ((n + p) + 1)%nat by ring.
 now apply Rlt_le, u_n_derive_growing.
 Qed.
 
@@ -1714,35 +1728,42 @@ Lemma agmpi_step n :
 Proof. destruct n as [ | p]; reflexivity. Qed.
 
 Lemma agmpi0 : agmpi 0 =
-   2 * sqrt 2 * (snd (ag 1 (/sqrt 2) 1) ^ 2 * fst (ag 1 (/sqrt 2) 1)  /
-                 Derive (fun x => fst (ag 1 x 1)) (/sqrt 2)).
+   2 * sqrt 2 * (v_ 1 (/sqrt 2) ^ 2 * u_ 1 (/sqrt 2)  /
+                 Derive (u_ 1) (/sqrt 2)).
 Proof.
 assert (dag1 : Derive (fun x => (1 + x) / 2) (/sqrt 2) = / 2).
   now apply is_derive_unique; auto_derive; auto; field.
-rewrite ag_step; unfold ag, fst, snd; rewrite sqrt_pow_2; [ | lt0].
+unfold u_, v_; rewrite ag_step; unfold ag, fst, snd; rewrite sqrt_pow_2;[| lt0].
 rewrite dag1; simpl; set (u := sqrt 2).
 replace 2 with (u ^ 2) by (unfold u; rewrite pow2_sqrt; lt0).
 field; unfold u; lt0.
 Qed.
 
+Lemma agmpi_ff_3_ff' n :
+  agmpi n = 2 * sqrt 2 * (v_ (n + 1) (/sqrt 2) ^ 2 * u_ (n + 1) (/sqrt 2) /
+         Derive (u_ (n + 1)) (/sqrt 2)).
+Proof.
+assert (ints := ints).
+assert (le1s : forall n, (1 <= S n)%nat) by (intros; lia).
+induction n as [ | n IHn];[exact: agmpi0|].
+simpl (Peano.plus); rewrite agmpi_step.
+assert (t := ag_le (S n) 1 (/sqrt 2) Rlt_0_1 (proj1 ints)
+            (Rlt_le _ _ (proj2 ints))).
+assert (t' := compare_derive_ag (S n) (/sqrt 2) (le1s _) ints).
+assert (t'' := compare_derive_ag (S (S n)) (/sqrt 2) (le1s _) ints).
+unfold Rdiv; rewrite -> ratio_z, ratio_y; try lia; try exact ints.
+rewrite -> IHn, !Rmult_assoc; auto; try lia.
+replace (S n + 1)%nat with (S (S n)) by ring; unfold u_ in t, t', t'' |- *.
+replace (n + 1)%nat with (S n) by ring.
+now unfold u_, v_ in *; field; repeat split; lt0.
+Qed.
+
 Lemma cv_agmpi : is_lim_seq agmpi PI.
 Proof.
-assert (ints : 0 < /sqrt 2 < 1) by exact ints.
-assert (le1s : forall n, (1 <= S n)%nat) by (intros; lia).
 apply (is_lim_seq_ext (fun n => 2 * sqrt 2 *
                 ((snd (ag 1 (/sqrt 2) (n + 1)) ^ 2 * u_ (n + 1) (/sqrt 2))
                   / Derive (u_ (n + 1)) (/sqrt 2)))).
-  induction n as [ | n IHn].
-    simpl Peano.plus; rewrite agmpi0; unfold u_; reflexivity.
-  simpl (Peano.plus); rewrite agmpi_step.
-  assert (t := ag_le (S n) 1 (/sqrt 2) Rlt_0_1 (proj1 ints)
-            (Rlt_le _ _ (proj2 ints))).
-  assert (t' := compare_derive_ag (S n) (/sqrt 2) (le1s _) ints).
-  assert (t'' := compare_derive_ag (S (S n)) (/sqrt 2) (le1s _) ints).
-  unfold Rdiv; rewrite -> ratio_z, ratio_y, <- IHn, !Rmult_assoc; auto; try lia.
-  replace (S n + 1)%nat with (S (S n)) by ring; unfold u_ in t, t', t'' |- *.
-  replace (n + 1)%nat with (S n) by ring.
-  now unfold u_, v_; field; lt0.
+  intros n; symmetry; apply agmpi_ff_3_ff'.
 apply (is_lim_seq_subseq
          (fun n => 2 * sqrt 2 *
               (snd (ag 1 (/sqrt 2) n) ^ 2 * u_ n (/sqrt 2)
@@ -1754,7 +1775,7 @@ apply is_lim_seq_mult with (2 * sqrt 2) (PI / (2 * sqrt 2));
 now apply cv_ff_3_over_ff'.
 Qed.
 
-Lemma over_ystep : forall x, 1 < x -> yfun x <= 1 + (x - 1)^2/8.
+Lemma over_ystep : forall x, 1 < x -> yfun x <= 1 + (x - 1) ^ 2 / 8.
 Proof.
 assert (sqrt3 : forall x, 0 < x -> sqrt x ^ 3 = x * sqrt x).
   intros x x0; replace (sqrt x ^ 3) with (sqrt x ^ 2 * sqrt x) by ring.
