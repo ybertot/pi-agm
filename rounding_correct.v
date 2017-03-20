@@ -2686,7 +2686,7 @@ Qed.
 Require Import BigZ.
 Require rounding_big.
 
-Open Scope bigZ.
+Local Open Scope bigZ.
 
 Lemma hdiv_morph p x y: [rounding_big.hdiv p x y] = hdiv [p] [x] [y].
 Proof.
