@@ -1,6 +1,6 @@
 Require Import Reals Coquelicot.Coquelicot Fourier Psatz.
-Require Import filter_Rlt atan_derivative_improper_integral.
-Require Import elliptic_integral arcsinh generalities agmpi.
+Require Import filter_Rlt atan_derivative_improper_integral arcsinh.
+Require Import elliptic_integral generalities agmpi rounding_big.
 Require Import Interval.Interval_tactic.
 Import mathcomp.ssreflect.ssreflect.
 
@@ -396,4 +396,145 @@ apply Rle_trans with (y_ n s2 - 1).
   now apply Rlt_le, sqrt_less; lt0.
 replace n with (n - 1 + 1)%nat at 1 by lia.
 apply majoration_y_n_vs2.
+Qed.
+
+(* TODO : report bug, auto_derive stops functioning if this import
+  appears too early. *)
+Require Import rounding_correct.
+
+(*TODO rempove this line once rounding_correct is recompiled. *)
+
+Open Scope R_scope.
+Section rounded_operations.
+
+Variables (e : R) (r_div : R -> R -> R) (r_sqrt : R -> R)
+           (r_mult : R -> R -> R)(r_square : R -> R).
+
+Hypothesis ce : 0 < e < /1000.
+
+Hypothesis r_mult_spec :
+  forall x y, 0 <= x -> 0 <= y -> x * y - e < r_mult x y <= x * y.
+
+Hypothesis r_div_spec :
+  forall x y, (0 < y) -> x/y - e < r_div x y <= x/y.
+
+Hypothesis r_sqrt_spec :
+  forall x, 0 <= x -> sqrt x - e < r_sqrt x <= sqrt x.
+
+Hypothesis r_square_spec :
+  forall x, x ^ 2 - e < r_square x <= x ^ 2.
+
+Lemma summand_error_ub  u v e' h h' k :
+(* 42/50 <= u <= 43/50 -> 42/50 <= v <= 43/50 -> *)
+0 <= e' <= / 1000 ->
+e <= e' ->
+-e' <= h <= 0 -> -e' <= h' <= 0 ->
+2 * e' <= u - v <= /4 * / 2 ^ k ->
+2 ^ k * r_square ((u + h) - (v + h')) <= 2 ^ k * (u - v) ^ 2 + 3 / 4 * e'.
+Proof.
+intros (* intu intv *) inte' ee' inth inth' uv.
+assert (-/1000 <= h <= 0) by psatzl R.
+assert (-/1000 <= h' <= 0) by psatzl R.
+assert (help1 : forall a b c, 0 < a -> b * a < c -> b <= c / a).
+   intros a b c a0 bac; apply Rmult_le_reg_r with a;[psatzl R | ].
+   now unfold Rdiv; rewrite -> Rmult_assoc, Rinv_l; psatzl R.
+assert (help2 : forall a b, 0 < a -> b <= 0 -> b / a <= 0).
+   intros a b a0 ba; apply Rmult_le_reg_r with a;[psatzl R | ].
+   now unfold Rdiv; rewrite -> Rmult_assoc, Rinv_l; psatzl R.
+assert (help3 : forall a b, a < b -> 0 < b -> a / b <= 1).
+   intros a b ab b0; apply Rmult_le_reg_r with b;[psatzl R | ].
+   now unfold Rdiv; rewrite -> Rmult_assoc, Rinv_l; psatzl R.
+assert (help4 : forall a b c, a = (b - c) / e' -> b = c + a * e').
+  now intros a b c q; rewrite -> q; field; psatzl R.
+assert (exists e1, r_square ((u + h) - (v + h')) =
+                       ((u + h) - (v + h')) ^ 2 + e1 * e' /\
+                   - 1  <= e1 <= 0) as [e1 [Q Pe1]];[| rewrite Q; clear Q].
+  destruct (r_square_spec((u + h) - (v + h'))); try psatzl R.
+    eapply ex_intro;split;[eapply help4, refl_equal | ].
+  now split;[apply help1 | apply help2]; psatzl R.
+rewrite Rmult_plus_distr_l.
+replace ((u + h - (v + h')) ^ 2) with
+         ((u - v) ^ 2 + 2 * (u - v) * (h - h') + (h - h') ^ 2)
+  by ring.
+rewrite -> !(Rplus_assoc ((u - v) ^ 2)), Rmult_plus_distr_l, Rplus_assoc.
+apply Rplus_le_compat_l; rewrite <- Rmult_plus_distr_l.
+(* TODO : understand why this does not work. 
+replace ((3 / 4 + 2 ^ k)  * e') with ((/2 * e' + /4 * e') + 2 ^ k * e') at 2 by field. *)
+apply Rle_trans with (/2 * e' + / 4 * e' + 0);[|apply Req_le; field].
+rewrite !(Rmult_plus_distr_l (2 ^ k)); apply Rplus_le_compat.
+  apply Rplus_le_compat;[rewrite <- Rmult_assoc | ]. 
+    destruct (Rle_dec 0 (h - h')).
+      apply Rmult_le_compat; try lt0.
+      rewrite <- Rmult_assoc; apply Rmult_le_reg_l with (/(2 ^ k * 2)); try lt0.
+      rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l; try lt0.
+      now apply Rle_trans with (1 := proj2 uv), Req_le; field; lt0.
+    apply Rle_trans with (2 ^ k * (2 * (u - v)) * 0).
+      now apply Rmult_le_compat_l; lt0.
+    now rewrite Rmult_0_r; lt0.
+  destruct (Rle_dec 0 (h - h')).
+    replace (2 ^ k * (h - h') ^ 2) with (2 ^ k * (h - h') * (h - h')) by ring.
+    apply Rmult_le_compat; try lt0.
+      apply Rmult_le_pos; lt0.
+    apply Rmult_le_reg_l with (/ 2 ^ k);[lt0 |].
+    now rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l; lt0.
+    replace (2 ^ k * (h - h') ^ 2) with (2 ^ k * (h' - h) * (h' - h)) by ring.
+  apply Rmult_le_compat; try lt0.
+  apply Rmult_le_reg_l with (/ 2 ^ k);[lt0 |].
+  now rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l; lt0.
+enough (0 <= - (2 ^ k * (e1 * e'))) by psatzl R.
+rewrite -> Ropp_mult_distr_r, Ropp_mult_distr_l.
+now repeat apply Rmult_le_pos; lt0.
+Qed.
+
+Lemma summand_error_lb  u v e' h h' k :
+(*
+42/50 <= u <= 43/50 -> 42/50 <= v <= 43/50 -> *)
+0 <= e' <= / 1000 ->
+e <= e' ->
+-e' <= h <= 0 -> -e' <= h' <= 0 ->
+2 * e' <= u - v <= /4 * / 2 ^ k ->
+2 ^ k * (u - v) ^ 2 - (3 / 4  + 2 ^ k) * e' <=
+   2 ^ k * r_square ((u + h) - (v + h')).
+Proof.
+intros (* intu intv *) inte' ee' inth inth' uv.
+assert (-/1000 <= h <= 0) by psatzl R.
+assert (-/1000 <= h' <= 0) by psatzl R.
+assert (help1 : forall a b c, 0 < a -> b * a < c -> b <= c / a).
+   intros a b c a0 bac; apply Rmult_le_reg_r with a;[psatzl R | ].
+   now unfold Rdiv; rewrite -> Rmult_assoc, Rinv_l; psatzl R.
+assert (help2 : forall a b, 0 < a -> b <= 0 -> b / a <= 0).
+   intros a b a0 ba; apply Rmult_le_reg_r with a;[psatzl R | ].
+   now unfold Rdiv; rewrite -> Rmult_assoc, Rinv_l; psatzl R.
+assert (help3 : forall a b, a < b -> 0 < b -> a / b <= 1).
+   intros a b ab b0; apply Rmult_le_reg_r with b;[psatzl R | ].
+   now unfold Rdiv; rewrite -> Rmult_assoc, Rinv_l; psatzl R.
+assert (help4 : forall a b c, a = (b - c) / e' -> b = c + a * e').
+  now intros a b c q; rewrite -> q; field; psatzl R.
+assert (exists e1, r_square ((u + h) - (v + h')) =
+                       ((u + h) - (v + h')) ^ 2 + e1 * e' /\
+                   - 1 <= e1 <= 0) as [e1 [Q Pe1]];[| rewrite Q; clear Q].
+  destruct (r_square_spec((u + h) - (v + h'))); try psatzl R.
+    eapply ex_intro;split;[eapply help4, refl_equal | ].
+  now split;[apply help1 | apply help2]; psatzl R.
+rewrite (Rmult_plus_distr_l (2 ^ k)).
+replace ((u + h - (v + h')) ^ 2) with
+         ((u - v) ^ 2 + 2 * (u - v) * (h - h') + (h - h') ^ 2)
+  by ring.
+rewrite -> !(Rplus_assoc ((u - v) ^ 2)), (Rmult_plus_distr_l (2 ^ k)), Rplus_assoc.
+apply Rplus_le_compat_l; rewrite <- Rmult_plus_distr_l.
+apply Rle_trans with ((-/2 * e' + -/ 4 * e') + (2 ^ k) * (- 1 * e'));
+  [apply Req_le; field|].
+rewrite !(Rmult_plus_distr_l (2 ^ k)); apply Rplus_le_compat.
+  apply Rplus_le_compat;[rewrite <- Rmult_assoc | ]. 
+    destruct (Rle_dec 0 (h - h')).
+      apply Rle_trans with (2 ^ k * (2 * (u - v)) * 0).
+        now rewrite Rmult_0_r; lt0.
+      now apply Rmult_le_compat_l; lt0.
+    enough (2 ^ k * (2 * (u - v)) * (h' - h) <= /2 * e') by psatzl R.
+    apply Rmult_le_compat; try lt0.
+    rewrite <- Rmult_assoc; apply Rmult_le_reg_l with (/(2 ^ k * 2)); try lt0.
+    rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l; try lt0.
+    now apply Rle_trans with (1 := proj2 uv), Req_le; field; lt0.
+  now apply Rle_trans with 0;[| apply Rmult_le_pos;[| apply pow2_ge_0 ]];lt0.
+apply Rmult_le_compat_l;[lt0 | apply Rmult_le_compat_r; lt0].
 Qed.
