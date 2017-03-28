@@ -518,9 +518,7 @@ Qed.
 
 Lemma quarter_elliptic x : 0 < x -> ell 1 x = 4 * RInt (ellf 1 x) 0 (sqrt x).
 Proof.
-intros x0.
-(* destruct (ex_un_ell 1 x) as [v1 [Pv1 qv1]]; try lt0. *)
-unfold ell.
+intros x0; unfold ell.
 generalize (iota_correct _ (ex_un_ell _ _ Rlt_0_1 x0)).
 set (v := iota _); intros Pv.
 destruct (ex_RInt_gen_cut 0 _ _

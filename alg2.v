@@ -21,16 +21,11 @@ Lemma is_derive_k_extra n x (intx : 0 < x < 1) :
   (- ((/ 2 ^ n * (v_ n x) ^ 3 / (u_ n x * (w_ n x) ^ 2)) * 
      Derive (fun x => u_ n x / v_ n x) x)).
 Proof.
-assert (help : u_ n x ^ 2 - v_ n x ^ 2 = (u_ n x + v_ n x) * (u_ n x - v_ n x)).
-  ring.
 evar_last;[apply is_derive_k, intx | ].
 unfold Rdiv at 3; rewrite -> !Rmult_assoc, Ropp_mult_distr_r.
 apply f_equal; rewrite (is_derive_unique (w_ n) x _ (is_derive_w n x intx)).
-assert (0 < v_ n x /\ 0 < u_ n x).
-  now destruct (ag_le n 1 x); unfold v_, u_; psatzl R.
-assert (v_ n x < u_ n x) by (apply ag_lt; psatzl R).
-assert (0 < w_ n x).
-  unfold w_; rewrite help; lt0.
+assert (0 < v_ n x < u_ n x) by now apply v_lt_u.
+assert (0 < w_ n x) by now unfold w_; rewrite diff_square; lt0.
 assert (dd : Derive (fun y => u_ n y / v_ n y) x =
         (Derive (u_ n) x * v_ n x - Derive (v_ n) x * u_ n x) / (v_ n x) ^ 2).
   apply is_derive_unique; auto_derive; cycle 1.
@@ -51,7 +46,7 @@ rewrite (Rmult_comm (/ (u_ n x * w_ n x ^ 2))).
 unfold Rdiv; rewrite -> Ropp_mult_distr_l, <- !Rmult_assoc. 
 apply f_equal with (f := (fun A => A * / (u_ n x * w_ n x ^ 2))).
 replace (w_ n x ^ 2) with (u_ n x ^ 2 - v_ n x ^ 2); cycle 1.
-  now unfold w_; rewrite sqrt_pow_2;[reflexivity | rewrite help; lt0].
+  now unfold w_; rewrite sqrt_pow_2;[reflexivity | rewrite diff_square; lt0].
 field; psatzl R.
 Qed.
 
@@ -64,7 +59,7 @@ set (x := /sqrt 2); assert (intx : 0 < x < 1) by exact ints.
 assert (help : forall x y, x ^ 2 - y ^ 2 = (x + y) * (x - y)) by (intros; ring).
 assert (0 < v_ n x /\ 0 < u_ n x).
   now destruct (ag_le n 1 x); unfold v_, u_; psatzl R.
-assert (v_ n x < u_ n x) by (apply ag_lt; psatzl R).
+assert (v_ n x < u_ n x) by now apply v_lt_u.
 assert (0 < w_ n x) by (unfold w_; rewrite help; lt0).
 assert (t'' := is_derive_unique _ _ _ (is_derive_k_extra n _ intx)).
 rewrite -> Derive_k in t'';[|exact ints].
@@ -87,10 +82,9 @@ Lemma u2v_over_v'_v2u_over_u'_yz n (n1 : (1 <= n)%nat) x (intx : 0 < x < 1) :
   y_ n x / z_ n x * (v_ n x ^ 2 * u_ n x / Derive (u_ n) x).
 Proof.
 unfold y_, z_; simpl; change (fun x => v_ n x) with (v_ n); field.
-destruct (ag_le n 1 x); try lt0.
-assert (t := ag_lt n 1 x intx); try lt0.
+assert (t := v_lt_u _ n intx).
 assert (t' := compare_derive_ag n x n1 intx).
-now unfold u_, v_ in t' |- *; repeat split; lt0.
+now repeat split; lt0.
 Qed.
 
 Lemma cv_ff_3_over_ff'_v :
@@ -131,9 +125,6 @@ exists N; intros n nN; rewrite R_dist_sym; apply (Pn n s2);[lia | ].
 now apply Boule_center.
 Qed.
 
-Lemma diff_square x y : x ^ 2 - y ^ 2 = (x + y) * (x - y).
-Proof. intros; ring. Qed.
-
 Lemma ratio_v1'_v1 :
   Derive (v_ 1) (/sqrt 2) / v_ 1 (/sqrt 2) = / sqrt 2.
 Proof.
@@ -166,7 +157,7 @@ rewrite -> tech5; unfold direct_sumand at 2.
 rewrite -> Rmult_plus_distr_l. simpl (S m =? 0); lazy iota.
 unfold Rminus in Ih |- *; rewrite -> Ropp_plus_distr.
 rewrite <- !(Rplus_assoc _ _ (-(sqrt 2 * (2 ^ _ * _)))), <- Ih; clear Ih.
-assert (dvu : v_ n s2 < u_ n s2) by now apply ag_lt.
+assert (dvu : v_ n s2 < u_ n s2) by now apply v_lt_u.
 destruct (ag_le n 1 s2) as [agl1 agl2]; try psatzl R.
 fold n; fold s2; fold (v_ n s2) in agl1, agl2; fold (u_ n s2) in agl2.
 replace (- (sqrt 2 * (2 ^ n * (u_ n s2 ^ 2 + - v_ n s2 ^ 2)))) with
@@ -187,7 +178,7 @@ assert (dr : Derive (fun x => u_ n x / v_ n x) s2 =
   change (fun x => u_ n x) with (u_ n); change (fun x => v_ n x) with (v_ n).
   now field.
 rewrite -> dr, derive_snd_step;[|psatzl R].
-rewrite v_step; field_simplify; try (repeat split; lt0).
+rewrite -> v_step; field_simplify; try (repeat split; lt0).
 rewrite -> (Rmult_assoc 2), <- sqrt_mult; try (repeat split; lt0).
 field_simplify; try (repeat split; lt0); rewrite sqrt_pow_2;[ | lt0].
 now change (fun x => v_ n x) with (v_ n); field; lt0.
@@ -268,12 +259,8 @@ Qed.
 Lemma ratio_v'_v_lb n (n1:  (1 <= n)%nat) :
      /2 < Derive (v_ n) (/sqrt 2) / v_ n (/sqrt 2).
 Proof.
-assert (ints := ints).
-destruct (ag_le n _ _ Rlt_0_1 (proj1 ints)) as [agl1 agl2]; try lt0.
-destruct (ag_le 1 _ _ Rlt_0_1 (proj1 ints)) as [agl11 agl12]; try lt0.
-assert (vltu := ag_lt n _ _ ints).
-fold (u_ 1 (/sqrt 2)) in *.
-fold (u_ n (/sqrt 2)) in *; fold (v_ n (/sqrt 2)) in *.
+assert (ints := ints); assert (vltu := v_lt_u _ n ints).
+assert (vltu' := v_lt_u _ 1 ints).
 destruct (compare_derive_ag n _ n1 ints) as [du0 dultdv].
 assert (un0 : u_ n (/sqrt 2) <= u_ 1 (/sqrt 2)).
   now unfold u_; apply fst_ag_decrease; try lia; try lt0.
@@ -707,8 +694,7 @@ assert (e <= (3 / 2) ^ (k - 1) * e').
   now apply Rle_trans with 1;[| apply pow_R1_Rle]; psatzl R.
 assert (0 <= u_ k (/sqrt 2) - v_ k (/sqrt 2) <= /4 * / 2 ^ k).
   split.
-    assert (help : forall a b, b < a -> 0 <= a - b) by (intros; psatzl R).
-    now apply help, (ag_lt k 1 _ ints).    
+    now apply Rlt_le, Rlt_Rminus, v_lt_u, ints.
   assert (s24 : /4 <= /sqrt 2) by interval.
   assert (s21 : /sqrt 2 <= 1) by interval.
   assert (s2m : 1 - /sqrt 2 < 1) by interval.
