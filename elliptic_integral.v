@@ -436,7 +436,7 @@ destruct (Rle_dec 0 a) as [ag0 |al0];[|psatzl R].
 destruct (Rle_lt_or_eq_dec 0 a ag0); easy.
 Qed.
 
-Lemma elliptic_agm_step a b c d v : 0 < a -> 0 < b ->
+Lemma elliptic_agm_step a b c d (v : R) : 0 < a -> 0 < b ->
   c = (a + b)/2 -> d = sqrt(a * b) ->
   is_RInt_gen (fun x => /sqrt((x ^ 2 + c ^ 2) * (x ^ 2 + d ^ 2)))
       (Rbar_locally m_infty) (Rbar_locally p_infty) v ->
@@ -446,11 +446,10 @@ Proof.
 intros a0 b0 ceq deq vp.
 assert (c0 : 0 < c) by psatzl R.
 assert (d0 : 0 < d) by (rewrite deq; lt0).
-destruct (ex_un_ell a b) as [w [wp wq]]; auto.
-assert (xi := ex_intro _ w wp : ex_RInt_gen _ _ _).
+destruct (ex_un_ell a b) as [w [wp wq]]; auto; simpl in w; move w before v.
 destruct (ex_RInt_gen_cut 0 _ _ _ 
-   (filter_Rlt_m_infty_at_point _) (filter_Rlt_at_point_p_infty _) xi)
-   as [w2 w2p].
+   (filter_Rlt_m_infty_at_point 0) (filter_Rlt_at_point_p_infty _)
+    (ex_intro _ w wp)) as [w2 w2p].
 set (s x := (x - a * b/x)  /2).
 set (s' x := (1 + (a * b) / x ^ 2) / 2).
 enough (half : is_RInt_gen (ellf a b)
