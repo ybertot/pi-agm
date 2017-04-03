@@ -15,6 +15,7 @@ Definition ff (x : R) := M 1 x.
 Definition w_ (n : nat) x :=
   sqrt (u_ n x ^ 2 - v_ n x ^ 2).
 
+(* this is definition 21 in submitted version of "distant decimals of pi" *)
 Definition k_ n x := / (2 ^ n) * ln (u_ n x / w_ n x).
 
 Lemma u_step n x : u_ (S n) x = (u_ n x + v_ n x) / 2.
@@ -140,6 +141,7 @@ Definition y_ n x := u_ n x / v_ n x.
 
 Definition yfun y := (1 + y) / (2 * sqrt y).
 
+(* This is equation 25 in submitted version of "distant decimals of pi" *)
 Lemma y_step n x : 0 < x < 1 ->
    y_ (n + 1) x = yfun (y_ n x).
 Proof.
@@ -242,6 +244,7 @@ Qed.
 
 Definition z_ n x := Derive (v_ n) x / Derive (u_ n) x.
 
+(* This is equation 26 in submitted version of "distant decimals of pi" *)
 Lemma z_1 x : 0 < x < 1 -> z_ 1 x = / sqrt(x).
 Proof.
 intros cx; unfold z_.
@@ -255,6 +258,7 @@ assert (du : Derive (u_ 1) x = 1 / 2).
 rewrite -> dv, du; field; lt0.
 Qed.
 
+(* This is equation 26 in submitted version of "distant decimals of pi" *)
 Lemma z_step n x : (1 <= n)%nat -> 0 < x < 1 ->
   z_ (n + 1) x = (1 + z_ n x * y_ n x) / ((1 + z_ n x) * sqrt (y_ n x)).
 Proof.
@@ -419,6 +423,7 @@ apply Ropp_lt_contravar; rewrite <- (Rmult_1_r 1).
 apply Rmult_le_0_lt_compat; psatzl R.
 Qed.
 
+(* This property 27 in submitted version of "distant decimals of pi" *)
 Lemma chain_y_z_y : forall x n, 0 < x < 1 -> (1 <= n)%nat ->
   y_ (n + 1) x <= z_ (n + 1) x <= sqrt (y_ n x).
 Proof.
@@ -605,6 +610,7 @@ replace (S n + 1)%nat with (S (S n)) by ring.
 rewrite (derive_fst_step (S n)); auto; psatzl R.
 Qed.
 
+(* This is eqation 29 in submitted version of "distant decimals of pi" *)
 Lemma ratio_z n x : (1 <= n)%nat -> 0 < x < 1 ->
    1 + z_ n x = 2 * Derive (u_ (S n)) x/Derive (u_ n) x.
 Proof.
@@ -621,6 +627,7 @@ assert (0 < Derive (u_ n) x) by now destruct (compare_derive_ag _ _ n1 cx).
 rewrite u'_step; unfold z_; field; psatzl R.
 Qed.
 
+(* This is equation 29 in submitted version of "distant decimals of pi" *)
 Lemma ratio_y n x : 0 < x < 1 ->
   1 + y_ n x = (2 * u_ (S n) x * snd (ag 1 x (S n)) ^ 2 ) /
               (u_ n x * v_ n x ^ 2).
@@ -1152,6 +1159,7 @@ now replace (u_ n x ^ 3 * v_ n x ^ 2 -
     by ring; lt0.
 Qed.
 
+(* This is result 23 in submitted version of "distant decimals of pi" *)
 Lemma Derive_k x n : 0 < x < 1 ->
   Derive (k_ n) x = v_ n x ^ 2 / (x * (1 - x ^ 2)).
 Proof.
@@ -1192,6 +1200,7 @@ unfold ff; rewrite <- (M_shift 1 x n); try lt0.
 now destruct (Mbounds (u_ n x) (v_ n x));unfold u_, v_ in * |- *; lt0.
 Qed.
 
+(* This is equation 19 in submitted version of "distant decimals of pi" *)
 Lemma M_ag_diff_squares_step : (* does not depend on any lemma after ag_lt *)
   forall a b n, 0 < a -> 0 < b -> b < a ->
     M (fst (ag a b (S n)))
@@ -1221,6 +1230,7 @@ rewrite sqrt_div_alt;[|psatzl R].
 unfold Rdiv; rewrite -> sqrt_pow2, !(Rmult_comm _ (/2)), M_scal; lt0.
 Qed.
 
+(* This is equation 20 in submitted version of "distant decimals of pi" *)
 Lemma M_ag_diff_squares n x : 0 < x < 1 ->
   2 ^ n * M (u_ n x) (sqrt (u_ n x ^ 2 - v_ n x ^ 2)) =
    ff (sqrt (1 - x ^ 2)).
@@ -1232,6 +1242,7 @@ replace (2 ^ S n) with (2 ^ n * 2) by (simpl; ring); rewrite Rmult_assoc.
 now rewrite -> M_ag_diff_squares_step, <- IHn; psatzl R.
 Qed.
 
+(* This is result 17 in submitted version of "distant decimals of pi" *)
 Lemma Rint_ellf_sqrt_equiv :
   filterlim (fun x => RInt (ellf 1 x) 0 (sqrt x) / ln(/sqrt x))
      (at_right 0) (locally 1).
@@ -1344,6 +1355,7 @@ apply: ex_RInt_continuous; intros; unfold ellf; apply:ex_derive_continuous.
 now auto_derive; repeat split; lt0.
 Qed.
 
+(* This is result 18 in submitted version of "distant decimals of pi" *)
 Lemma M1x_at_0 : filterlim (fun x => M 1 x / (- PI / (2 * ln x)))
                   (at_right 0) (locally 1).
 Proof.
@@ -1392,6 +1404,7 @@ unfold Rdiv; rewrite -> Rmult_assoc, Rinv_l, Rmult_1_r;[ | lt0].
 now apply w_lt_u.
 Qed.
 
+(* This result 22 in submitted version of "distant decimals of pi" *)
 Lemma is_lim_k x : 0 < x < 1 -> is_lim_seq (fun n => k_ n x)
                 ((PI/2) * ff x / ff (sqrt( 1 - x ^ 2))).
 Proof.
@@ -1584,6 +1597,7 @@ apply Rmult_le_pos.
 assert (bot * (1 - bot ^ 2) <= y * (1 - y ^ 2)) by (apply pbot; psatzl R); lt0.
 Qed.
 
+(* This is equation 24 in submitted version of "distant decimals of pi" *)
 Lemma main_derivative_formula : forall x, 0 < x < 1 ->
   is_derive (fun x => (PI/2) * ff x / ff (sqrt (1 - x ^ 2))) x
        (ff x ^ 2/(x * (1 - x ^ 2))).
@@ -1617,6 +1631,7 @@ rewrite is_derive_Reals.
 apply (CVU_derivable _ _ _ _ x delta cvu_dk_n cv_k_n dern' x (Boule_center _ _)).
 Qed.
 
+(* This is equation 28 in submitted version of "distant decimals of pi" *)
 Lemma PI_from_ff_ff' :
    PI = 2 * sqrt 2 * ff (/ sqrt 2) ^ 3 / Derive ff (/ sqrt 2).
 Proof.
@@ -1719,6 +1734,7 @@ apply (CVU_cv (fun n => Derive (u_ n)) (Derive ff)
 unfold Boule; apply Rabs_def1; simpl; psatzl R.
 Qed.
 
+(* This is definition 32 in submitted version of "distant decimals of pi" *)
 Fixpoint agmpi n :=
   match n with
     0%nat => (2 + sqrt 2)
@@ -1744,6 +1760,7 @@ replace 2 with (u ^ 2) by (unfold u; rewrite pow2_sqrt; lt0).
 field; unfold u; lt0.
 Qed.
 
+(* This is equation 30 in submitted version of "distant decimals of pi" *)
 Lemma agmpi_ff_3_ff' n :
   agmpi n = 2 * sqrt 2 * (v_ (n + 1) (/sqrt 2) ^ 2 * u_ (n + 1) (/sqrt 2) /
          Derive (u_ (n + 1)) (/sqrt 2)).
@@ -1763,6 +1780,7 @@ replace (n + 1)%nat with (S n) by ring.
 now unfold u_, v_ in *; field; repeat split; lt0.
 Qed.
 
+(* This is equation 31 in submitted version of "distant decimals of pi" *)
 Lemma cv_agmpi : is_lim_seq agmpi PI.
 Proof.
 apply (is_lim_seq_ext (fun n => 2 * sqrt 2 *
@@ -1830,6 +1848,7 @@ apply Rle_trans with ((3 - 1)/(4 * 2 * sqrt 1 ^ 5) * / 2).
 now rewrite sqrt_1; field_simplify; lt0.
 Qed.
 
+(* This is property 33 in submitted version of "distant decimals of pi" *)
 Lemma majoration_y_n_plus_one n a :
   0 < a < 1 -> 0 <= y_ (n + 1) a - 1 <= (y_ n a - 1) ^ 2 / 8.
 Proof.
@@ -1843,6 +1862,7 @@ rewrite (Rplus_comm ((y_ n a + -1) ^ 2/8) 1).
 apply over_ystep, y_gt_1; assumption.
 Qed.
 
+(* This property 34 in submitted version of "distant decimals of pi" *)
 Lemma majoration_y_n n a : 0 < a < 1 ->
   0 <= y_ (n + 1) a - 1 <=
         Rpower (y_ 1 a - 1) (2 ^ n) / (Rpower 8 (2 ^ n - 1)).
@@ -1888,6 +1908,7 @@ Lemma ineq2 : (1 + ((1 + sqrt 2)/(2 * sqrt (sqrt 2))))/
               (1 + / sqrt (/ sqrt 2)) < 1.
 Proof. interval. Qed.
 
+(* This is equation (25) in submitted version of "distant decimals of pi" *)
 Lemma y_0 : y_ 0 (/sqrt 2) = sqrt 2.
 Proof. unfold y_, u_, v_; simpl. field. lt0. Qed.
 
@@ -1912,6 +1933,7 @@ unfold Rdiv; rewrite Rmult_assoc; apply Rmult_lt_compat_l.
 exact ineq2.
 Qed.
 
+(* This property 35 in submitted version of "distant decimals of pi" *)
 Lemma majoration_y_n_vs2 n :
   0 <= y_ (n + 1) (/sqrt 2) - 1 <= 8 * Rpower 531 (- (2 ^ n)).
 Proof.
@@ -1948,6 +1970,7 @@ apply (is_lim_seq_ext (fun i => s (i + (n + 1))%nat)).
 now rewrite <- (is_lim_seq_incr_n s (n + 1)).
 Qed.
 
+(* This property 37 in submitted version of "distant decimals of pi" *)
 Lemma bound_agmpi n : (1 <= n)%nat ->
   0 <= agmpi (n + 1) - PI <= 4 * agmpi 0 * Rpower 531 (- 2 ^ n).
 Proof.
@@ -1958,6 +1981,7 @@ assert (ydecr : forall p, (1 <= p)%nat -> y_(S p) (/sqrt 2) <= y_ p (/sqrt 2)).
   assert (t : sqrt (y_ p (/sqrt 2)) <= y_ p (/sqrt 2)).
     now apply Rlt_le, gt1_imp_sqrt_lt.
   now replace (S p) with (p + 1)%nat by ring; psatzl R.
+(* This property 36 in submitted version of "distant decimals of pi" *)
 assert (step1:
  forall p, (1 <= p)%nat -> 0 <= agmpi p - agmpi (S p) <=
                 agmpi p / 2 * (y_ p (/sqrt 2) - y_(S p) (/sqrt 2))).
@@ -2054,7 +2078,10 @@ Qed.
 Lemma PI_interval : 3141592653/10 ^ 9 < PI < 3141592654/10 ^ 9.
 Proof. split; interval with (i_prec 40). Qed.
 
-Lemma first_computation :  3141592653/10 ^ 9 < PI < 3141592654/10 ^ 9.
+Lemma first_computation :
+   3141592653/10 ^ 9 < agmpi 3 /\
+     agmpi 3 + 4 * agmpi 0 * Rpower 531 (- 2 ^ 2)
+    < 3141592654/10 ^ 9.
 Proof.
 set (s := / sqrt 2).
 assert (0 < s < 1) by (unfold s; split; interval).
@@ -2064,15 +2091,7 @@ set (zfun := fun a b => (1 + b * a) / ((1 + b) * sqrt a)).
 assert (hel2 : forall n, z_ (S (S n)) s = zfun (y_ (S n) s) (z_ (S n) s)).
   intros n; replace (S (S n)) with (S n + 1)%nat by ring; rewrite z_step;
   [reflexivity | lia | assumption].
-destruct (bound_agmpi 2) as [ub lb];[lia | ]; split; cycle 1.
-assert (swap : forall a b, 0 <= a - b -> b <= a) by (intros; psatzl R).
-apply swap in ub; apply Rle_lt_trans with (1 := ub); simpl agmpi.
-repeat rewrite -> hel2; rewrite z_1; auto; unfold zfun.
+simpl agmpi; repeat rewrite -> hel2; rewrite z_1; auto; unfold zfun.
 repeat rewrite -> help; rewrite y_0; auto; unfold yfun.
-unfold s; interval with (i_prec 40).
-  assert (swap : forall a b c, a - b <= c -> a - c <= b) by (intros; psatzl R).
-  apply swap in lb; apply Rlt_le_trans with (2 := lb); simpl agmpi.
-repeat rewrite -> hel2; rewrite z_1; auto; unfold zfun.
-repeat rewrite -> help; rewrite y_0; auto; unfold yfun.
-unfold s, Rpower; interval with (i_prec 40).
+unfold Rpower; split; interval with (i_prec 40).
 Qed.

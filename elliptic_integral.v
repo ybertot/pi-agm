@@ -137,6 +137,7 @@ Lemma ex_Rbar_plus_finite2 (a : Rbar) (b : R) :
   ex_Rbar_plus a b.
 Proof.  now destruct a as [ a | | ].  Qed.
 
+(* This is equation 13 in submitted paper "distant decimals of pi *)
 Lemma half_elliptic a b v1 v2 : 0 < a -> 0 < b ->
   is_RInt_gen (ellf a b) (Rbar_locally m_infty) (Rbar_locally p_infty) v1 ->
   is_RInt_gen (ellf a b) (at_point 0) (Rbar_locally p_infty) v2 ->
@@ -436,6 +437,7 @@ destruct (Rle_dec 0 a) as [ag0 |al0];[|psatzl R].
 destruct (Rle_lt_or_eq_dec 0 a ag0); easy.
 Qed.
 
+(* This is equation 14 in submitted version of "distant decimals of pi" *)
 Lemma elliptic_agm_step a b c d (v : R) : 0 < a -> 0 < b ->
   c = (a + b)/2 -> d = sqrt(a * b) ->
   is_RInt_gen (fun x => /sqrt((x ^ 2 + c ^ 2) * (x ^ 2 + d ^ 2)))
@@ -515,6 +517,7 @@ destruct (ex_un_ell _ _ ar0 ge0) as [ww' [_ Pww']].
 now apply (elliptic_agm_step a b) in v1; auto.
 Qed.
 
+(* This is equation 16 in submitted version of "distant decimals of pi" *)
 Lemma quarter_elliptic x : 0 < x -> ell 1 x = 4 * RInt (ellf 1 x) 0 (sqrt x).
 Proof.
 intros x0; unfold ell.
@@ -762,6 +765,7 @@ rewrite -> ag_swap, (M_swap a); try lt0; try lia.
 now apply main; lt0.
 Qed.
 
+(* This is equation 15 in submitted version of "distant decimals of pi" *)
 Lemma ell_agm a b : 0 < a -> 0 < b -> b <= a -> ell a b = PI / M a b.
 Proof.
 assert (pi0 : 0 < PI) by apply PI_RGT_0.
@@ -822,6 +826,7 @@ clear -ub pi0 an0.
 now apply Rlt_le_trans with (2 := ub); lt0.
 Qed.
 
+(* This is equation 10 in submitted version of "distant decimals of pi" *)
 Lemma M_scal a b k : 0 < a -> 0 < b -> 0 < k -> M (k * a) (k * b) = k * M a b.
 Proof.
 assert (pi0 : 0 < PI) by apply PI_RGT_0.
