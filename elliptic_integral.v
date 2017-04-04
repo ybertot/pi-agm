@@ -137,7 +137,7 @@ Lemma ex_Rbar_plus_finite2 (a : Rbar) (b : R) :
   ex_Rbar_plus a b.
 Proof.  now destruct a as [ a | | ].  Qed.
 
-(* This is equation 13 in submitted paper "distant decimals of pi *)
+(* This is equation 13 in submitted paper "distant decimals of pi" *)
 Lemma half_elliptic a b v1 v2 : 0 < a -> 0 < b ->
   is_RInt_gen (ellf a b) (Rbar_locally m_infty) (Rbar_locally p_infty) v1 ->
   is_RInt_gen (ellf a b) (at_point 0) (Rbar_locally p_infty) v2 ->
