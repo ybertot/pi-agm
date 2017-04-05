@@ -59,7 +59,7 @@ Lemma is_RInt_gen_comp {Fa Fb : (R -> Prop) -> Prop} {FFa : Filter Fa}
   is_RInt_gen f (filtermap g Fa) (filtermap g Fb) l ->
   is_RInt_gen (fun x => scal (dg x) (f (g x))) Fa Fb l.
 Proof.
-intros dp [If [[S S' FS FS' fp1 fp2]]].
+intros dp [If [[S S' FS FS' fp1] fp2]].
 destruct dp as [S1 S2 FS1 FS2 dp].
 exists (fun p => If(g (fst p), g (snd p))); split.
   exists (fun x => S (g x) /\ S1 x) (fun x => S' (g x) /\ S2 x);
