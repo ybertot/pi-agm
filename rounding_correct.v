@@ -1570,10 +1570,16 @@ assert (0 < h1 + snd hsyz)%Z.
  apply Z.add_pos_pos;[apply h1_pos | ].
  change ((0 < snd hsyz)%Z); apply hR_gt_0; rewrite hz1_spec.
  unfold rsyz, snd.
- assert (t := rz1_bnd _ _ _ dummy r_div_spec r_sqrt_spec).
+(* This is a hack to make the script robust to a change of behavior between
+   coq-8.5 and coq-8.6.  See also uses of rz1_correct three lines further
+   below.  It should be removed in the long run. *)
+ assert (t := rz1_bnd _ _ _ dummy r_div_spec r_sqrt_spec) ||
+   assert (t := rz1_bnd _ r_div _ dummy r_sqrt_spec).
  unfold rsyz in t; psatzl R.
 assert (Rabs (hR (snd hsyz) - z_ 1 (/sqrt 2)) < 4 * / IZR magnifier).
- rewrite hz1_spec; apply (rz1_correct _ _ _ dummy r_div_spec r_sqrt_spec); auto.
+  rewrite hz1_spec;
+    (apply (rz1_correct _ _ _ dummy r_div_spec r_sqrt_spec) ||
+     apply (rz1_correct _ r_div _ dummy r_sqrt_spec)); auto.
 assert (Rabs (hR (hdiv (h1 + snd (fst hsyz)) (h1 + snd hsyz)) - pr 1) <
          4 * (3 / 2) * 1%nat * / IZR magnifier).
  simpl INR; rewrite Rmult_1_r.
@@ -1651,8 +1657,12 @@ apply Rlt_trans with
   apply hR_gt_0; rewrite hsqrt_spec, h2_spec; destruct (r_sqrt_spec 2);
    try psatzl R; auto.
  assert (s2nn : (0 <= hsqrt h2)%Z) by apply hsqrt_pos.
- destruct (rz1_bnd (/IZR magnifier) r_div r_sqrt) as [lz1 uz1];
-   [psatzl R | exact r_div_spec | exact r_sqrt_spec | ].
+(* This is a hack to make the script robust to a change of behavior between
+   coq-8.5 and coq-8.6.  It should be removed in the long run. *)
+( destruct (rz1_bnd (/IZR magnifier) r_div r_sqrt) as [lz1 uz1];
+   [psatzl R | exact r_div_spec | exact r_sqrt_spec | ]) ||
+  (destruct (rz1_bnd (/IZR magnifier) r_div r_sqrt) as [lz1 uz1];
+   [psatzl R | exact r_sqrt_spec | ]).
  assert (hpi1_spec : hR (hdiv (h1 + snd (fst hsyz))
                         (h1 + snd hsyz)) = rpi1 r_div r_sqrt).
   unfold rpi1; rewrite hdiv_spec, !hplus_spec, h1_spec, hy1_spec, hz1_spec;
@@ -2406,10 +2416,10 @@ match b1 with
       | true => let b' := eval compute in (Z.odd n) in
         let r := eval compute in (Z.div n 2) in
         let rv := Z_to_R r in
-        let drv := constr:(2 * rv)%R in
+        let drv := constr:((2 * rv)%R) in
         match b' with
-          true => constr:(1 + drv)%R
-        | false => constr:drv
+          true => constr:((1 + drv)%R)
+        | false => constr:(drv)
         end
       end
     end
