@@ -132,18 +132,18 @@ apply Rplus_le_compat_l; rewrite <- Rmult_plus_distr_l.
 apply Rle_trans with ((-/2 * e' + -/ 6 * e') + (2 ^ k) * (- 1 * e'));
   [apply Req_le; field|].
 rewrite !(Rmult_plus_distr_l (2 ^ k)); apply Rplus_le_compat.
-  apply Rplus_le_compat;[rewrite <- Rmult_assoc | ]. 
-    destruct (Rle_dec 0 (h - h')).
-      apply Rle_trans with 0; try lt0.
-      now repeat apply Rmult_le_pos; lt0.
-    enough (2 ^ k * (2 * (u - v)) * (h' - h) <= /2 * e') by psatzl R.
-    apply Rmult_le_compat; try lt0.
-      now apply Rmult_le_pos; lt0.
-    rewrite <- Rmult_assoc; apply Rmult_le_reg_l with (/(2 ^ k * 2)); try lt0.
-    rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l; try lt0.
-    now apply Rle_trans with (1 := proj2 uv), Req_le; field; lt0.
-  now apply Rle_trans with 0;[| apply Rmult_le_pos;[| apply pow2_ge_0 ]];lt0.
-apply Rmult_le_compat_l;[lt0 | apply Rmult_le_compat_r; lt0].
+  apply Rplus_le_compat;[rewrite <- Rmult_assoc | ]; cycle 1.
+    now apply Rle_trans with 0;[| apply Rmult_le_pos;[| apply pow2_ge_0 ]];lt0.
+  destruct (Rle_dec 0 (h - h')).
+    apply Rle_trans with 0; try lt0.
+    now repeat apply Rmult_le_pos; lt0.
+  enough (2 ^ k * (2 * (u - v)) * (h' - h) <= /2 * e') by psatzl R.
+  apply Rmult_le_compat; try lt0.
+    now apply Rmult_le_pos; lt0.
+  rewrite <- Rmult_assoc; apply Rmult_le_reg_l with (/(2 ^ k * 2)); try lt0.
+  rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l; try lt0.
+  now apply Rle_trans with (1 := proj2 uv), Req_le; field; lt0.
+now apply Rmult_le_compat_l;[lt0 | apply Rmult_le_compat_r; lt0].
 Qed.
 
 Lemma agm1_error e' a b h h':
@@ -181,136 +181,173 @@ rewrite pow_mult; apply IHn.
 now destruct (pow_lt_1_compat c 2); try lia; psatzl R.
 Qed.
 
-(* Lemma sum_error' s h h' k e' (k1 : (1 <= k)%nat) :
-  0 <= e' <= /10 ^ (k + 3) / 2 ^ k ->
-  e <= / 10 * e' ->
-  -((3 / 2) ^ k * e') <= h <= 0 ->
-  -((3 / 2) ^ k * e') <= h' <= 0 ->
-  Rabs (s - (1 - sum_f_R0 salamin_sumand k)) <= 3 ^ k / 2 * e' ->
-  Rabs ((s - 2 ^ k * r_square ((u_ k (/sqrt 2) + h) - (v_ k (/sqrt 2) + h')))
-        - (1 - sum_f_R0 salamin_sumand (S k))) <= 3 ^ S (S k) / 2 * e'.
+Lemma sum_error' e' n hsm ha1 hb1 :
+  e <= / 10 * e' -> 0 <= e' <= / 10 ^ (n + 4) / 2 ^ (n + 1) ->
+  Rabs hsm < 3 ^ (S n) / 2 * e' ->
+  - ((3 / 2) ^ n * e') <= ha1 <= 0 -> - ((3 / 2) ^ n * e') <= hb1 <= 0 ->
+  Rabs
+    (hsm -
+     (2 ^ n *
+      r_square (u_ n (/ sqrt 2) + ha1 - (v_ n (/ sqrt 2) + hb1)) -
+      salamin_sumand (S n))) < 3 ^ S (S n) / 2 * e'.
 Proof.
-intros inte' ee' inth inth' cs.
-assert (ls : 3 ^ S (S k) / 2 * e' = 3 ^ (S k) / 2 * e' + 3 ^ (S k) * e').
+intros ee' inte' abshsm inth inth'.
+assert (ls : 3 ^ S (S n) / 2 * e' = 3 ^ S n / 2 * e' + 3 ^ S n * e').
   now rewrite <- Rmult_plus_distr_r, <- tech_pow_Rmult; field.
-rewrite -> ls, tech5.
-assert (help : forall a b c d, a - b - (1 - (c + d)) = a - (1 - c) + (d - b))
-  by (intros; ring).
-rewrite help; clear help; apply Rle_trans with (1 := Rabs_triang _ _).
-apply Rplus_le_compat; try lt0.
-assert (0 <= (3 / 2) ^ k * e' <= /1000).
+rewrite -> ls.
+apply Rle_lt_trans with (1 := Rabs_triang _ _).
+apply Rplus_lt_le_compat; try lt0.
+rewrite -> Rabs_Ropp, Rabs_minus_sym.
+assert (e'bnd : 0 <= (3 / 2) ^ n * e' <= /1000).
   split;[lt0 | ].
-  apply Rmult_le_reg_l with (/(3 / 2) ^ k);[lt0 | ].
+  apply Rmult_le_reg_l with (/(3 / 2) ^ n);[lt0 | ].
   rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l;
     [apply Rle_trans with (1 := proj2 inte')| lt0].
-  unfold Rdiv; rewrite -> (Rmult_comm (/10 ^ (k + 3))).
+  unfold Rdiv; rewrite -> (Rmult_comm (/10 ^ (n + 4))).
   apply Rmult_le_compat; try lt0; cycle 1.
     apply Rle_Rinv; try lt0; replace 1000 with (10 ^ 3) by ring; apply Rle_pow.
       now lt0.
     now lia.
-  apply Rle_Rinv;[lt0 | lt0 | apply Rle_trans with ((3/2) ^ k)].
+  apply Rle_Rinv;[lt0 | lt0 | apply Rle_trans with ((3/2) ^ (n + 1))].
     now apply Rle_pow;[lt0 | lia].
   now apply pow_incr; psatzl R.
-assert (0 <= (3 / 2) ^ (k - 1) * e' <= /1000).
-  split;[lt0 | ].
-  apply Rmult_le_reg_l with (/(3 / 2) ^ (k - 1));[lt0 | ].
-  rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l;
-    [apply Rle_trans with (1 := proj2 inte')| lt0].
-  unfold Rdiv; rewrite -> (Rmult_comm (/10 ^ (k + 3))).
-  apply Rmult_le_compat; try lt0; cycle 1.
-    apply Rle_Rinv; try lt0; replace 1000 with (10 ^ 3) by ring; apply Rle_pow.
-      now lt0.
-    now lia.
-  apply Rle_Rinv;[lt0 | lt0 | apply Rle_trans with ((3/2) ^ k)].
-    now apply Rle_pow;[lt0 | lia].
-  now apply pow_incr; psatzl R.
-assert (e <= (3 / 2) ^ k * e').
+assert (e <= (3 / 2) ^ n * e').
   apply Rle_trans with (1 := ee'); apply Rmult_le_compat_r;[lt0 | ].
   now apply Rle_trans with 1;[| apply pow_R1_Rle]; psatzl R.
-assert (0 <= u_ k (/sqrt 2) - v_ k (/sqrt 2) <= /4 * / 2 ^ k).
+assert (2 * ((3 / 2) ^ n * e') <= /4 * / 2 ^ n).
+  apply Rle_trans with (2 * ((3 / 2) ^ n * (/10 ^ (n + 4) / 2 ^ (n + 1)))).
+    now repeat (apply Rmult_le_compat; try lt0).
+  replace (10 ^ (n + 4)) with (1000 * 10 ^ (n + 1)) by
+      (rewrite -> !pow_add; ring).
+  rewrite Rinv_mult_distr; try lt0; unfold Rdiv.
+  rewrite !Rinv_pow; try lt0.
+  rewrite -> (Rmult_assoc (/_)), <- Rpow_mult_distr, <- (Rmult_assoc _ (/_)).
+  rewrite -> pow_add, pow_1, (Rmult_comm ((/_ * _) ^ _)), !Rmult_assoc,
+     (Rmult_comm (_ ^ _)), !Rmult_assoc, <- Rpow_mult_distr, <- !Rmult_assoc.
+  apply Rmult_le_compat; try lt0.
+  now apply pow_incr; lt0.
+case_eq (n =? 0).
+  assert (umv : 0 < u_ 0 (/sqrt 2) - v_ 0 (/sqrt 2) < /2).
+    now unfold u_, v_; simpl; split; interval.
+  intros hn_is0; apply beq_nat_true in hn_is0.
+  revert inth inth' e'bnd.
+  rewrite hn_is0; simpl pow; rewrite -> !Rmult_1_r, !Rmult_1_l.
+  intros inth inth' e'bnd.
+  assert (hp : -e' <= ha1 - hb1 <= e') by lt0.
+  assert (0 <= (ha1 - hb1) ^ 2 < e').
+    split;[apply pow2_ge_0 | ].
+    apply Rle_lt_trans with (e' ^ 2).
+      destruct (Rle_dec 0 (ha1 - hb1)).
+        now apply pow_incr; lt0.
+      replace ((ha1 - hb1) ^ 2) with ((hb1 - ha1) ^ 2) by ring.
+      now apply pow_incr; lt0.
+    replace e' with (1 * e') at 2 by ring.
+    now simpl; rewrite Rmult_1_r; apply Rmult_lt_compat_r; lt0.
+  unfold salamin_sumand; simpl (1 =? 0); simpl (2 ^ _); simpl Nat.sub; lazy iota.
+  rewrite !Rmult_1_l.
+  apply Rabs_le; split.
+    apply Rle_trans with
+     ((u_ 0 (/sqrt 2) - v_ 0 (/sqrt 2)) ^ 2 -
+     (u_ 0 (/sqrt 2) + ha1 - (v_ 0 (/sqrt 2) + hb1)) ^ 2).
+      match goal with |- _ <= ?x => replace x with
+        (-(2 * (ha1 - hb1) *
+          (u_ 0 (/sqrt 2) - (v_ 0 (/sqrt 2))) + (ha1 - hb1) ^ 2)) by ring
+      end.
+      apply Ropp_le_contravar.
+      destruct (Rle_dec 0 (ha1 - hb1)).
+        apply Rle_trans with
+          ((2 * (ha1 - hb1) * /2) + (ha1 - hb1) ^ 2).
+          apply Rplus_le_compat_r.
+          now repeat apply Rmult_le_compat; lt0.
+        now rewrite <- (Rmult_comm (/2)), <- Rmult_assoc, Rinv_l, Rmult_1_l; lt0.
+      replace (3 * e') with (e' + 2 * e') by ring.
+      apply Rplus_le_compat; try lt0.
+      apply Rle_trans with 0;[ | lt0].
+      now apply Rmult_le_0_r;[apply Rmult_le_0_l; lt0 |lt0 ].
+    apply Rplus_le_compat_l, Ropp_le_contravar.
+    assert (t := r_square_spec (u_ 0 (/sqrt 2) + ha1 - (v_ 0 (/sqrt 2) + hb1))).
+    now lt0.
+  apply Rle_trans with
+     ((u_ 0 (/sqrt 2) - v_ 0 (/sqrt 2)) ^ 2 -
+     ((u_ 0 (/sqrt 2) + ha1 - (v_ 0 (/sqrt 2) + hb1)) ^ 2 - e)).
+    apply Rplus_le_compat_l, Ropp_le_contravar.
+    assert (t := r_square_spec (u_ 0 (/sqrt 2) + ha1 - (v_ 0 (/sqrt 2) + hb1))).
+    now lt0.
+  match goal with |- ?x <= _ => replace x with
+        (-(2 * (ha1 - hb1) *
+          (u_ 0 (/sqrt 2) - (v_ 0 (/sqrt 2))) + (ha1 - hb1) ^ 2) + e) by ring
+  end.
+  replace (3 * e') with (e' + e' + e') by ring.
+  apply Rplus_le_compat;[ | lt0].
+  rewrite Ropp_plus_distr.
+  apply Rplus_le_compat;[ | lt0].
+  rewrite -> Ropp_mult_distr_l, Ropp_mult_distr_r.
+  destruct (Rle_dec 0 (ha1 - hb1)).
+    apply Rle_trans with 0;[|lt0].    
+    apply Rmult_le_0_r;[ | lt0].
+    now apply Rmult_le_0_l; lt0.
+  apply Rle_trans with (2 * - (ha1 - hb1) * / 2);[ | lt0].
+  now repeat apply Rmult_le_compat_l; lt0.
+intros hn_n0; apply beq_nat_false in hn_n0.
+assert (0 <= u_ n (/sqrt 2) - v_ n (/sqrt 2) <= /4 * / 2 ^ n).
   split.
     now apply Rlt_le, Rlt_Rminus, v_lt_u, ints.
   assert (s24 : /4 <= /sqrt 2) by interval.
   assert (s21 : /sqrt 2 <= 1) by interval.
   assert (s2m : 1 - /sqrt 2 < 1) by interval.
-  assert (t := agm_conv_speed 1 (/sqrt 2) (1 - /sqrt 2) k Rlt_0_1 s24 s21
+  assert (t := agm_conv_speed 1 (/sqrt 2) (1 - /sqrt 2) n Rlt_0_1 s24 s21
                (Rle_refl _) s2m).
   apply Rle_trans with (1 := t); clear t.
   apply Rlt_le, ln_lt_inv;[apply pow_lt; interval | lt0 | ].
   rewrite <- Rpower_pow;[|interval].
   unfold Rpower; rewrite ln_exp.
-  clear -k1; induction k1.
+  assert (n1 : (1 <= n)%nat) by lia.
+  clear -n1; induction n1 as [ | n n1 IHn].
     now simpl; rewrite Rmult_1_r; interval.
   rewrite -> Nat.pow_succ_r, mult_INR, Rmult_assoc; simpl INR; auto with arith.
-  apply Rlt_trans with (2 * ln (/4 * /2 ^ m)).
-    apply Rmult_lt_compat_l;[lt0 | assumption ].
-  rewrite <- tech_pow_Rmult, (Rinv_mult_distr 2 (2 ^ m));[ | lt0 | lt0].
-  replace (2 * ln (/ 4 * / 2 ^ m)) with (ln (/4 * /2 ^ m) + ln (/4 * /2 ^ m))
-     by ring.
+  apply Rlt_trans with (2 * ln (/4 * /2 ^ n)).
+    apply Rmult_lt_compat_l;[lt0 | assumption].
+  rewrite <- tech_pow_Rmult, (Rinv_mult_distr 2 (2 ^ n));[ | lt0 | lt0].
+  replace (2 * ln (/ 4 * / 2 ^ n)) with 
+     (ln (/4 * /2 ^ n) + ln (/4 * /2 ^ n)) by ring.
   rewrite !ln_mult; try lt0; rewrite <- !Rplus_assoc; apply Rplus_lt_compat_r.
   rewrite Rplus_assoc; apply Rplus_lt_compat_l.
   apply Rle_lt_trans with (ln (/2) + ln (/4));[ | interval].
   apply Rplus_le_compat_r; rewrite !ln_Rinv; try lt0.
   apply Ropp_le_contravar, ln_le; try lt0.
-  now replace 2 with (2 ^ 1) at 1 by ring; apply Rle_pow; auto; lt0.
-assert (2 * ((3 / 2) ^ k * e') <= /4 * / 2 ^ k).
-  apply Rle_trans with (2 * ((3 / 2) ^ k * (/10 ^ (k + 3) / 2 ^ k))).
-    now repeat (apply Rmult_le_compat; try lt0).
-  replace (10 ^ (k + 3)) with (1000 * 10 ^ k) by
-     (rewrite -> pow_add, Rmult_comm; ring).
-  rewrite Rinv_mult_distr; try lt0; unfold Rdiv.
-  rewrite !Rinv_pow; try lt0.
-  rewrite -> (Rmult_assoc (/_)), <- Rpow_mult_distr, <- (Rmult_assoc _ (/_)).
-  rewrite <- (Rmult_comm (/_)), (Rmult_assoc (/_)), <- Rpow_mult_distr.
-  rewrite <- Rmult_assoc; apply Rmult_le_compat; try lt0.
-  now apply pow_incr; psatzl R.
-destruct (Rle_dec 0 (salamin_sumand (S k) -
-                 2 ^ k * r_square (u_ k (/sqrt 2) + h - (v_ k (/sqrt 2) + h')))).
-  rewrite Rabs_right; [|apply Rle_ge; assumption].
+  now replace 2 with (2 ^ 1) at 1 by ring; apply Rle_pow; try lia; lt0.
+assert ((2 / 3 + 2 ^ n) * (3 / 2) ^ n <= 3 ^ S n).
+  rewrite -> Rmult_plus_distr_r, <- Rpow_mult_distr.
+  replace (2 * (3 / 2)) with 3 by field.
+  simpl; replace (3 * 3 ^ n) with (2 * 3 ^ n + 3 ^ n) by ring.
+  apply Rplus_le_compat; try lt0.
+  apply Rmult_le_compat; try lt0.
+  now apply pow_incr; lt0.
+apply Rabs_le; split; cycle 1.
   assert (help : forall a b c, a - c <= b -> a - b <= c) by (intros; psatzl R).
   apply help; clear help.
-  apply Rle_trans with (2 ^ k * (u_ k (/ sqrt 2) - v_ k (/ sqrt 2)) ^ 2 -
-      (2 / 3 + 2 ^ k) * ((3 / 2) ^ k * e')); cycle 1.
-    assert (t := sumand_error_lb (u_ k (/sqrt 2)) (v_ k (/sqrt 2))
-               ((3/2) ^ k * e') h h' k ).
-    now apply t; auto; clear t.
-  apply Rplus_le_compat;[apply Req_le | ].
-    unfold salamin_sumand; simpl (S k =? 0); lazy iota.
-    now replace (S k - 1)%nat with k by lia.
-  apply Ropp_le_contravar; rewrite <- Rmult_assoc; apply Rmult_le_compat_r;[lt0|].
-  replace k with (S (k - 1)) at 1 by lia.
-admit.
-(*
-  rewrite <- tech_pow_Rmult, Rmult_plus_distr_r, Rmult_assoc, <- Rpow_mult_distr.
-  replace (2 * (3 / 2)) with 3 by field.
-  apply Rle_trans with (3 ^ (k - 1) + 2 * 3 ^ (k - 1)).
-    apply Rplus_le_compat_r.
-    destruct (k - 1)%nat as [ | n'];[simpl; psatzl R | ].
-    rewrite <- !tech_pow_Rmult, <- Rmult_assoc; apply Rmult_le_compat; try lt0.
-    now apply pow_incr; psatzl R.
-  apply Req_le.
-  replace (3 ^ (k - 1)) with (1 * 3 ^ (k - 1)) at 1 by ring.
-  rewrite <- Rmult_plus_distr_r, tech_pow_Rmult; replace (S (k - 1)) with k by lia.
-  replace (3 ^ (k + 1)) with (3 * 3 ^ k);[ field | ].
-  now rewrite pow_add; simpl (3 ^ 1); ring.
-*)
-rewrite Rabs_left;[ |lt0 ].
-assert (help : forall a b c, b <= a + c -> -(a - b) <= c) by (intros; psatzl R).
+  assert (t := sumand_error_lb (u_ n (/sqrt 2)) (v_ n (/sqrt 2))
+               ((3/2) ^ n * e') ha1 hb1 n ).
+  apply (fun x h7 h1 h2 h3 h4 h5 h6 => Rle_trans x _ _ h7 (t h1 h2 h3 h4 h5 h6));
+   auto.
+  unfold salamin_sumand; simpl (S n =? 0); lazy iota.
+  replace (S n - 1)%nat with n by lia.
+  apply Rplus_le_compat_l.
+  apply Ropp_le_contravar; rewrite <- Rmult_assoc.
+  now apply Rmult_le_compat_r; lt0.
+assert (help : forall a b c,  b <= a + c -> - c <= a - b) by (intros; psatzl R).
 apply help; clear help.
-apply Rle_trans  with (2 ^ k * (u_ k (/ sqrt 2) - v_ k (/ sqrt 2)) ^ 2 +
-      2 / 3 * ((3 / 2) ^ (k - 1) * e')); cycle 1.
-  apply Rplus_le_compat.
-    unfold salamin_sumand; simpl (S k =? 0); lazy iota.
-    now replace (S k - 1)%nat with k by lia; apply Req_le.
-  rewrite <- Rmult_assoc; apply Rmult_le_compat_r;[lt0 | ].
-  replace k with (S (k - 1)) at 2 by lia.
-  simpl; apply Rmult_le_compat; try lt0.
-  now apply pow_incr; lt0.
-assert (t := sumand_error_ub (u_ k (/sqrt 2)) (v_ k (/sqrt 2)) ((3/2) ^ k * e')
-                 h h' k ).
-apply t; auto.
+assert (t := sumand_error_ub (u_ n (/sqrt 2)) (v_ n (/sqrt 2))
+               ((3/2) ^ n * e') ha1 hb1 n ).
+apply (fun x h7 h1 h2 h3 h4 h5 h6 => Rle_trans _ _ x (t h1 h2 h3 h4 h5 h6) h7);
+   auto.
+unfold salamin_sumand; simpl (S n =? 0); lazy iota.
+replace (S n - 1)%nat with n by lia.
+apply Rplus_le_compat_l.
+rewrite <- Rmult_assoc; apply Rmult_le_compat_r;[lt0 | ].
+simpl; apply Rmult_le_compat; try lt0.
+apply pow_incr; lt0.
 Qed.
-*)
 
 Lemma sum_error s h h' k e' (k1 : (1 <= k)%nat) :
   0 <= e' <= /10 ^ (k + 3) / 2 ^ k ->
@@ -635,6 +672,16 @@ apply Rle_trans with ((1 / (2 * sqrt c)) * (e' * (u + h) + e' * v + e' * - e1)).
 now interval.
 Qed.
 
+Lemma cmp_3half_3 n : (1 <= n)%nat -> (3 / 2) ^ n <= 3 ^ n / 2.
+Proof.
+induction 1;[psatzl R | ].
+simpl; replace (3 * 3 ^ m / 2) with (3 * (3 ^ m / 2)) by field.
+apply Rmult_le_compat; try psatzl R.
+apply pow_le; psatzl R.
+Qed.
+
+
+
 Lemma rsalamin_rec_correct n p a b am1 bm1 sum twopk ha hb ha1 hb1 hsm local_e :
   (1 <= n)%nat ->
   a = u_ n (/sqrt 2) + ha -> b = v_ n (/sqrt 2) + hb ->
@@ -648,9 +695,7 @@ Lemma rsalamin_rec_correct n p a b am1 bm1 sum twopk ha hb ha1 hb1 hsm local_e :
   Rabs hsm < 3 ^ n / 2 * local_e ->
   0 <= local_e <= / 10 ^ (n + p + 4) / 3 ^ (n + p) ->
   10 * e <= local_e ->
-  Rabs (rsalamin_rec p a b am1 bm1 sum twopk -
-        ((4 * u_ (p + n) (/sqrt 2) ^ 2) /
-        (1 - sum_f_R0 salamin_sumand ((p + n) - 1)))) <= 
+  Rabs (rsalamin_rec p a b am1 bm1 sum twopk - salamin_formula (p + n)) <= 
    16 * (3 / 2) ^ (p + n) * local_e + 8 * 3 ^ (p + n) * local_e + 10 * local_e.
 Proof.
 revert n a b am1 bm1 sum twopk ha hb ha1 hb1 hsm local_e.
@@ -669,19 +714,8 @@ assert (help : forall a b c, a + b - c = a - c + b) by (intros; ring).
 induction p.
   intros n a b am1 bm1 sum twopk ha hb ha1 hb1 hsm local_e n1 aq bq a1q b1q sq tq
    intha inthb inta1 intb1 intsm inte clee.
-  assert (cmp32 : (3 / 2) ^ n <= 3 ^ n / 2).
-    rewrite <- !Rpower_pow; try lt0.
-    rewrite <- (Rpower_1 2) at 4; try lt0.
-    unfold Rdiv at 2; rewrite <- Rpower_Ropp; unfold Rpower.
-    rewrite <- exp_plus; apply Fcore_Raux.exp_le.
-    rewrite ln_div; try lt0.
-    clear -n1; induction n1;[simpl INR; psatzl R | ].
-    assert (0 < ln 2 < ln 3) by (split; interval).
-    rewrite S_INR.
-    assert (0 <= INR m) by now apply (le_INR 0); lia.
-    rewrite Rmult_minus_distr_l; apply Rplus_le_compat_l.
-    rewrite <- Ropp_mult_distr_l; apply Ropp_le_contravar.
-    now simpl INR; psatzl R.
+  clear inthb inta1 intb1.
+  rewrite Nat.add_0_l.
   assert (bn :  3 ^ n / 2 * (/10 ^ (n + 0 + 4) / 3 ^ (n + 0)) < /100).
     replace 100 with (Rpower 10 2); cycle 1.
       now replace 100 with (10 ^ 2) by ring; rewrite <- Rpower_pow; auto; lt0.
@@ -699,18 +733,12 @@ induction p.
     apply Fcore_Raux.Rabs_le_inv, Rlt_le, Rlt_trans with (1 := intsm).
     apply Rle_lt_trans with (3 ^ n/2 * (/10 ^ (n + 0 + 4) / 3 ^ (n + 0))); auto.
     apply Rmult_le_compat_l; try lt0; cycle 1.
+(* using intha here. *)
   assert (bha : -/100 < ha).
     apply Rlt_le_trans with (2 := proj1 intha).
     rewrite <- Ropp_mult_distr_l; apply Ropp_lt_contravar.
     apply Rle_lt_trans with (3 ^ n / 2 * local_e).
-      apply Rmult_le_compat_r;[lt0 | auto].
-    apply Rle_lt_trans with (3 ^ n/2 * (/10 ^ (n + 0 + 4) / 3 ^ (n + 0))); auto.
-    now apply Rmult_le_compat_l;lt0.
-  assert (bhb : -/100 < hb).
-    apply Rlt_le_trans with (2 := proj1 inthb).
-    rewrite <- Ropp_mult_distr_l; apply Ropp_lt_contravar.
-    apply Rle_lt_trans with (3 ^ n / 2 * local_e).
-      now apply Rmult_le_compat_r;[lt0 | auto].
+      now apply Rmult_le_compat_r;[lt0 | apply cmp_3half_3].
     apply Rle_lt_trans with (3 ^ n/2 * (/10 ^ (n + 0 + 4) / 3 ^ (n + 0))); auto.
     now apply Rmult_le_compat_l;lt0.
   unfold rsalamin_rec.
@@ -732,13 +760,14 @@ induction p.
     eapply ex_intro;split;[apply  help4;[psatzl R | reflexivity ] | ].
     now split;[apply help1| apply help2]; psatzl R.
   rewrite help; apply Rle_trans with (1 := Rabs_triang _ _).
-  replace (16 * (3 / 2)  ^ (0 + n) * local_e + 8 * 3 ^ (0 + n) *
-              local_e + 10 * local_e) with
+  replace (16 * (3 / 2)  ^ n * local_e + 8 * 3 ^ n * local_e + 10 * local_e)
+   with
    (4 * ((2 * ((3 / 2) ^ n * local_e)) * 2) + 8 * 3 ^ n * local_e + 1 * local_e + 
      8 * local_e + 1 * local_e)
-     by (rewrite Nat.add_0_l; ring).
+     by ring.
   apply Rplus_le_compat; cycle 1.
     rewrite -> Rabs_mult, (Rabs_right e);[ | lt0].
+(* loosing the advantage of having e less than 1/10 local_e here. *)
     apply Rle_trans with (Rabs e2 * (10 * e)).
       now apply Rmult_le_compat_l;[lt0 | lt0].
     apply Rmult_le_compat; try lt0.
@@ -764,6 +793,7 @@ induction p.
     apply Rle_trans with
         (4 * local_e / (1 - sum_f_R0 salamin_sumand (n - 1) + hsm)).
       now apply Rmult_le_compat_r; lt0.
+(* again loosing the advantage of having e less than 1/10 local_e here. *)
     now apply Rmult_le_compat_l; lt0.
   replace ((u_ n (/ sqrt 2) + ha) ^ 2) with
           (u_ n (/ sqrt 2) ^ 2 + (2 * u_ n (/ sqrt 2) * ha + ha ^ 2)) by ring.
@@ -794,22 +824,27 @@ induction p.
       rewrite Rabs_left1;[ | lt0].
       assert (t2 := u_n_vs2_ub _ n1); apply Rle_trans with (6/7 * - ha).
         now apply Rmult_le_compat_r; lt0.
+(* using intha here. *)
       change (3 * / 2) with (3/2); rewrite <- Ropp_mult_distr_l in intha.
       assert (int : -ha <= ((3 / 2) ^ n * local_e)).
         now rewrite <- (Ropp_involutive (_ * _)); apply Ropp_le_contravar; tauto.
+      clear intha.
       apply Rle_trans with (6/7 * ((3 / 2) ^ n * local_e)).
         apply Rmult_le_compat_l;[lt0 | auto].
       assert (0 < (3 / 2) ^ n * local_e) by lt0; psatzl R.
     rewrite Rabs_right;[|  apply Rle_ge, Rlt_le; lt0].
     now rewrite <- (Rinv_involutive 2);[|lt0]; apply Rinv_le_contravar; lt0.
-  rewrite Nat.add_0_l; set (B := 1 - _); set (A := 4 * _).
+  unfold salamin_formula; set (B := 1 - _); set (A := 4 * _).
   replace (A / (B + hsm) - A / B) with (- A * hsm / (B * (B + hsm))); cycle 1.
     now field; split; unfold B; psatzl R.
   unfold Rdiv; rewrite <- !Ropp_mult_distr_l, Rabs_Ropp.
+(* TODO : 16 here could easily be 9. *)
   apply Rle_trans with (16 * (3 ^ n / 2 * local_e)).
     rewrite -> (Rmult_comm A), (Rmult_assoc hsm), (Rmult_comm hsm).
     rewrite Rabs_mult; apply Rmult_le_compat; try lt0.
     apply Rle_trans with (Rabs A * 4); cycle 1.
+(* A can be shown to be less than 3, and /(B * (B + hsm)) can also be shown
+   to be less than 3. *)
       replace 16 with (4 * 4) by ring.
       rewrite Rabs_mult; apply Rmult_le_compat_r; try psatzl R.
       rewrite Rabs_pos_eq; try psatzl R.
@@ -822,13 +857,12 @@ induction p.
       assert (u_ n (/sqrt 2) < 6 / 7).
         now apply u_n_vs2_ub.
       now simpl; rewrite Rmult_1_r; apply Rmult_le_compat; auto; psatzl R.
-    rewrite Rabs_mult; apply Rmult_le_compat_l.
-      now rewrite Rabs_mult; apply Rmult_le_pos; lt0.
+    rewrite Rabs_mult; apply Rmult_le_compat_l; try lt0.
     rewrite Rabs_Rinv; cycle 1.
       now apply Rgt_not_eq, Rmult_lt_0_compat; unfold B; psatzl R.
     assert (6 / 10 < Rabs B).
       now unfold B; rewrite Rabs_pos_eq; psatzl R.
-    assert (55/100 < Rabs (B + hsm)).
+    assert (59/100 < Rabs (B + hsm)).
       now unfold B; rewrite Rabs_pos_eq; psatzl R.
     rewrite -> Rabs_mult, Rinv_mult_distr; try psatzl R.
     apply Rmult_le_compat; try lt0.
@@ -837,6 +871,7 @@ induction p.
     replace 2 with (/ / 2) by field.          
     now apply Rinv_le_contravar; lt0.
   now psatzl R.
+(* End of base case here. *)
 intros n a b am1 bm1 sum twopk ha hb ha1 hb1 hsm local_e n1 qa qb qu qv qs
   qtp intha inthb intha1 inthb1 abshsm inte clee.
 simpl rsalamin_rec.
@@ -932,31 +967,36 @@ apply IHp'; cycle 1.
   move inte after IHp'.
   now replace (S n + p)%nat with (n + S p)%nat by ring.
 
-assert (cmphsm' : Rabs hsm' < 3 ^ S n / 2 * local_e).
-  unfold hsm', sum'.
-  assert (inte_1 : 0 <= local_e <= / 10 ^ (n + 3) / 2 ^ n).
-    split;[exact (proj1 inte) | apply Rle_trans with (1 := proj2 inte)].
-    apply Rmult_le_compat; try lt0.
-      apply Rinv_le_contravar; try lt0.
-      now apply Rle_pow; try lt0; lia.
-    apply Rinv_le_contravar; try lt0; apply Rle_trans with (3 ^ n).
-      now apply pow_incr; lt0.
+enough (cmphsm' : Rabs hsm' < 3 ^ S n / 2 * local_e) by auto.
+unfold hsm', sum'.
+assert (inte_1 : 0 <= local_e <= / 10 ^ (n + 3) / 2 ^ n).
+  split;[exact (proj1 inte) | apply Rle_trans with (1 := proj2 inte)].
+  apply Rmult_le_compat; try lt0.
+    apply Rinv_le_contravar; try lt0.
     now apply Rle_pow; try lt0; lia.
-  assert (inte_2 : 0 <= local_e <= / 10 ^ (S n + 3) / 2 ^ S n).
-    split;[exact (proj1 inte) | apply Rle_trans with (1 := proj2 inte)].
-    apply Rmult_le_compat; try lt0.
-      apply Rinv_le_contravar; try lt0.
-      now apply Rle_pow; try lt0; lia.
-    apply Rinv_le_contravar; try lt0; apply Rle_trans with (3 ^ S n).
-      now apply pow_incr; lt0.
+  apply Rinv_le_contravar; try lt0; apply Rle_trans with (3 ^ n).
+    now apply pow_incr; lt0.
+  now apply Rle_pow; try lt0; lia.
+assert (inte_2 : 0 <= local_e <= / 10 ^ (S n + 3) / 2 ^ S n).
+  split;[exact (proj1 inte) | apply Rle_trans with (1 := proj2 inte)].
+  apply Rmult_le_compat; try lt0.
+    apply Rinv_le_contravar; try lt0.
     now apply Rle_pow; try lt0; lia.
-  assert (clee' : e <= /10 * local_e) by lt0.
-  rewrite <- Ropp_mult_distr_l in intha_e''.
-  rewrite <- Ropp_mult_distr_l in inthb_e''.
-  assert (tmp := sum_error sum ha hb _ local_e np1 inte_2 clee'
-           intha_e'' inthb_e'').
-  assert (sumP : Rabs (sum - (1 - sum_f_R0 salamin_sumand (S n))) <=
-                 3 ^ S n / 2 * local_e).
-    rewrite qs.
-    move abshsm after clee'.
-
+  apply Rinv_le_contravar; try lt0; apply Rle_trans with (3 ^ S n).
+    now apply pow_incr; lt0.
+  now apply Rle_pow; try lt0; lia.
+assert (clee' : e <= /10 * local_e) by lt0.
+rewrite <- Ropp_mult_distr_l in intha1.
+rewrite <- Ropp_mult_distr_l in inthb1.
+rewrite -> qtp, qu, qv.  
+assert (hel2 : forall x y z t, (1 - z + x) - y - (1 - (z + t)) = x - (y - t)).
+  now intros; ring.
+replace (S n - 1)%nat with (S (n - 1)) by lia.
+rewrite -> qs, tech5, hel2.
+assert (tmp := sum_error' local_e (n - 1) hsm ha1 hb1 clee').
+replace (S n) with (S (S (n - 1))) by lia.
+apply tmp; auto.
+  replace (n - 1 + 4)%nat with (n + 3)%nat by lia.
+  now replace (n - 1 + 1)%nat with n by lia.
+now replace (S (n - 1)) with n by lia.
+Qed.
