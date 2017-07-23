@@ -29,6 +29,17 @@ Hypothesis r_sqrt_spec :
 Hypothesis r_square_spec :
   forall x, x ^ 2 - e < r_square x <= x ^ 2.
 
+
+Lemma Rmult_le_compat' r1 r2 r3 r4 :
+ 0 <= r1 -> 0 <= r4 -> r1 <= r2 -> r3 <= r4 -> r1 * r3 <= r2 * r4.
+Proof.
+intros r10 r40 r12 r34.
+destruct (Rle_dec 0 r3).
+  now apply Rmult_le_compat; auto.
+apply Rle_trans with 0;[apply Rmult_le_0_l; auto; apply Rlt_le, Rnot_le_lt; auto| ].
+apply Rmult_le_pos; auto; apply Rle_trans with r1; auto.
+Qed.
+
 Lemma sumand_error_ub  u v e' h h' k :
 0 <= e' <= / 1000 ->
 e <= e' ->
@@ -55,7 +66,7 @@ assert (exists e1, r_square ((u + h) - (v + h')) =
                        ((u + h) - (v + h')) ^ 2 + e1 * e' /\
                    - 1  <= e1 <= 0) as [e1 [Q Pe1]];[| rewrite Q; clear Q].
   destruct (r_square_spec((u + h) - (v + h'))); try psatzl R.
-    eapply ex_intro;split;[eapply help4, refl_equal | ].
+  eapply ex_intro;split;[eapply help4, refl_equal | ].
   now split;[apply help1 | apply help2]; psatzl R.
 rewrite Rmult_plus_distr_l.
 replace ((u + h - (v + h')) ^ 2) with
@@ -63,35 +74,22 @@ replace ((u + h - (v + h')) ^ 2) with
   by ring.
 rewrite -> !(Rplus_assoc ((u - v) ^ 2)), Rmult_plus_distr_l, Rplus_assoc.
 apply Rplus_le_compat_l; rewrite <- Rmult_plus_distr_l.
-(* TODO : understand why this does not work. 
-replace ((3 / 4 + 2 ^ k)  * e') with ((/2 * e' + /4 * e') + 2 ^ k * e') at 2 by field. *)
 apply Rle_trans with (/2 * e' + / 6 * e' + 0);[|apply Req_le; field].
 rewrite !(Rmult_plus_distr_l (2 ^ k)); apply Rplus_le_compat.
   apply Rplus_le_compat;[rewrite <- Rmult_assoc | ]. 
-    destruct (Rle_dec 0 (h - h')).
-      apply Rmult_le_compat; try lt0.
-        now repeat apply Rmult_le_pos; lt0.
-      rewrite <- Rmult_assoc; apply Rmult_le_reg_l with (/(2 ^ k * 2)); try lt0.
-      rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l; try lt0.
-      now apply Rle_trans with (1 := proj2 uv), Req_le; field; lt0.
-    apply Rle_trans with (2 ^ k * (2 * (u - v)) * 0).
-      apply Rmult_le_compat_l.
-        repeat apply Rmult_le_pos; lt0.
-      lt0.
-    now rewrite Rmult_0_r; lt0.
-  destruct (Rle_dec 0 (h - h')).
-    replace (2 ^ k * (h - h') ^ 2) with (2 ^ k * (h - h') * (h - h')) by ring.
-    apply Rmult_le_compat; try lt0.
-      apply Rmult_le_pos; lt0.
-    apply Rmult_le_reg_l with (/ 2 ^ k);[lt0 |].
-    now rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l; lt0.
-    replace (2 ^ k * (h - h') ^ 2) with (2 ^ k * (h' - h) * (h' - h)) by ring.
-  apply Rmult_le_compat; try lt0.
-  apply Rmult_le_reg_l with (/ 2 ^ k);[lt0 |].
-  now rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l; lt0.
-enough (0 <= - (2 ^ k * (e1 * e'))) by psatzl R.
-rewrite -> Ropp_mult_distr_r, Ropp_mult_distr_l.
-now repeat apply Rmult_le_pos; lt0.
+    apply Rmult_le_compat'; try lt0.
+      now apply Rmult_le_pos; lt0.
+    rewrite <- Rmult_assoc; apply Rmult_le_reg_l with (/(2 ^ k * 2)); try lt0.
+    rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l; try lt0.
+    now apply Rle_trans with (1 := proj2 uv), Req_le; field; lt0.
+  rewrite <- pow2_abs; simpl; rewrite -> Rmult_1_r, <- Rmult_assoc.
+  apply Rmult_le_compat; try now apply Rabs_le; lt0.
+      now apply Rmult_le_pos; lt0.
+    now apply Rabs_pos.
+  apply Rmult_le_reg_l with (/2 ^ k);[lt0 | ].
+  rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l; try lt0.
+  now apply Rabs_le; lt0.
+now apply Rmult_le_0_l, Rmult_le_0_r; lt0.
 Qed.
 
 Lemma sumand_error_lb  u v e' h h' k :
@@ -121,7 +119,7 @@ assert (exists e1, r_square ((u + h) - (v + h')) =
                        ((u + h) - (v + h')) ^ 2 + e1 * e' /\
                    - 1 <= e1 <= 0) as [e1 [Q Pe1]];[| rewrite Q; clear Q].
   destruct (r_square_spec((u + h) - (v + h'))); try psatzl R.
-    eapply ex_intro;split;[eapply help4, refl_equal | ].
+  eapply ex_intro;split;[eapply help4, refl_equal | ].
   now split;[apply help1 | apply help2]; psatzl R.
 rewrite (Rmult_plus_distr_l (2 ^ k)).
 replace ((u + h - (v + h')) ^ 2) with
@@ -134,11 +132,8 @@ apply Rle_trans with ((-/2 * e' + -/ 6 * e') + (2 ^ k) * (- 1 * e'));
 rewrite !(Rmult_plus_distr_l (2 ^ k)); apply Rplus_le_compat.
   apply Rplus_le_compat;[rewrite <- Rmult_assoc | ]; cycle 1.
     now apply Rle_trans with 0;[| apply Rmult_le_pos;[| apply pow2_ge_0 ]];lt0.
-  destruct (Rle_dec 0 (h - h')).
-    apply Rle_trans with 0; try lt0.
-    now repeat apply Rmult_le_pos; lt0.
   enough (2 ^ k * (2 * (u - v)) * (h' - h) <= /2 * e') by psatzl R.
-  apply Rmult_le_compat; try lt0.
+  apply Rmult_le_compat'; try lt0.
     now apply Rmult_le_pos; lt0.
   rewrite <- Rmult_assoc; apply Rmult_le_reg_l with (/(2 ^ k * 2)); try lt0.
   rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l; try lt0.
@@ -265,15 +260,12 @@ case_eq (n =? 0).
   assert (0 <= (ha1 - hb1) ^ 2 < e').
     split;[apply pow2_ge_0 | ].
     apply Rle_lt_trans with (e' ^ 2).
-      destruct (Rle_dec 0 (ha1 - hb1)).
-        now apply pow_incr; lt0.
-      replace ((ha1 - hb1) ^ 2) with ((hb1 - ha1) ^ 2) by ring.
-      now apply pow_incr; lt0.
+      rewrite <- pow2_abs.
+      now apply pow_incr;split;[apply Rabs_pos | apply Rabs_le]; lt0.
     replace e' with (1 * e') at 2 by ring.
     now simpl; rewrite Rmult_1_r; apply Rmult_lt_compat_r; lt0.
   unfold salamin_sumand; simpl (1 =? 0); simpl (2 ^ _); simpl Nat.sub; lazy iota.
-  rewrite !Rmult_1_l.
-  apply Rabs_le; split.
+  rewrite !Rmult_1_l; apply Rabs_le; split.
     apply Rle_trans with
      ((u_ 0 (/sqrt 2) - v_ 0 (/sqrt 2)) ^ 2 -
      (u_ 0 (/sqrt 2) + ha1 - (v_ 0 (/sqrt 2) + hb1)) ^ 2).
