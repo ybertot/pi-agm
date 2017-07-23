@@ -270,20 +270,12 @@ case_eq (n =? 0).
      ((u_ 0 (/sqrt 2) - v_ 0 (/sqrt 2)) ^ 2 -
      (u_ 0 (/sqrt 2) + ha1 - (v_ 0 (/sqrt 2) + hb1)) ^ 2).
       match goal with |- _ <= ?x => replace x with
-        (-(2 * (ha1 - hb1) *
-          (u_ 0 (/sqrt 2) - (v_ 0 (/sqrt 2))) + (ha1 - hb1) ^ 2)) by ring
+        (-(2 * (u_ 0 (/sqrt 2) - (v_ 0 (/sqrt 2))) *
+          (ha1 - hb1) + (ha1 - hb1) ^ 2)) by ring
       end.
-      apply Ropp_le_contravar.
-      destruct (Rle_dec 0 (ha1 - hb1)).
-        apply Rle_trans with
-          ((2 * (ha1 - hb1) * /2) + (ha1 - hb1) ^ 2).
-          apply Rplus_le_compat_r.
-          now repeat apply Rmult_le_compat; lt0.
-        now rewrite <- (Rmult_comm (/2)), <- Rmult_assoc, Rinv_l, Rmult_1_l; lt0.
-      replace (3 * e') with (e' + 2 * e') by ring.
-      apply Rplus_le_compat; try lt0.
-      apply Rle_trans with 0;[ | lt0].
-      now apply Rmult_le_0_r;[apply Rmult_le_0_l; lt0 |lt0 ].
+      replace (3 * e') with (1 * e' + 2 * e') by ring.
+      apply Ropp_le_contravar, Rplus_le_compat; try lt0.
+      now apply Rmult_le_compat'; lt0.
     apply Rplus_le_compat_l, Ropp_le_contravar.
     assert (t := r_square_spec (u_ 0 (/sqrt 2) + ha1 - (v_ 0 (/sqrt 2) + hb1))).
     now lt0.
@@ -294,20 +286,15 @@ case_eq (n =? 0).
     assert (t := r_square_spec (u_ 0 (/sqrt 2) + ha1 - (v_ 0 (/sqrt 2) + hb1))).
     now lt0.
   match goal with |- ?x <= _ => replace x with
-        (-(2 * (ha1 - hb1) *
-          (u_ 0 (/sqrt 2) - (v_ 0 (/sqrt 2))) + (ha1 - hb1) ^ 2) + e) by ring
+        (-(2 * (u_ 0 (/sqrt 2) - (v_ 0 (/sqrt 2))) *
+          (ha1 - hb1) + (ha1 - hb1) ^ 2) + e) by ring
   end.
-  replace (3 * e') with (e' + e' + e') by ring.
+  replace (3 * e') with (1 * e' + e' + e') by ring.
   apply Rplus_le_compat;[ | lt0].
   rewrite Ropp_plus_distr.
   apply Rplus_le_compat;[ | lt0].
-  rewrite -> Ropp_mult_distr_l, Ropp_mult_distr_r.
-  destruct (Rle_dec 0 (ha1 - hb1)).
-    apply Rle_trans with 0;[|lt0].    
-    apply Rmult_le_0_r;[ | lt0].
-    now apply Rmult_le_0_l; lt0.
-  apply Rle_trans with (2 * - (ha1 - hb1) * / 2);[ | lt0].
-  now repeat apply Rmult_le_compat_l; lt0.
+  rewrite -> Ropp_mult_distr_r.
+  now apply Rmult_le_compat'; lt0.
 intros hn_n0; apply beq_nat_false in hn_n0.
 assert (0 <= u_ n (/sqrt 2) - v_ n (/sqrt 2) <= /4 * / 2 ^ n).
   split.
