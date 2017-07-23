@@ -381,7 +381,7 @@ Fixpoint rsalamin_rec (n : nat)
    (a b am1 bm1 sum twopk : R) :=
   match n with
     0 => r_div (4 * r_square a) sum
-  | S p => (rsalamin_rec p ((a + b) / 2) (r_sqrt (r_mult a b)) a b
+  | S p => (rsalamin_rec p (r_half (a + b)) (r_sqrt (r_mult a b)) a b
             (let v := (am1 - bm1) in
             sum - (twopk * r_square v)))%R (2 * twopk)
   end.
@@ -801,7 +801,7 @@ induction p.
 intros n a b am1 bm1 sum twopk ha hb ha1 hb1 hsm local_e n1 qa qb qu qv qs
   qtp intha inthb intha1 inthb1 abshsm inte clee.
 simpl rsalamin_rec.
-set (ha' := (a + b) / 2 - u_ (S n) (/sqrt 2)).
+set (ha' := r_half (a + b) - u_ (S n) (/sqrt 2)).
 set (e' := (3 / 2) ^ n * local_e).
 assert (cmpee' : e <= /10 * e').
   unfold e'; apply Rmult_le_reg_l with 10;[lt0 | ].
@@ -837,9 +837,9 @@ assert (intha' : - (3 / 2) ^ S n * local_e <= ha' <= 0).
                       (Rlt_le _ _ (v_n_vs2_ub _ n1))) intha inthb);
    rewrite <- qa, <- qb in tmp.
   split; [ | psatzl R].
-  apply Rle_trans with (- (3 / 2) ^ n * local_e);[ | psatzl R].
-  apply Rmult_le_compat_r;[psatzl R | apply Ropp_le_contravar ].
-  now apply Rle_pow;[psatzl R | lia].
+  replace (-(3 / 2) ^ S n * local_e) with (- (3 / 2 * e'))
+    by now simpl; unfold e'; ring.
+  psatzl R.
 set (hb' := r_sqrt (r_mult a b) - v_ (S n) (/sqrt 2)).
 assert (help5 : forall a b, 0 < a -> 0 < b -> -(10 * a * b) <= - a * b).
   intros x y x0 y0; rewrite <- Ropp_mult_distr_l; apply Ropp_le_contravar.
@@ -866,7 +866,7 @@ assert (inthb' : - (3 / 2) ^ S n * local_e <= hb' <= 0).
     now unfold e'; simpl; rewrite <- !Ropp_mult_distr_l, <- !Rmult_assoc.
   now rewrite <- qa, <-qb in tmp; lt0.
 assert (np1 : (1 <= S n)%nat) by lia.
-assert (qa' : (a + b) / 2 = u_ (S n) (/ sqrt 2) + ha') by (unfold ha'; ring).
+assert (qa' : r_half (a + b) = u_ (S n) (/ sqrt 2) + ha') by (unfold ha'; ring).
 assert (qb' : r_sqrt (r_mult a b) = v_ (S n) (/ sqrt 2) + hb')
     by (unfold hb'; ring).
 assert (qa_2 : a = u_ (S n - 1) (/sqrt 2) + ha).
