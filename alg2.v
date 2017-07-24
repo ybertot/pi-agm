@@ -16,7 +16,7 @@ destruct (ex_derive_ag n x (proj1 intx)) as [d1 [d2 [du [dv _]]]].
 repeat (split;[eapply ex_intro; eassumption| ]); psatzl R.
 Qed.
 
-(* This equation 42 in submitted version of "distant decimals of pi" *)
+(* This is equation 42 in submitted version of "distant decimals of pi" *)
 Lemma is_derive_k_extra n x (intx : 0 < x < 1) :
   is_derive (k_ n) x
   (- ((/ 2 ^ n * (v_ n x) ^ 3 / (u_ n x * (w_ n x) ^ 2)) * 
@@ -304,8 +304,7 @@ replace (2 * sqrt 2 *
           u_ (n + 1) (/sqrt 2) ^ 2 / (Derive (v_ (n + 1)) (/sqrt 2) /
           v_ (n + 1) (/sqrt 2))) with
   (2 * sqrt 2 * (u_ (n + 1) s2 ^ 2 * v_ (n + 1) s2 /
-         Derive (v_ (n + 1)) s2)); cycle 1.
-  now unfold s2 in *; field; lt0.
+         Derive (v_ (n + 1)) s2)) by now unfold s2 in *; field; lt0.
 rewrite -> u2v_over_v'_v2u_over_u'_yz; auto.
 rewrite <- (Rmult_assoc (2 * sqrt 2)), (Rmult_comm (2 * sqrt 2)).
 rewrite (Rmult_assoc (y_ (n + 1) s2 / z_ (n + 1) s2)).
@@ -367,17 +366,14 @@ apply Rplus_le_compat.
   [|unfold Rpower; apply exp_pos].
   unfold Rpower at 1; rewrite <- Ropp_mult_distr_l, -> Ropp_mult_distr_r.
   rewrite <- ln_Rinv; try lt0.
-  replace (exp (2 ^ (n - 1) * ln (/ 531))) with (Rpower (/531) (2 ^ (n - 1)));
-    cycle 1.
-    reflexivity.
+  replace (exp (2 ^ (n - 1) * ln (/ 531))) with (Rpower (/531) (2 ^ (n - 1)))
+    by reflexivity.
   rewrite Rpower_mult_distr; try (unfold Rpower; lt0).
   rewrite <- (Rpower_1 531) at 1;try lt0;  rewrite <- Rpower_Ropp; try lt0.
   rewrite <- Rpower_plus; replace (-1 + 2) with 1 by ring.
   rewrite Rpower_1; try lt0.
-  apply Rle_trans with (Rpower 531 1).
-    unfold Rpower; interval.
-  apply Rle_Rpower; try lt0.
-  apply pow_R1_Rle; lt0.
+  apply Rle_trans with (Rpower 531 1);[ unfold Rpower; interval | ].
+  now apply Rle_Rpower; try lt0; apply pow_R1_Rle; lt0.
 (* end of questionable part. *)
 assert (n1'' : (1 <= n)%nat) by lia.
 assert (t3 := chain_y_z_y s2 n ints n1'').
@@ -468,5 +464,123 @@ clear; induction n as [ | n IHn].
 now simpl; psatzl R.
 Qed.
 
-(* TODO : report bug, auto_derive stops functioning if this import
-  appears too early. *)
+Lemma u_decr n : u_ (n + 1) (/sqrt 2) < u_ n (/sqrt 2) <= 1.
+Proof.
+assert (tmp := ag_le n 1 _ Rlt_0_1 (proj1 ints) (Rlt_le _ _ (proj2 ints))).
+split;[| unfold u_; lt0].
+replace (n + 1)%nat with (S n) by ring; rewrite u_step.
+now assert (tm2 := v_lt_u _ n ints); lt0.
+Qed.
+
+(* TODO : improve salamin_sum_ub to /10 and then improve the 9 in this formula. *)
+Lemma salamin_convergence_speed' n (n1 : (1 <= n)%nat) :
+  Rabs (salamin_formula (n + 1) - PI) <= 
+   (132 + 576 * 2 ^ n) * Rpower 531 (-(2 ^ n)).
+Proof.
+assert (help1 : forall a b c, b - c = a - c + (b - a)) by now intros; ring.
+rewrite (help1 (salamin_formula (n + 2))).
+apply Rle_trans with (1 := Rabs_triang _ _).
+replace (132 + 576 * 2 ^ n) with
+   (68 + (4 * 2 * 8 + 3 * (3 * (2 ^ n * (1 ^ 2 * 64)))))
+   by ring.
+rewrite !(Rmult_plus_distr_r _ _ (Rpower _ _)).
+assert (n2m : (n + 2 - 1 = n + 1)%nat) by lia.
+assert (n1m : (n + 1 - 1 = n)%nat) by lia.
+assert (n1s : (n + 1 = S n)%nat) by ring.
+apply Rplus_le_compat.
+  replace (n + 2)%nat with ((n + 1) + 1)%nat by ring.
+  replace n with ((n + 1) - 1)%nat at 2 by lia.
+  now apply salamin_convergence_speed; lia.
+assert (denpos : forall n, 0 < 1 - sum_f_R0 salamin_sumand n).
+  now intros m; assert (tmp := salamin_sum_ub m); lt0.
+assert (denn0 : forall n, 1 - sum_f_R0 salamin_sumand n <> 0).
+  now intros m; apply Rgt_not_eq, denpos.
+replace (salamin_formula (n + 1) - salamin_formula (n + 2)) with
+  (4 * (u_ (n + 1) (/sqrt 2) ^ 2 - u_ (n + 2) (/sqrt 2)^ 2) /(1 - sum_f_R0 salamin_sumand n) +
+   4 * u_ (n + 2) (/sqrt 2) ^ 2 * (/(1 - sum_f_R0 salamin_sumand n) -
+   /(1 - sum_f_R0 salamin_sumand (n + 1)))); cycle 1.
+  now unfold salamin_formula; rewrite -> n2m, n1m; field; auto.
+assert (un2pos : 0 < u_ (n + 2) (/sqrt 2)).
+  assert (tmp := ag_le (n + 2) 1 _ Rlt_0_1 (proj1 ints)
+       (Rlt_le _ _ (proj2 ints))).
+  now assert (tm2 := ints); unfold u_; lt0.
+assert (dp : u_ (n + 2) (/sqrt 2) < u_ (n + 1) (/sqrt 2)).
+  replace (n + 2)%nat with (S (n + 1)) by ring; rewrite u_step.
+  now assert (tmp := v_lt_u _ (n + 1) ints); lt0.
+assert (diffpos : 0 < u_ (n + 1) (/sqrt 2) ^ 2 - u_ (n + 2) (/sqrt 2) ^ 2).
+  rewrite diff_square; apply Rmult_lt_0_compat;lt0.
+apply Rle_trans with (1 := Rabs_triang _ _); apply Rplus_le_compat.
+  assert (u_ (n + 1) (/sqrt 2) ^ 2 - u_ (n + 2) (/sqrt 2) ^ 2 <
+            8 * Rpower 531 (-2 ^ n)).
+  apply Rlt_le_trans with (2 := proj2 (majoration_y_n_vs2 n)).
+    apply Rlt_trans with (v_ (n + 1) (/sqrt 2) * (y_ (n + 1) (/sqrt 2) - 1)).
+      unfold y_, Rdiv; rewrite -> Rmult_minus_distr_l, Rmult_1_r, Rmult_comm.
+      rewrite -> Rmult_assoc, Rinv_l, Rmult_1_r; cycle 1.
+        now apply Rgt_not_eq; assert (tmp := v_lt_u _ (n + 1) ints); lt0.
+      rewrite diff_square; apply Rlt_le_trans with
+          (2 * (u_ (n + 1)(/sqrt 2) - u_ (n + 2)(/sqrt 2))).
+        apply Rmult_lt_compat_r;[lt0 | ].
+        assert (tmp1 := u_decr (n + 1)).
+        now replace  (n + 2)%nat with (n + 1 + 1)%nat by ring; lt0.
+      now replace (n + 2)%nat with (S (n + 1)) by ring; rewrite u_step; lt0.
+    replace (y_ (n + 1) (/sqrt 2) - 1) with (1 * (y_ (n + 1) (/sqrt 2) - 1))
+       at 2 by ring.
+    apply Rmult_lt_compat_r;[ assert (tmp := y_gt_1 _ (n + 1) ints); lt0 | ].
+    now assert (tmp := conj (v_lt_u _ (n + 1) ints) (u_decr n)); lt0.
+  rewrite Rabs_right; cycle 1.
+    apply Rle_ge, Rmult_le_pos;[apply Rmult_le_pos;lt0 | ].
+    now apply Rlt_le, Rinv_0_lt_compat.
+  unfold Rdiv; rewrite !(Rmult_assoc 4); apply Rmult_le_compat_l;[lt0 | ].
+  rewrite -> (Rmult_comm _ (/ _)), (Rmult_assoc 2).
+  apply Rmult_le_compat; try lt0.
+    now apply Rlt_le, Rinv_0_lt_compat; auto.
+  (* TODO : investigate why interval does not work here. *)
+  replace 2 with (/ / 2) by field.
+  apply Rinv_le_contravar; try lt0.
+  assert (tmp := salamin_sum_ub n); lt0.
+rewrite -> Rabs_mult, (Rmult_assoc 3); apply Rmult_le_compat; try lt0.
+  rewrite Rabs_right;cycle 1.
+    apply Rle_ge, Rmult_le_pos; lt0.
+  enough (0 <= u_ (n + 2) (/sqrt 2) <= 17/20) by interval.
+  split;[lt0 | ].
+  clear; induction n as [ | n IHn];[unfold u_; simpl; interval | ].
+  apply Rle_trans with (2 := IHn).
+  replace (S n + 2)%nat with ((n + 2) + 1)%nat by ring.
+  now apply Rlt_le, u_decr.
+replace (n + 1)%nat with (S n) by ring; rewrite tech5.
+assert (help : forall a b, 1 - (a + b) = 1 - a - b) by now intros; ring.
+rewrite help.
+replace (/(1 - sum_f_R0 salamin_sumand n) - /(1 - sum_f_R0 salamin_sumand n -salamin_sumand (S n))) with
+(-salamin_sumand (S n) /((1 - sum_f_R0 salamin_sumand n) * (1 - sum_f_R0 salamin_sumand n - salamin_sumand (S n)))); cycle 1.
+  field;split;[ rewrite <- help; exact (denn0 (S n)) | auto].
+unfold Rdiv; rewrite -> Rmult_comm, Rabs_mult.
+rewrite -> (Rmult_assoc 3), (Rmult_assoc (2 ^ _)), (Rmult_assoc (1 ^ _)).
+apply Rmult_le_compat; try lt0.
+  rewrite Rabs_right; cycle 1.
+    apply Rle_ge, Rlt_le, Rinv_0_lt_compat, Rmult_lt_0_compat; auto.
+    now rewrite <- help; apply (denpos (S n)).
+  replace 3 with (/ / 3) by field; apply Rinv_le_contravar; try lt0.
+  rewrite <- help, <- tech5.
+  assert (tmp := conj (salamin_sum_ub n) (salamin_sum_ub (S n))).
+  now apply Rle_trans with ((6 / 10) * (6 / 10));[ | apply Rmult_le_compat]; lt0.
+unfold salamin_sumand; simpl (S n =? 0); lazy iota.
+replace (S n  - 1)%nat with n by lia.
+rewrite -> Rabs_Ropp, Rabs_right; cycle 1.
+  now apply Rle_ge, Rmult_le_pos;[ |assert (t := v_lt_u _ n ints)];lt0. 
+apply Rmult_le_compat_l;[lt0 | ].
+replace (u_ n (/sqrt 2) - v_ n (/sqrt 2)) with
+  (v_ n (/sqrt 2) * (y_ n (/sqrt 2) - 1)); cycle 1.
+  now unfold y_; field; destruct (v_lt_u _ n ints); lt0.
+rewrite Rpow_mult_distr; apply Rmult_le_compat; try apply pow2_ge_0.
+  now apply pow_incr; assert (t := conj (v_lt_u _ n ints) (u_decr n)); lt0.
+assert (nm1 : n = ((n - 1) + 1)%nat) by lia.
+replace (64 * Rpower 531 (-2 ^ n)) with
+  ((8 * Rpower 531 (-2 ^ (n - 1))) ^ 2); cycle 1.
+  field_simplify; simpl; rewrite -> !Rdiv_1, Rmult_1_r, <- Rpower_plus.
+  rewrite <- Ropp_plus_distr.
+  assert (help2 : forall a, a + a = 2 * a) by now intros; ring.
+  rewrite -> (help2 (2 ^ _)), tech_pow_Rmult.
+  now replace (S (n - 1)) with n by lia.
+apply pow_incr; rewrite -> nm1 at 1 2.
+apply majoration_y_n_vs2.
+Qed.

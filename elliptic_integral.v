@@ -848,4 +848,28 @@ rewrite ell_agm; try lt0; try (field; split;
 now apply Rmult_le_compat_l; lt0.
 Qed.
 
+Lemma agm_conv_speed a b c n : 0 < a -> /4 <= b -> b <= a -> a - b <= c ->
+  c < 1 -> fst (ag a b n) - snd (ag a b n) <= c ^ (2 ^ n).
+Proof.
+revert a b c; induction n as [|n IHn].
+  simpl; intros a b a0 b1 ba bma c1; psatzl R.
+simpl; intros a b c a0 b1 ab bma c1.
+assert (b0 : 0 < b) by psatzl R.
+change (2 ^ n + (2 ^ n + 0))%nat with (2 * (2 ^ n))%nat.
+assert ((a + b) / 2 - sqrt (a * b) <= c ^ 2).
+  assert (t := ag_le 1 a b a0 b0 ab); simpl in t; destruct t as [bsq [ga ara]].
+  rewrite agm_diff; auto.
+  apply Rle_trans with ((a - b) ^ 2 / 1).
+    apply Rmult_le_compat_l;[apply pow2_ge_0 | ].
+    now apply Rinv_le_contravar; psatzl R.
+  simpl; unfold Rdiv; rewrite -> Rinv_1, !Rmult_1_r.
+  now apply Rmult_le_compat; lt0.
+rewrite pow_mult; apply IHn.
+        now lt0.
+      replace (/ 4) with (sqrt (/4 * /4)) by (rewrite sqrt_square; lt0).
+      now apply sqrt_le_1_alt, Rmult_le_compat; psatzl R.
+    now generalize (ag_le 1 a b a0 b0 ab); simpl; intros; psatzl R.
+  now easy.
+now destruct (pow_lt_1_compat c 2); try lia; psatzl R.
+Qed.
 
