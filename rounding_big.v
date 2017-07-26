@@ -86,3 +86,20 @@ Definition salamin magnifier n :=
   let twopk := 1%bigZ in
   salamin_rec magnifier n a1 b1 (h1 magnifier) s2 (h1 magnifier) twopk.
 
+Fixpoint salamin2_rec (magnifier : bigZ) (n :nat) (a b am1 bm1 sum twopk : bigZ) :=
+  match n with
+    O%nat => ((4 * a * a) / sum)%bigZ
+  | S p => salamin2_rec magnifier p 
+            ((a + b) / 2)%bigZ (BigZ.sqrt (a * b)) a b
+            (let v := (am1 - bm1)%bigZ in
+               (sum - twopk * (hmult magnifier v v))%bigZ)
+            (2 * twopk)%bigZ
+  end.
+
+Definition salamin2 magnifier n :=
+  let s2 := hdiv magnifier magnifier (hsqrt magnifier (h2 magnifier)) in
+  let a1 := ((h1 magnifier + s2) / 2)%bigZ in
+  let b1 := hsqrt magnifier s2 in
+  let twopk := 1%bigZ in
+  salamin2_rec magnifier n a1 b1 (h1 magnifier) s2 (h1 magnifier) twopk.
+

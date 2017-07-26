@@ -414,32 +414,6 @@ rewrite [X in ssalamin_rec _ _ _ _ _ X]
 now apply (ssalamin_rec_correct 1 n).
 Qed.
 
-Lemma v_n_vs2_lb n (n1 : (1 <= n)%nat) : 4 / 5 < v_ n (/sqrt 2).
-Proof.
-assert (n11 : (1 <= 1 <= n)%nat) by lia.
-assert (t := snd_ag_grow 1 n 1 (/sqrt 2) n11 Rlt_0_1 (proj1 ints)
-               (Rlt_le _ _ (proj2 ints))).
-apply Rlt_le_trans with (2 := t); simpl; interval.
-Qed.
-
-Lemma u_n_vs2_lb n (n1 : (1 <= n)%nat) : 4 / 5 < u_ n (/sqrt 2).
-Proof.
-now apply Rlt_trans with (2 := proj2 (v_lt_u _ n ints)), v_n_vs2_lb.
-Qed.
-
-Lemma u_n_vs2_ub n (n1 : (1 <= n)%nat) : u_ n (/sqrt 2) < 6 / 7.
-Proof.
-assert (n11 : (1 <= 1 <= n)%nat) by lia.
-assert (t := fst_ag_decrease 1 n 1 (/sqrt 2) n11 Rlt_0_1 (proj1 ints)
-                (Rlt_le _ _ (proj2 ints))).
-apply Rle_lt_trans with (1 := t); simpl; interval.
-Qed.
-
-Lemma v_n_vs2_ub n (n1 : (1 <= n)%nat) : v_ n (/sqrt 2) < 6 / 7.
-Proof.
-now apply Rlt_trans with (1 := proj2 (v_lt_u _ n ints)), u_n_vs2_ub.
-Qed.
-
 Lemma agm2_error e' u v h h' :
   4/5 <= u <= 6/7 ->
   4/5 <= v <= 6/7 ->
@@ -593,6 +567,7 @@ assert (help : forall a b c, a + b - c = a - c + b) by (intros; ring).
 induction p.
   intros n a b am1 bm1 sum twopk ha hb ha1 hb1 hsm local_e n1 aq bq a1q b1q sq tq
    intha inthb inta1 intb1 intsm inte clee.
+  assert (nm1 : n = ((n - 1) + 1)%nat) by lia.
   clear inthb inta1 intb1.
   rewrite Nat.add_0_l.
   assert (bn :  3 ^ n / 2 * (/10 ^ (n + 0 + 4) / 3 ^ (n + 0)) < /100).
@@ -680,6 +655,7 @@ induction p.
   assert (hel2 : forall a b c, a + b - c = b + (a - c)) by (intros; ring).
   rewrite hel2; clear hel2.
   apply Rle_trans with (1 := Rabs_triang _ _).
+  assert (t := u_v_s2_bound (n - 1)); rewrite <- nm1 in t.
   rewrite Rplus_assoc; apply Rplus_le_compat.
     assert (hel2 : forall a b c, a * b / c = a * (b / c)) by
       (intros; unfold Rdiv; ring).
@@ -691,17 +667,16 @@ induction p.
         rewrite Rabs_left1; cycle 1.
           replace (2 * u_ n (/sqrt 2) * ha + ha ^ 2) with
              ((2 * u_ n (/sqrt 2) + ha) * ha) by ring.
-          apply Rmult_le_0_l;[ | lt0].
-          now assert (t1 := u_n_vs2_lb n n1); psatzl R.
+          now apply Rmult_le_0_l; lt0.
         rewrite Rabs_left1; cycle 1.
-          now apply Rmult_le_0_l;[assert (t := u_n_vs2_lb _ n1) | ]; psatzl R.
+          now apply Rmult_le_0_l; lt0.
         rewrite <- Ropp_mult_distr_r; apply Ropp_le_contravar.
         assert (0 <= ha ^ 2) by apply pow2_ge_0; rewrite Rmult_assoc.
         now psatzl R.
       apply Rmult_le_compat_l;[lt0|].
-      rewrite -> Rabs_mult, Rabs_right;[|assert (t := u_n_vs2_lb _ n1); lt0].
+      rewrite -> Rabs_mult, Rabs_right;[|lt0].
       rewrite Rabs_left1;[ | lt0].
-      assert (t2 := u_n_vs2_ub _ n1); apply Rle_trans with (6/7 * - ha).
+      apply Rle_trans with (6/7 * - ha).
         now apply Rmult_le_compat_r; lt0.
 (* using intha here. *)
       change (3 * / 2) with (3/2); rewrite <- Ropp_mult_distr_l in intha.
@@ -731,10 +706,6 @@ induction p.
       apply Rmult_le_compat_l; try psatzl R.
       rewrite Rabs_pos_eq;[ | apply pow2_ge_0].
       pattern 1 at 3; replace 1 with (1 * 1) by ring.        
-      assert (0 <= u_ n (/sqrt 2)).
-        assert (tmp := u_n_vs2_lb _ n1); psatzl R.
-      assert (u_ n (/sqrt 2) < 6 / 7).
-        now apply u_n_vs2_ub.
       now simpl; rewrite Rmult_1_r; apply Rmult_le_compat; auto; psatzl R.
     rewrite Rabs_mult; apply Rmult_le_compat_l; try lt0.
     rewrite Rabs_Rinv; cycle 1.
@@ -754,6 +725,8 @@ induction p.
 intros n a b am1 bm1 sum twopk ha hb ha1 hb1 hsm local_e n1 qa qb qu qv qs
   qtp intha inthb intha1 inthb1 abshsm inte clee.
 simpl rsalamin_rec.
+assert (nm1 : n = ((n - 1) + 1)%nat) by lia.
+assert (vub := u_v_s2_bound (n - 1)); rewrite <- nm1 in vub.
 set (ha' := r_half (a + b) - u_ (S n) (/sqrt 2)).
 set (e' := (3 / 2) ^ n * local_e).
 assert (cmpee' : e <= /10 * e').
@@ -779,15 +752,14 @@ assert (bnde' : 0 <= e' <= /100).
   apply Rle_trans with (3 ^ n).
     now apply pow_incr; psatzl R.
   now apply Rle_pow;[lt0 | lia].
+assert (cv : 4 / 5 <= v_ n (/sqrt 2) <= 6 / 7) by lt0.
+assert (cu : 4 / 5 <= u_ n (/sqrt 2) <= 6 / 7) by lt0.
 assert (intha' : - (3 / 2) ^ S n * local_e <= ha' <= 0).
   unfold ha'; rewrite u_step.
   rewrite <- Ropp_mult_distr_l in intha; rewrite <- Ropp_mult_distr_l in inthb.
   assert (tmp := agm1_error e' (u_ n (/sqrt 2))
            (v_ n (/sqrt 2)) ha hb bnde' cmpee'
-           (conj (Rlt_le _ _ (u_n_vs2_lb _ n1))
-                      (Rlt_le _ _ (u_n_vs2_ub _ n1)))
-          (conj (Rlt_le _ _ (v_n_vs2_lb _ n1))
-                      (Rlt_le _ _ (v_n_vs2_ub _ n1))) intha inthb);
+           cu cv intha inthb);
    rewrite <- qa, <- qb in tmp.
   split; [ | psatzl R].
   replace (-(3 / 2) ^ S n * local_e) with (- (3 / 2 * e'))
@@ -808,10 +780,7 @@ assert (inthb_e' : -e' <= hb <= 0).
   now rewrite <- Ropp_mult_distr_l; apply Req_le.
 assert (inthb' : - (3 / 2) ^ S n * local_e <= hb' <= 0).
   assert (tmp := agm2_error e' (u_ n (/sqrt 2)) (v_ n (/sqrt 2)) ha hb
-          (conj (Rlt_le _ _ (u_n_vs2_lb _ n1))
-                      (Rlt_le _ _ (u_n_vs2_ub _ n1)))
-          (conj (Rlt_le _ _ (v_n_vs2_lb _ n1))
-                      (Rlt_le _ _ (v_n_vs2_ub _ n1))) bnde' cmpee' intha_e'
+          cu cv bnde' cmpee' intha_e'
           inthb_e').
   unfold hb'; rewrite v_step; split; cycle 1.
     now revert tmp; rewrite <- qa, <- qb; intros tmp; lt0.

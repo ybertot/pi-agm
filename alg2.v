@@ -11,6 +11,8 @@ Lemma ex_derive_ratio n x (intx : 0 < x < 1) :
 Proof.
 assert (0 < v_ n x).
   now destruct (ag_le n 1 x); unfold v_; psatzl R.
+(* TODO: in this version you cannot load rounding_correct, because it
+   leads to auto_derive taking forever here. Please report bug.*)
 auto_derive.
 destruct (ex_derive_ag n x (proj1 intx)) as [d1 [d2 [du [dv _]]]].
 repeat (split;[eapply ex_intro; eassumption| ]); psatzl R.
@@ -285,111 +287,6 @@ apply Rmult_le_compat_l;[apply Rle_trans with (2 := Rlt_le _ _ dultdv); lt0 |].
 now apply Rle_Rinv; lt0.
 Qed.
     
-(* This is equation 50 in submitted version of "distant decimals of pi" *)
-Lemma salamin_convergence_speed n (n2 : (2 <= n)%nat) :
-  Rabs (salamin_formula (n + 1) - PI) <= 68 * Rpower 531 (-2 ^ (n - 1)).
-Proof.
-set (s2 := /sqrt 2).
-assert (n1 : (1 <= n - 1)%nat) by lia.
-assert (n1' : (1 <= n + 1)%nat) by lia.
-assert (ints2 : 0 < s2 < 1) by exact ints.
-assert (nm1p1 : (n - 1 + 1)%nat = n) by lia.
-assert (t := compare_derive_ag _ s2 n1' ints2).
-assert (t' := ag_le (n + 1) 1 s2 Rlt_0_1 (proj1 ints2) (Rlt_le _ _ (proj2 ints2))).
-fold (v_ (n + 1) s2) in t'; change (fun x => v_ (n + 1) x) with (v_ (n + 1)) in t.
-fold (u_ (n + 1) s2) in t'.
-rewrite <- direct_to_salamin; rewrite <- ratio_v1'_v1 at 2.
-rewrite <- ratio_v'_v; auto.
-replace (2 * sqrt 2 *
-          u_ (n + 1) (/sqrt 2) ^ 2 / (Derive (v_ (n + 1)) (/sqrt 2) /
-          v_ (n + 1) (/sqrt 2))) with
-  (2 * sqrt 2 * (u_ (n + 1) s2 ^ 2 * v_ (n + 1) s2 /
-         Derive (v_ (n + 1)) s2)) by now unfold s2 in *; field; lt0.
-rewrite -> u2v_over_v'_v2u_over_u'_yz; auto.
-rewrite <- (Rmult_assoc (2 * sqrt 2)), (Rmult_comm (2 * sqrt 2)).
-rewrite (Rmult_assoc (y_ (n + 1) s2 / z_ (n + 1) s2)).
-replace 68 with (54 + 14) by ring; rewrite (Rmult_plus_distr_r 54).
-replace (y_ (n + 1) s2 / z_ (n + 1) s2) with
-   (y_ (n + 1) s2 / z_ (n + 1) s2 - 1 + 1) by ring.
-rewrite (Rmult_plus_distr_r _ 1).
-unfold Rminus at 1; rewrite Rplus_assoc.
-apply Rle_trans with (1 := Rabs_triang _ _), Rplus_le_compat; cycle 1.
-  rewrite Rmult_1_l.
-  apply Rle_trans with (4 * agmpi 0 * Rpower 531 (- 2 ^ (n - 1))).
-    rewrite <- agmpi_ff_3_ff'.
-    assert (t'' :=  bound_agmpi (n - 1) n1).
-    now rewrite nm1p1 in t''; rewrite Rabs_right; lt0.
-  apply Rmult_le_compat_r;[unfold Rpower; apply Rlt_le, exp_pos|].
-  rewrite -> agmpi0, derive_fst_step; unfold u_, v_; simpl; auto.
-  now rewrite ->Derive_const, Derive_id; interval.
-replace 54 with (6 * 9) by ring; rewrite (Rmult_assoc 6).
-rewrite -> (Rmult_comm (_ - _)), Rabs_mult.
-apply Rmult_le_compat; try lt0.
-  rewrite Rabs_mult; replace 6 with (3 * (1 ^2 * 1 * 2)) by ring.
-  apply Rmult_le_compat; try lt0.
-    now interval.
-  rewrite Rabs_div; try lt0.
-  unfold Rdiv; apply Rmult_le_compat; try lt0.
-      now rewrite Rabs_right; lt0.
-    rewrite Rabs_mult; rewrite !Rabs_right; try lt0.
-      apply Rmult_le_compat; try lt0.
-      now apply pow_incr; lt0.
-    now apply Rle_ge, pow_le; lt0.
-  rewrite Rabs_right; try lt0.
-  rewrite -> Nat.add_comm, <- (Rinv_involutive 2);[|lt0].
-  apply Rinv_le_contravar;[lt0 |].
-  apply Rle_trans with (2 := derive_un_growing' 1 n s2 ints2).
-  apply Req_le; rewrite derive_fst_step; unfold u_; simpl;[|exact ints2].
-  now rewrite -> Derive_const, Derive_id; field.
-assert (t'' := z_gt_1 s2 _ ints2 n1').
-replace (y_ (n + 1) s2 / z_ (n + 1) s2 - 1) with
-  (/ z_ (n + 1) s2  *(y_ (n + 1) s2 - 1) +
-       (/z_ (n + 1) s2 * (1 - z_ (n + 1) s2))); cycle 1.
-  now field; apply Rgt_not_eq, Rlt_gt; lt0.
-replace 9 with (1 + (1 * 8)) at 1 by ring; rewrite Rmult_plus_distr_r.
-rewrite (Rmult_assoc 1).
-apply Rle_trans with (1 := Rabs_triang _ _).
-apply Rplus_le_compat.
-  rewrite Rabs_mult; apply Rmult_le_compat; try lt0.
-    rewrite Rabs_right;[ | apply Rle_ge; lt0].
-    rewrite <- (Rinv_involutive 1); try lt0.
-    now apply Rinv_le_contravar; lt0.
-  rewrite Rabs_right; cycle 1.
-    now assert (t3 := y_gt_1 s2 (n + 1) ints2); lt0.
-  apply Rle_trans with (1 := proj2 (majoration_y_n_vs2 n)).
-  replace n with (S (n - 1)) at 1 by lia.
-  rewrite <- tech_pow_Rmult, Ropp_mult_distr_r, <- Rpower_mult.
-  (* This part of the proof is unsatisfactory, using wrong constants. *)
-  apply Rmult_le_reg_r with (Rpower (Rpower 531 2) (2 ^ ( n - 1))).
-    now unfold Rpower; apply exp_pos.
-  rewrite -> Rmult_assoc, <- Rpower_plus, Rplus_opp_l, Rpower_O;
-  [|unfold Rpower; apply exp_pos].
-  unfold Rpower at 1; rewrite <- Ropp_mult_distr_l, -> Ropp_mult_distr_r.
-  rewrite <- ln_Rinv; try lt0.
-  replace (exp (2 ^ (n - 1) * ln (/ 531))) with (Rpower (/531) (2 ^ (n - 1)))
-    by reflexivity.
-  rewrite Rpower_mult_distr; try (unfold Rpower; lt0).
-  rewrite <- (Rpower_1 531) at 1;try lt0;  rewrite <- Rpower_Ropp; try lt0.
-  rewrite <- Rpower_plus; replace (-1 + 2) with 1 by ring.
-  rewrite Rpower_1; try lt0.
-  apply Rle_trans with (Rpower 531 1);[ unfold Rpower; interval | ].
-  now apply Rle_Rpower; try lt0; apply pow_R1_Rle; lt0.
-(* end of questionable part. *)
-assert (n1'' : (1 <= n)%nat) by lia.
-assert (t3 := chain_y_z_y s2 n ints n1'').
-rewrite Rabs_mult; apply Rmult_le_compat; try lt0.
-  rewrite Rabs_right;[|apply Rle_ge, Rlt_le, Rinv_0_lt_compat; lt0].
-  now rewrite <- (Rinv_involutive 1); try lt0; apply Rinv_le_contravar; lt0.
-rewrite -> Rabs_left1, Ropp_minus_distr; try lt0.
-apply Rle_trans with (y_ n s2 - 1).
-  apply Rplus_le_compat_r.
-  apply Rle_trans with (1 := proj2 t3).
-  assert (t4 := y_gt_1 s2 n ints2).
-  now apply Rlt_le, sqrt_less; lt0.
-replace n with (n - 1 + 1)%nat at 1 by lia.
-apply majoration_y_n_vs2.
-Qed.
-
 Lemma u_n_m_v_n_bound n : 0 < u_ (n + 1) (/sqrt 2) - v_ (n + 1) (/sqrt 2) <=
   7 * Rpower 531 (- 2 ^ n).
 Proof.
@@ -472,24 +369,121 @@ apply Rmult_le_compat; try lt0.
 now apply pow_incr; interval.
 Qed.
 
-Lemma u_decr n : u_ (n + 1) (/sqrt 2) < u_ n (/sqrt 2) <= 1.
+(* This is equation 50 in submitted version of "distant decimals of pi" *)
+Lemma salamin_convergence_speed n (n2 : (2 <= n)%nat) :
+  Rabs (salamin_formula (n + 1) - PI) <= 68 * Rpower 531 (-2 ^ (n - 1)).
 Proof.
-assert (tmp := ag_le n 1 _ Rlt_0_1 (proj1 ints) (Rlt_le _ _ (proj2 ints))).
-split;[| unfold u_; lt0].
-replace (n + 1)%nat with (S n) by ring; rewrite u_step.
-now assert (tm2 := v_lt_u _ n ints); lt0.
+set (s2 := /sqrt 2).
+assert (n1 : (1 <= n - 1)%nat) by lia.
+assert (n1' : (1 <= n + 1)%nat) by lia.
+assert (ints2 : 0 < s2 < 1) by exact ints.
+assert (nm1p1 : (n - 1 + 1)%nat = n) by lia.
+assert (t := compare_derive_ag _ s2 n1' ints2).
+assert (t' := ag_le (n + 1) 1 s2 Rlt_0_1 (proj1 ints2) (Rlt_le _ _ (proj2 ints2))).
+fold (v_ (n + 1) s2) in t'; change (fun x => v_ (n + 1) x) with (v_ (n + 1)) in t.
+fold (u_ (n + 1) s2) in t'.
+rewrite <- direct_to_salamin; rewrite <- ratio_v1'_v1 at 2.
+rewrite <- ratio_v'_v; auto.
+replace (2 * sqrt 2 *
+          u_ (n + 1) (/sqrt 2) ^ 2 / (Derive (v_ (n + 1)) (/sqrt 2) /
+          v_ (n + 1) (/sqrt 2))) with
+  (2 * sqrt 2 * (u_ (n + 1) s2 ^ 2 * v_ (n + 1) s2 /
+         Derive (v_ (n + 1)) s2)) by now unfold s2 in *; field; lt0.
+rewrite -> u2v_over_v'_v2u_over_u'_yz; auto.
+rewrite <- (Rmult_assoc (2 * sqrt 2)), (Rmult_comm (2 * sqrt 2)).
+rewrite (Rmult_assoc (y_ (n + 1) s2 / z_ (n + 1) s2)).
+replace 68 with (54 + 14) by ring; rewrite (Rmult_plus_distr_r 54).
+replace (y_ (n + 1) s2 / z_ (n + 1) s2) with
+   (y_ (n + 1) s2 / z_ (n + 1) s2 - 1 + 1) by ring.
+rewrite (Rmult_plus_distr_r _ 1).
+unfold Rminus at 1; rewrite Rplus_assoc.
+apply Rle_trans with (1 := Rabs_triang _ _), Rplus_le_compat; cycle 1.
+  rewrite Rmult_1_l.
+  apply Rle_trans with (4 * agmpi 0 * Rpower 531 (- 2 ^ (n - 1))).
+    rewrite <- agmpi_ff_3_ff'.
+    assert (t'' :=  bound_agmpi (n - 1) n1).
+    now rewrite nm1p1 in t''; rewrite Rabs_right; lt0.
+  apply Rmult_le_compat_r;[unfold Rpower; apply Rlt_le, exp_pos|].
+  rewrite -> agmpi0, derive_fst_step; unfold u_, v_; simpl; auto.
+  now rewrite ->Derive_const, Derive_id; interval.
+replace 54 with (3 * (1 ^2 * 1 * 2) * 9) by ring; rewrite (Rmult_assoc (3 * _)).
+rewrite -> (Rmult_comm (_ - _)), Rabs_mult.
+apply Rmult_le_compat; try lt0.
+  rewrite Rabs_mult; apply Rmult_le_compat; try lt0.
+    now interval.
+  rewrite Rabs_div; try lt0.
+  unfold Rdiv; apply Rmult_le_compat; try lt0.
+      now rewrite Rabs_right; lt0.
+    rewrite Rabs_mult; rewrite !Rabs_right; try lt0.
+      apply Rmult_le_compat; try lt0.
+      now apply pow_incr; lt0.
+    now apply Rle_ge, pow_le; lt0.
+  rewrite Rabs_right; try lt0.
+  rewrite -> Nat.add_comm, <- (Rinv_involutive 2);[|lt0].
+  apply Rinv_le_contravar;[lt0 |].
+  apply Rle_trans with (2 := derive_un_growing' 1 n s2 ints2).
+  apply Req_le; rewrite derive_fst_step; unfold u_; simpl;[|exact ints2].
+  now rewrite -> Derive_const, Derive_id; field.
+assert (t'' := z_gt_1 s2 _ ints2 n1').
+replace (y_ (n + 1) s2 / z_ (n + 1) s2 - 1) with
+  (/ z_ (n + 1) s2  *(y_ (n + 1) s2 - 1) +
+       (/z_ (n + 1) s2 * (1 - z_ (n + 1) s2))); cycle 1.
+  now field; apply Rgt_not_eq, Rlt_gt; lt0.
+replace 9 with (1 + (1 * 8)) at 1 by ring; rewrite Rmult_plus_distr_r.
+rewrite (Rmult_assoc 1).
+apply Rle_trans with (1 := Rabs_triang _ _).
+apply Rplus_le_compat.
+  rewrite Rabs_mult; apply Rmult_le_compat; try lt0.
+    rewrite Rabs_right;[ | apply Rle_ge; lt0].
+    rewrite <- (Rinv_involutive 1); try lt0.
+    now apply Rinv_le_contravar; lt0.
+  rewrite Rabs_right; cycle 1.
+    now assert (t3 := y_gt_1 s2 (n + 1) ints2); lt0.
+  apply Rle_trans with (1 := proj2 (majoration_y_n_vs2 n)).
+  replace n with (S (n - 1)) at 1 by lia.
+  rewrite <- tech_pow_Rmult, Ropp_mult_distr_r, <- Rpower_mult.
+  (* This part of the proof is unsatisfactory, using wrong constants. *)
+  apply Rmult_le_reg_r with (Rpower (Rpower 531 2) (2 ^ ( n - 1))).
+    now unfold Rpower; apply exp_pos.
+  rewrite -> Rmult_assoc, <- Rpower_plus, Rplus_opp_l, Rpower_O;
+  [|unfold Rpower; apply exp_pos].
+  unfold Rpower at 1; rewrite <- Ropp_mult_distr_l, -> Ropp_mult_distr_r.
+  rewrite <- ln_Rinv; try lt0.
+  replace (exp (2 ^ (n - 1) * ln (/ 531))) with (Rpower (/531) (2 ^ (n - 1)))
+    by reflexivity.
+  rewrite Rpower_mult_distr; try (unfold Rpower; lt0).
+  rewrite <- (Rpower_1 531) at 1;try lt0;  rewrite <- Rpower_Ropp; try lt0.
+  rewrite <- Rpower_plus; replace (-1 + 2) with 1 by ring.
+  rewrite Rpower_1; try lt0.
+  apply Rle_trans with (Rpower 531 1);[ unfold Rpower; interval | ].
+  now apply Rle_Rpower; try lt0; apply pow_R1_Rle; lt0.
+(* end of questionable part. *)
+assert (n1'' : (1 <= n)%nat) by lia.
+assert (t3 := chain_y_z_y s2 n ints n1'').
+rewrite Rabs_mult; apply Rmult_le_compat; try lt0.
+  rewrite Rabs_right;[|apply Rle_ge, Rlt_le, Rinv_0_lt_compat; lt0].
+  now rewrite <- (Rinv_involutive 1); try lt0; apply Rinv_le_contravar; lt0.
+rewrite -> Rabs_left1, Ropp_minus_distr; try lt0.
+apply Rle_trans with (y_ n s2 - 1).
+  apply Rplus_le_compat_r.
+  apply Rle_trans with (1 := proj2 t3).
+  assert (t4 := y_gt_1 s2 n ints2).
+  now apply Rlt_le, sqrt_less; lt0.
+replace n with (n - 1 + 1)%nat at 1 by lia.
+apply majoration_y_n_vs2.
 Qed.
 
-(* TODO : improve salamin_sum_ub to /10 and then improve the 9 in this formula. *)
+(* If we want, the constants can probably be improved, as we over estimate
+  v_ n with 1, when we could use 6/7 instead. *)
 Lemma salamin_convergence_speed' n (n1 : (1 <= n)%nat) :
   Rabs (salamin_formula (n + 1) - PI) <= 
-   (132 + 576 * 2 ^ n) * Rpower 531 (-(2 ^ n)).
+   (132 + 384 * 2 ^ n) * Rpower 531 (-(2 ^ n)).
 Proof.
 assert (help1 : forall a b c, b - c = a - c + (b - a)) by now intros; ring.
 rewrite (help1 (salamin_formula (n + 2))).
 apply Rle_trans with (1 := Rabs_triang _ _).
-replace (132 + 576 * 2 ^ n) with
-   (68 + (4 * 2 * 8 + 3 * (3 * (2 ^ n * (1 ^ 2 * 64)))))
+replace (132 + 384 * 2 ^ n) with
+   (68 + (4 * 2 * 8 + 3 * (2 * (2 ^ n * (1 ^ 2 * 64)))))
    by ring.
 rewrite !(Rmult_plus_distr_r _ _ (Rpower _ _)).
 assert (n2m : (n + 2 - 1 = n + 1)%nat) by lia.
@@ -508,33 +502,28 @@ replace (salamin_formula (n + 1) - salamin_formula (n + 2)) with
    4 * u_ (n + 2) (/sqrt 2) ^ 2 * (/(1 - sum_f_R0 salamin_sumand n) -
    /(1 - sum_f_R0 salamin_sumand (n + 1)))); cycle 1.
   now unfold salamin_formula; rewrite -> n2m, n1m; field; auto.
-assert (un2pos : 0 < u_ (n + 2) (/sqrt 2)).
-  assert (tmp := ag_le (n + 2) 1 _ Rlt_0_1 (proj1 ints)
-       (Rlt_le _ _ (proj2 ints))).
-  now assert (tm2 := ints); unfold u_; lt0.
+assert (n211 : (n + 2 = (n + 1) + 1)%nat) by ring.
+assert (u_v_bounds := u_v_s2_bound (n + 1)); rewrite <- n211 in u_v_bounds.
+assert (u_v_bounds' := u_v_s2_bound n).
 assert (dp : u_ (n + 2) (/sqrt 2) < u_ (n + 1) (/sqrt 2)).
-  replace (n + 2)%nat with (S (n + 1)) by ring; rewrite u_step.
-  now assert (tmp := v_lt_u _ (n + 1) ints); lt0.
+  now assert (tmp := u_decr (n + 1)); rewrite n211; lt0.
 assert (diffpos : 0 < u_ (n + 1) (/sqrt 2) ^ 2 - u_ (n + 2) (/sqrt 2) ^ 2).
-  rewrite diff_square; apply Rmult_lt_0_compat;lt0.
+  now rewrite diff_square; apply Rmult_lt_0_compat;lt0.
 apply Rle_trans with (1 := Rabs_triang _ _); apply Rplus_le_compat.
   assert (u_ (n + 1) (/sqrt 2) ^ 2 - u_ (n + 2) (/sqrt 2) ^ 2 <
             8 * Rpower 531 (-2 ^ n)).
   apply Rlt_le_trans with (2 := proj2 (majoration_y_n_vs2 n)).
     apply Rlt_trans with (v_ (n + 1) (/sqrt 2) * (y_ (n + 1) (/sqrt 2) - 1)).
       unfold y_, Rdiv; rewrite -> Rmult_minus_distr_l, Rmult_1_r, Rmult_comm.
-      rewrite -> Rmult_assoc, Rinv_l, Rmult_1_r; cycle 1.
-        now apply Rgt_not_eq; assert (tmp := v_lt_u _ (n + 1) ints); lt0.
+      rewrite -> Rmult_assoc, Rinv_l, Rmult_1_r;[ | lt0].
       rewrite diff_square; apply Rlt_le_trans with
           (2 * (u_ (n + 1)(/sqrt 2) - u_ (n + 2)(/sqrt 2))).
-        apply Rmult_lt_compat_r;[lt0 | ].
-        assert (tmp1 := u_decr (n + 1)).
-        now replace  (n + 2)%nat with (n + 1 + 1)%nat by ring; lt0.
+        apply Rmult_lt_compat_r;[lt0 |].
+        now assert (tmp1 := u_decr (n + 1)); rewrite n211; lt0.
       now replace (n + 2)%nat with (S (n + 1)) by ring; rewrite u_step; lt0.
     replace (y_ (n + 1) (/sqrt 2) - 1) with (1 * (y_ (n + 1) (/sqrt 2) - 1))
        at 2 by ring.
-    apply Rmult_lt_compat_r;[ assert (tmp := y_gt_1 _ (n + 1) ints); lt0 | ].
-    now assert (tmp := conj (v_lt_u _ (n + 1) ints) (u_decr n)); lt0.
+    apply Rmult_lt_compat_r;[ assert (tmp := y_gt_1 _ (n + 1) ints)| ]; lt0.
   rewrite Rabs_right; cycle 1.
     apply Rle_ge, Rmult_le_pos;[apply Rmult_le_pos;lt0 | ].
     now apply Rlt_le, Rinv_0_lt_compat.
@@ -547,14 +536,8 @@ apply Rle_trans with (1 := Rabs_triang _ _); apply Rplus_le_compat.
   apply Rinv_le_contravar; try lt0.
   assert (tmp := salamin_sum_ub n); lt0.
 rewrite -> Rabs_mult, (Rmult_assoc 3); apply Rmult_le_compat; try lt0.
-  rewrite Rabs_right;cycle 1.
-    apply Rle_ge, Rmult_le_pos; lt0.
-  enough (0 <= u_ (n + 2) (/sqrt 2) <= 17/20) by interval.
-  split;[lt0 | ].
-  clear; induction n as [ | n IHn];[unfold u_; simpl; interval | ].
-  apply Rle_trans with (2 := IHn).
-  replace (S n + 2)%nat with ((n + 2) + 1)%nat by ring.
-  now apply Rlt_le, u_decr.
+  assert (tmp : 4 / 5 <= u_ (n + 2) (/sqrt 2) <= 6 / 7) by lt0.
+  now interval.
 replace (n + 1)%nat with (S n) by ring; rewrite tech5.
 assert (help : forall a b, 1 - (a + b) = 1 - a - b) by now intros; ring.
 rewrite help.
@@ -562,15 +545,23 @@ replace (/(1 - sum_f_R0 salamin_sumand n) - /(1 - sum_f_R0 salamin_sumand n -sal
 (-salamin_sumand (S n) /((1 - sum_f_R0 salamin_sumand n) * (1 - sum_f_R0 salamin_sumand n - salamin_sumand (S n)))); cycle 1.
   field;split;[ rewrite <- help; exact (denn0 (S n)) | auto].
 unfold Rdiv; rewrite -> Rmult_comm, Rabs_mult.
-rewrite -> (Rmult_assoc 3), (Rmult_assoc (2 ^ _)), (Rmult_assoc (1 ^ _)).
+rewrite -> (Rmult_assoc 2), (Rmult_assoc (2 ^ _)), (Rmult_assoc (1 ^ _)).
 apply Rmult_le_compat; try lt0.
   rewrite Rabs_right; cycle 1.
     apply Rle_ge, Rlt_le, Rinv_0_lt_compat, Rmult_lt_0_compat; auto.
     now rewrite <- help; apply (denpos (S n)).
-  replace 3 with (/ / 3) by field; apply Rinv_le_contravar; try lt0.
+  replace 2 with (/ / 2) by field; apply Rinv_le_contravar; try lt0.
   rewrite <- help, <- tech5.
   assert (tmp := conj (salamin_sum_ub n) (salamin_sum_ub (S n))).
-  now apply Rle_trans with ((6 / 10) * (6 / 10));[ | apply Rmult_le_compat]; lt0.
+  assert (asp : forall k,  0 <= sum_f_R0 salamin_sumand k).
+    intros; apply cond_pos_sum.
+    intros m; unfold salamin_sumand; case (m =? 0); try lt0.
+    now apply Rmult_le_pos;[lt0 | apply pow2_ge_0].
+  assert (tmpn := conj (asp n) (asp (S n))).
+  assert (0 <= sum_f_R0 salamin_sumand n <= /10 /\ 
+          0 <= sum_f_R0 salamin_sumand (S n) <= /10) by lt0.
+  (* TODO : investigate why interval does not work here. *)
+  now apply Rle_trans with ((8 / 10) * (8 / 10));[ | apply Rmult_le_compat]; lt0.
 unfold salamin_sumand; simpl (S n =? 0); lazy iota.
 replace (S n  - 1)%nat with n by lia.
 rewrite -> Rabs_Ropp, Rabs_right; cycle 1.

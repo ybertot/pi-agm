@@ -7,9 +7,6 @@ Ltac approx_sqrt :=
  apply Rsqr_incrst_0; rewrite ?Rsqr_sqrt; unfold Rsqr; try apply sqrt_pos;
   psatzl R.
 
-Lemma vs2_bnd : 0 < / sqrt 2 < 1.
-Proof. split; interval.  Qed.
-
 Lemma y_s n x (intx : 0 < x < 1) : y_ (S n) x = yfun (y_ n x).
 Proof. now replace (S n) with (n + 1)%nat by ring; rewrite y_step. Qed.
 
@@ -144,7 +141,7 @@ Qed.
 
 Lemma int_z : forall p, (1 <= p)%nat ->
   1 < z_ p (/ sqrt 2) < 6/5.
-intros p p1; split; assert (t := vs2_bnd).
+intros p p1; split; assert (t := ints).
   apply Rle_lt_trans with (z_ (p + 1) (/ sqrt 2)).
     now apply Rlt_le, z_gt_1; auto; lia.
   now apply z_decr_n; auto; lia.
@@ -631,15 +628,15 @@ set (h := y - y_ p (/sqrt 2)).
 assert (double_eK : e <= /2 * (2 * e)) by psatzl R.
 set (y' := r_div (1 + y) (2 * (r_sqrt y))).
 assert (inty' : 1 <= y_ p (/sqrt 2) <= 71/50).
- split; [apply Rlt_le, y_gt_1, vs2_bnd |  ].
+ split; [apply Rlt_le, y_gt_1, ints |  ].
  destruct (eq_nat_dec p 1) as [pq1 | pn1].
   rewrite pq1; apply Rlt_le, Rlt_trans with (1 := y_1_ub); psatzl R.
  apply Rlt_le, Rlt_le_trans with (y_ 1 (/sqrt 2));
-  [apply y_decr_n; try apply vs2_bnd; try lia; try psatzl R | ].
+  [apply y_decr_n; try apply ints; try lia; try psatzl R | ].
  apply Rlt_le, Rlt_trans with (1 := y_1_ub);psatzl R.
 generalize (y_error (2 * e) (y_ p (/sqrt 2)) h double_e double_eK
            inty' ch); lazy zeta.
-fold (yfun (y_ p (/sqrt 2))); rewrite <- y_step;[ | exact vs2_bnd].
+fold (yfun (y_ p (/sqrt 2))); rewrite <- y_step;[ | exact ints].
 replace (y_ p (/sqrt 2) + h) with y by (unfold h; ring); fold y'.
 intros; apply Rabs_def1; psatzl R.
 Qed.
@@ -655,10 +652,10 @@ intros y z p p1 cy cz.
 set (h := y - y_ p (/sqrt 2)).
 set (h' := z - z_ p (/sqrt 2)).
 assert (cy' : Rabs h < 4 * e) by (unfold h; psatzl R).
-assert (vs2 := vs2_bnd).
+assert (vs2 := ints).
 assert (y1b := y_1_ub).
 assert (inty : 1 < y_ p (/sqrt 2) < 51/50).
- split;[apply y_gt_1, vs2_bnd |
+ split;[apply y_gt_1, ints |
   apply Rle_lt_trans with (y_ 1 (/sqrt 2)); try psatzl R].
  destruct (eq_nat_dec p 1) as [pq1 |];
   [rewrite pq1; psatzl R | apply Rlt_le, y_decr_n; auto; lia].
@@ -684,7 +681,7 @@ Lemma rprod_step :
 Proof.
 intros p y z prd p1 smallnp cy cz cprd.
 assert (four_e : 4 * e < /40) by psatzl R.
-assert (vs2 := vs2_bnd).
+assert (vs2 := ints).
 assert (y1b := y_1_ub).
 assert (inty' : 1 < y_ (p + 1) (/sqrt 2) < 51/50).
  split;[apply y_gt_1 | apply Rlt_trans with (y_ 1 (/sqrt 2))]; try psatzl R.
@@ -793,7 +790,7 @@ intros smallp rny rnz rnpr.
  now repeat rewrite (Rmult_assoc (2 + sqrt 2)); apply Rmult_lt_compat_l; lt0.
 intros p y z prd p1 pnsmall cy cz cprd.
 assert (inty : 1 < y_ p (/sqrt 2) < 51/50).
- assert (t := vs2_bnd).
+ assert (t := ints).
  split;[apply y_gt_1; psatzl R | ].
  apply Rle_lt_trans with (y_ 1 (/sqrt 2)).
   destruct (eq_nat_dec p 1) as [p1' | pn1].
@@ -1398,7 +1395,7 @@ generalize (prod_bnd _ p1); intros.
  apply Rabs_def2 in cprd; psatzl R.
 assert (0 <= h2)%Z by (apply Z.lt_le_incl, h2_pos).
 assert (/4 < hR y).
- apply Rabs_def2 in cy; assert (t:= y_gt_1 (/sqrt 2) p vs2_bnd); psatzl R.
+ apply Rabs_def2 in cy; assert (t:= y_gt_1 (/sqrt 2) p ints); psatzl R.
 assert (/2 < sqrt (hR y)) by approx_sqrt.
 destruct (r_sqrt_spec (hR y)); try psatzl R.
 assert (0 <= y)%Z by (apply hR_pos; psatzl R).
@@ -1462,9 +1459,9 @@ fold ny in ty; fold nz in tz.
 assert (/4 * /2 <= hR y * hR z)%R.
  apply Rmult_le_compat; psatzl R.
 assert (y_p1p : (1 < y_ (p + 1) (/sqrt 2))%R).
- apply y_gt_1, vs2_bnd.
+ apply y_gt_1, ints.
 assert (z_p1p : (1 <= z_ (p + 1) (/sqrt 2))%R).
- apply Rlt_le, z_gt_1;[apply vs2_bnd | lia ].
+ apply Rlt_le, z_gt_1;[apply ints | lia ].
 assert (0 < h1 + nz')%Z.
  apply hR_gt_0; unfold nz'.
  rewrite hplus_spec, <- qz, h1_spec; apply Rabs_def2 in tz; psatzl R.

@@ -69,6 +69,29 @@ Proof.
 now destruct (M_between' 1 x n); destruct (ag_le n 1 x); unfold v_, u_; lt0.
 Qed.
 
+Lemma u_decr n : u_ (n + 1) (/sqrt 2) < u_ n (/sqrt 2) <= 1.
+Proof.
+assert (tmp := ag_le n 1 _ Rlt_0_1 (proj1 ints) (Rlt_le _ _ (proj2 ints))).
+split;[| unfold u_; lt0].
+replace (n + 1)%nat with (S n) by ring; rewrite u_step.
+now assert (tm2 := v_lt_u _ n ints); lt0.
+Qed.
+
+Lemma u_v_s2_bound n : 4 / 5 < v_ (n + 1) (/sqrt 2) < 6 / 7 /\
+                       4 / 5 < u_ (n + 1) (/sqrt 2) < 6 / 7.
+Proof.
+enough (4 / 5 < v_ (n + 1) (/sqrt 2) /\ u_ (n + 1) (/sqrt 2) < 6 / 7).
+  by assert (tmp:= v_lt_u _ (n + 1) ints); lt0.
+induction n as [ | n IHn].
+  now unfold u_, v_; simpl; split; interval.
+assert (tmp := v_lt_u _ (n + 1) ints).
+  simpl (S n + 1)%nat; rewrite -> u_step, v_step.
+split;[ | lt0].
+apply Rlt_trans with (sqrt (v_ (n + 1) (/sqrt 2) * v_ (n + 1) (/sqrt 2))).
+  now rewrite sqrt_square; lt0.
+apply sqrt_lt_1; try lt0; apply Rmult_lt_compat_r; lt0.
+Qed.
+
 Lemma dist_u_ff :
   forall n x, (1 <= n)%nat -> 0 < x -> 0 <= u_ n x - ff x <= Rabs(1 - x)/2^n.
 Proof.
