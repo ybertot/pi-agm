@@ -60,11 +60,10 @@ Lemma derive_ratio_u_v n :
         v_ n (/sqrt 2)).
 Proof.
 set (x := /sqrt 2); assert (intx : 0 < x < 1) by exact ints.
-assert (help : forall x y, x ^ 2 - y ^ 2 = (x + y) * (x - y)) by (intros; ring).
 assert (0 < v_ n x /\ 0 < u_ n x).
   now destruct (ag_le n 1 x); unfold v_, u_; psatzl R.
 assert (v_ n x < u_ n x) by now apply v_lt_u.
-assert (0 < w_ n x) by (unfold w_; rewrite help; lt0).
+assert (0 < w_ n x) by (unfold w_; rewrite diff_square; lt0).
 assert (t'' := is_derive_unique _ _ _ (is_derive_k_extra n _ intx)).
 rewrite -> Derive_k in t'';[|exact ints].
 apply f_equal with (f := Ropp) in t''; rewrite Ropp_involutive in t''.
@@ -73,7 +72,7 @@ apply f_equal with (f := fun u => / (/ 2 ^ n * v_ n x ^ 3 /
 rewrite <- (Rmult_assoc _ _ (Derive _ x)), Rinv_l, Rmult_1_l in t'';[| lt0].
 evar_last;[apply Derive_correct, ex_derive_ratio, ints |].
 apply eq_trans with (1 := eq_sym t'').
-assert (0 < 1 - x ^ 2) by (rewrite <-(pow1 2), help; lt0).
+assert (0 < 1 - x ^ 2) by (rewrite <-(pow1 2), diff_square; lt0).
 field_simplify; try (repeat split; try lt0).
 replace (-v_ n x ^ 3 * x ^ 3 + v_ n x ^ 3 * x) with
   (/2 * v_ n x ^ 3 * / sqrt 2);[field; split; lt0 |].
@@ -238,8 +237,10 @@ rewrite -> Rmult_minus_distr_l, Rinv_r;[| lt0].
 apply f_equal; rewrite <-Rmult_assoc, sqrt_sqrt;[|lt0].
 rewrite scal_sum; apply sum_eq; intros i _.
 unfold direct_sumand, salamin_sumand.
-destruct i as [|i];[rewrite Rmult_0_l; easy | simpl].
-rewrite -> Nat.sub_0_r, u_step, v_step, !Rmult_1_r, sqrt_sqrt.
+destruct i as [|i];[rewrite Rmult_0_l; easy | simpl (S i =? 0); lazy iota].
+simpl (S i - 1)%nat; simpl (2 ^ (S i)).
+(* This is equation 36 in submitted version of "distant decimals of pi" *)
+rewrite -> Nat.sub_0_r, u_step, v_step, pow2_sqrt.
   field.
 now destruct (ag_le i 1 (/sqrt 2)) as [agi1 agi2]; unfold u_, v_; lt0.
 Qed.
