@@ -1,5 +1,3 @@
-(* This file was tested with coq 8.5.1 and coquelicot 2.1.1 *)
-
 Require Import Reals Coquelicot.Coquelicot Fourier.
 
 Definition filter_Rlt F G :=
@@ -146,7 +144,8 @@ Lemma ex_RInt_gen_bound (g : R -> R) (f : R -> R) F G
        ex_RInt f (fst p) (snd p)) ->
     ex_RInt_gen f F G.
 Proof.
-intros [m mmid] [gl intg] cmp.
+Admitted.
+(* intros [m mmid] [gl intg] cmp.
 assert (F (Rgt m)).
   destruct mmid as [pf pg fpf gpg cmp'].
   apply (filter_imp pf); destruct (filter_ex pg) as [y py]; auto.
@@ -155,6 +154,19 @@ assert (G (Rlt m)).
   destruct mmid as [pf pg fpf gpg cmp'].
   apply (filter_imp pg); destruct (filter_ex (F := F) pf) as [x px]; auto.
   intros y py; destruct (cmp' x y px py) as [_ it]; exact it.
+(* experimenting here. *)
+exists (lim (filtermap (fun p => RInt f (fst p) (snd p)) (filter_prod F G))).
+intros P [eps Peps]. exists (Rgt m) (Rlt m); auto.
+destruct 
+exists (lim (filtermap (fun p => RInt f (fst p) (snd p)) (filter_prod F G))).
+
+unfold is_RInt_gen.
+unfold filtermapi.
+
+destruct HP as [A B].
+assert (t := intg (ball gl (mkposreal _ Rlt_0_1))).
+  unfold filtermapi in t.
+
 destruct intg as [Ig [isig cvi]].
 exists (lim (filtermap (fun p => RInt f (fst p) (snd p)) (filter_prod F G))).
 destruct cmp as [Q1 R1 fq1 gr1 cmp]; simpl in cmp.
@@ -275,7 +287,7 @@ exists (fun p =>  RInt f (fst p) (snd p)); split.
   now intros x y qx ry; apply RInt_correct, cmp.
 intros P [eps Peps]; destruct (main eps) as [Q' R' fQ' gR' B].
   now exists Q' R'; auto.
-Qed.
+Qed. *)
 
 Lemma is_RInt_gen_Rle (g : R -> R) gl (f : R -> R) fl F G
   {PF : ProperFilter F} {PG : ProperFilter G} :
@@ -286,6 +298,8 @@ Lemma is_RInt_gen_Rle (g : R -> R) gl (f : R -> R) fl F G
     (fun p => (forall x, fst p < x < snd p -> f x <= g x)) ->
     fl <= gl.
 Proof.
+Admitted.
+(*
 intros [m mmid] [Ig [isig limg]] [If [isif limf]] cmp.
 apply (fun h => @filterlim_le _ (filter_prod F G) _ If Ig fl gl h limf limg).
 apply (fun h => filter_imp _ _ h
@@ -294,5 +308,5 @@ clear mmid limf limg isig isif cmp; intros [a b]; simpl.
 intros [[am mb] [isig [isif cmp]]].
 apply (is_RInt_le f g a b); auto.
   now apply Rlt_le; chain_comparisons; auto.
-Qed.
+Qed. *)
 
