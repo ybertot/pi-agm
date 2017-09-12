@@ -1347,7 +1347,7 @@ assert (scal :
    rewrite <- (RInt_ext (fun t => / sqrt ((delta1 / 2) ^ 2 + 1) *
                                           / sqrt (t ^ 2 + x ^ 2))); cycle 1.
     now intros z _; rewrite -> sqrt_mult, Rinv_mult_distr;lt0.
-  now rewrite -> RInt_scal, vris.
+  now rewrite -> (RInt_scal (fun t => /sqrt (t ^ 2 + x ^ 2))), vris.
 rewrite ball_Rabs.
 assert (0 < arcsinh(/sqrt x)) by (rewrite <- arcsinh_0; apply arcsinh_lt; lt0).
 rewrite <- Rabs_Ropp, -> Rabs_right, Ropp_minus_distr.

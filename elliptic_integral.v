@@ -51,9 +51,8 @@ assert (h : 0 < (z ^ 2 + a ^ 2) * (z ^ 2 + b ^ 2)).
 now split;[exact h | split;[apply Rgt_not_eq, sqrt_lt_R0, h | ] ].
 Qed.
 
-Definition ell (a b : R) :=
-  iota (fun v => is_RInt_gen (ellf a b)
-                   (Rbar_locally m_infty) (Rbar_locally p_infty) v).
+Definition ell (a b : R) : R :=
+  RInt_gen (ellf a b) (Rbar_locally m_infty) (Rbar_locally p_infty) .
 
 Lemma ex_un_ell a b : 0 < a -> 0 < b ->
   exists ! v,
@@ -104,7 +103,11 @@ assert (ellfq : filter_prod (Rbar_locally m_infty) (Rbar_locally p_infty)
 symmetry; apply ell_unique; auto.
 apply (is_RInt_gen_ext _ _ _ ellfq).
 apply (is_RInt_gen_scal (fun x => /k * ellf a b (/k * x + 0)) (/k)).
-apply (is_RInt_gen_comp_lin (ellf a b)).
+apply (is_RInt_gen_comp (ellf a b)).
+  apply filter_forall; intros [x y] z _; split.
+    apply (ex_derive_continuous (ellf a b)).
+    now unfold ellf; auto_derive; repeat split; lt0.
+  now split; [auto_derive;[ | field; lt0] | apply continuous_const].
 apply (is_RInt_gen_filter_le (Rbar_locally m_infty) (Rbar_locally p_infty));
   try apply filtermap_filter; try apply Rbar_locally_filter; try easy.
   apply (filterlim_ext (fun x => /k * x));[intros; ring | ].
@@ -151,7 +154,7 @@ replace v2 with ((-1) * - v2) by ring.
 apply is_RInt_gen_ext with (fun x => (-1) * (-1 * (ellf a b ((-1 * x) + 0)))).
   exists (Rgt 0) (fun x => x = 0).
       now exists 0; intros; auto.
-    now intros y py; apply ball_eq; intros z; apply ball_sym, py.
+    now apply refl_equal.
   intros x y _ _ z pz; unfold ellf.
   replace ((-1 * z + 0) ^ 2) with (z ^ 2) by  ring.
   (* bug : this should have been solved by ring. *)
@@ -160,14 +163,18 @@ apply is_RInt_gen_ext with (fun x => (-1) * (-1 * (ellf a b ((-1 * x) + 0)))).
 apply (is_RInt_gen_scal _ (-1) (-v2)).
 (* bug : here I need to use the ssreflect apply. *)
 (* with plain apply I need (@is_RInt_gen_comp_lin R_NormedModule _ _ _ _). *)
-apply: is_RInt_gen_comp_lin.
+apply (is_RInt_gen_comp (ellf a b)).
+  apply filter_forall; intros [x y] z _; split.
+    apply (ex_derive_continuous (ellf a b)).
+    now unfold ellf; auto_derive; repeat split; lt0.
+  now split; [auto_derive;[ | field; lt0] | apply continuous_const].
 (* bug : here I need to use the ssreflect apply. *)
 (* with plain apply I need (is_RInt_gen_swap (ellf a b)). *)
 apply: is_RInt_gen_swap.
 apply (is_RInt_gen_filter_le (at_point 0) (Rbar_locally p_infty) _ _ _ _); auto.
   enough (pl : is_lim (fun x => -1 * x + 0) 0 0).
     pattern 0 at 3; replace 0 with (-1 * 0 + 0) by ring.
-    now intros S P x px; rewrite <- (ball_eq _ _ px); apply P, ball_center.
+    now intros S P; exact P.
   pattern 0 at 3; replace 0 with (-1 * 0 + 0) by ring.
   repeat (eapply is_lim_plus || eapply is_lim_mult || eapply is_lim_const || eapply is_lim_id
         || exact I).
@@ -196,7 +203,7 @@ erewrite is_Rbar_mult_unique; cycle 1.
        apply is_Rbar_mult_p_infty_neg; unfold Rbar_lt; psatzl R|
        apply is_Rbar_mult_p_infty_pos; unfold Rbar_lt; psatzl R].
 reflexivity.
-Qed.
+Qed. 
 
 Fixpoint ag (a b : R) (n : nat) :=
   match n with 0 => (a, b) | S p => ag ((a + b)/2) (sqrt(a * b)) p end.
@@ -507,26 +514,24 @@ intros a b a0 b0.
 assert (ar0 : 0 < (a + b) / 2) by lt0.
 assert (ge0 : 0 < sqrt (a * b)) by lt0.
 simpl; transitivity (ell ((a + b) / 2) (sqrt (a * b)));[ |now apply IHn].
-unfold ell; generalize (iota_correct _ (ex_un_ell a b a0 b0)).
-set (ellab := iota _); intros vab.
-generalize (iota_correct _ (ex_un_ell _ _ ar0 ge0)).
-set (ellab1 := iota _); intros v1.
-destruct (ex_un_ell a b a0 b0) as [ww [_ Pww]].
-rewrite <- (Pww _ vab).
-destruct (ex_un_ell _ _ ar0 ge0) as [ww' [_ Pww']].
-now apply (elliptic_agm_step a b) in v1; auto.
+unfold ell.
+destruct (ex_un_ell a b a0 b0) as [ww [Pww _]].
+destruct (ex_un_ell _ _ ar0 ge0) as [ww' [Pww' _]].
+rewrite -> (is_RInt_gen_unique _ _ Pww').
+apply (elliptic_agm_step a b) in Pww'; auto.
+unfold ellf.
+now rewrite -> (is_RInt_gen_unique _ _ Pww').
 Qed.
 
 (* This is equation 16 in submitted version of "distant decimals of pi" *)
 Lemma quarter_elliptic x : 0 < x -> ell 1 x = 4 * RInt (ellf 1 x) 0 (sqrt x).
 Proof.
-intros x0; unfold ell.
-generalize (iota_correct _ (ex_un_ell _ _ Rlt_0_1 x0)).
-set (v := iota _); intros Pv.
+intros x0.
+set (Pv := is_RInt_gen_ell 1 x Rlt_0_1 x0).
 destruct (ex_RInt_gen_cut 0 _ _
           (ellf 1 x) 
           (filter_Rlt_m_infty_at_point _) (filter_Rlt_at_point_p_infty _)
-               (ex_intro _ _ Pv)) as [v2 Pv2]; simpl in v, v2.
+               (ex_intro _ _ Pv)) as [v2 Pv2]; simpl in v2.
 assert (0 < sqrt x) by lt0.
 assert (m0x : filter_Rlt (at_point 0) (at_point (sqrt x)))
   by now apply filter_Rlt_at_point.
@@ -551,7 +556,7 @@ assert (v3_4 :is_RInt_gen (ellf 1 x) (at_point 0) (at_point (sqrt x)) v3).
             ellf 1 x (x / t)))).
     exists (Rlt 0) (eq (sqrt x)).
         now exists (mkposreal _ Rlt_0_1); simpl; intros; tauto.
-      now intros y py; apply ball_eq.
+      now unfold at_point.
     intros a b a0 bq z pz; simpl in pz.
     assert (0 < b) by (rewrite <- bq; lt0).
     assert (0 < z).
@@ -571,7 +576,7 @@ assert (v3_4 :is_RInt_gen (ellf 1 x) (at_point 0) (at_point (sqrt x)) v3).
   apply: (is_RInt_gen_comp (ellf 1 x) (fun u => - (x / u ^ 2))
                            (fun u => x / u)).
     exists (eq (sqrt x)) (Rlt 0).
-        now intros y bay; apply ball_eq.
+        now unfold at_point.
       now exists (mkposreal _ Rlt_0_1); tauto.
     simpl; intros a b qa b0 y py.
     assert (0 < y).
@@ -583,11 +588,9 @@ assert (v3_4 :is_RInt_gen (ellf 1 x) (at_point 0) (at_point (sqrt x)) v3).
       auto_derive; try field; lt0.
     apply: ex_derive_continuous; auto_derive; lt0.
   apply: (is_RInt_gen_filter_le _ _ _ _ _ _ _ _ Pv3).
-    intros P Pp y bay; unfold filtermap; apply Pp.
-    assert (qy : sqrt x = y) by now apply ball_eq.
-    rewrite <- qy; replace (x / sqrt x) with (sqrt x).
-      now intros eps; apply ball_center.
-    now rewrite <- (sqrt_sqrt x) at 2; try field; lt0.
+    intros A B; unfold filtermap, at_point; unfold at_point in B.
+    enough (tmp : x / sqrt x = sqrt x) by now rewrite tmp.
+    now rewrite <- (sqrt_pow_2 x) at 1; try lt0; field; lt0.
   apply: (filterlim_comp_2 (G := locally x)(H := Rbar_locally p_infty)
               (fun _ => x) (fun u => / u)
             (fun a b => a * b)).
@@ -607,39 +610,34 @@ intros a0 b0.
 assert (m0 : 0 < Rmax a b) by (apply (Rlt_le_trans _ _ _ a0), Rmax_l).
 replace (PI / Rmax a b) with (ell (Rmax a b) (Rmax a b)).
   unfold ell.
-  generalize (iota_correct _ (ex_un_ell _ _ m0 m0)).
-  set (elm := iota _); intros iselm.
-  generalize (iota_correct _ (ex_un_ell _ _ a0 b0)).
-  set (ela := iota _); intros isela.
   apply (is_RInt_gen_Rle (ellf a b) _ (ellf (Rmax a b) (Rmax a b)) _
           (Rbar_locally m_infty) (Rbar_locally p_infty)); auto.
-      now apply filter_Rlt_m_infty_p_infty.
+        now apply filter_Rlt_m_infty_p_infty.
+      now apply is_RInt_gen_ell.
+    now apply is_RInt_gen_ell.
   apply filter_forall; intros p x _; clear p.
   apply Rle_Rinv; try lt0.
   apply sqrt_le_1_alt; try lt0.
   apply Rmult_le_compat; try lt0.
     now apply Rplus_le_compat_l, pow_incr; split;[lt0 | apply Rmax_l].
   now apply Rplus_le_compat_l, pow_incr; split;[lt0 | apply Rmax_r].
-unfold ell.
-generalize (iota_correct _ (ex_un_ell _ _ m0 m0)).
-set (elm := iota _); intros iselm.
 assert (fact1 :
       is_RInt_gen (fun x => / Rmax a b * (/ Rmax a b * /((x / Rmax a b) ^ 2 + 1)))
              (Rbar_locally m_infty)
-             (Rbar_locally p_infty) elm).
-apply (is_RInt_gen_ext (ellf (Rmax a b) (Rmax a b))); auto.
-  apply filter_forall; intros p x _; clear p.
-  unfold ellf; rewrite sqrt_square; field_simplify; auto.
-      split; lt0.
-    lt0.
-  unfold Rdiv at 1; rewrite Rmult_0_l; lt0.
+             (Rbar_locally p_infty) (ell (Rmax a b) (Rmax a b))).
+  apply (is_RInt_gen_ext (ellf (Rmax a b) (Rmax a b))); auto.
+    apply filter_forall; intros p x _; clear p.
+    unfold ellf; rewrite sqrt_square; field_simplify; auto.
+        split; lt0.
+      lt0.
+    unfold Rdiv at 1; rewrite Rmult_0_l; lt0.
+  now apply is_RInt_gen_ell.
 assert (fact2 : is_RInt_gen (fun x =>
                        /Rmax a b * (/Rmax a b * /((x /Rmax a b ) ^ 2 + 1)))
             (Rbar_locally m_infty) (Rbar_locally p_infty) (/Rmax a b * PI)).
   now apply/is_RInt_gen_scal/integral_atan_comp_scal.
-unfold Rdiv; rewrite Rmult_comm.
-case (ex_RInt_gen_unique _ _ _ (ex_intro _ elm fact1)) as [w [isw qw]].
-now rewrite <- (qw _ fact2), <- (qw _ fact1); reflexivity.
+rewrite <- (is_RInt_gen_unique _ _ fact1), (is_RInt_gen_unique _ _ fact2).
+now rewrite Rmult_comm.
 Qed.
 
 Lemma ell_upper_bound a b : 0 < a -> 0 < b ->
@@ -663,26 +661,23 @@ replace (PI / Rmin a b) with (ell (Rmin a b) (Rmin a b)).
   apply Rmult_le_compat; try lt0.
     now apply Rplus_le_compat_l, pow_incr; split;[lt0 | apply Rmin_l].
   now apply Rplus_le_compat_l, pow_incr; split;[lt0 | apply Rmin_r].
-unfold ell.
-generalize (iota_correct _ (ex_un_ell _ _ m0 m0)).
-set (elm := iota _); intros iselm.
 assert (fact1 :
       is_RInt_gen (fun x => / Rmin a b * (/ Rmin a b * /((x / Rmin a b) ^ 2 + 1)))
              (Rbar_locally m_infty)
-             (Rbar_locally p_infty) elm).
+             (Rbar_locally p_infty) (ell (Rmin a b) (Rmin a b))).
 apply (is_RInt_gen_ext (ellf (Rmin a b) (Rmin a b))); auto.
   apply filter_forall; intros p x _; clear p.
   unfold ellf; rewrite sqrt_square; field_simplify; auto.
       split; lt0.
     lt0.
   unfold Rdiv at 1; rewrite Rmult_0_l; lt0.
+now apply is_RInt_gen_ell.
 assert (fact2 : is_RInt_gen (fun x =>
                        /Rmin a b * (/Rmin a b * /((x /Rmin a b ) ^ 2 + 1)))
             (Rbar_locally m_infty) (Rbar_locally p_infty) (/Rmin a b * PI)).
   now apply/is_RInt_gen_scal/integral_atan_comp_scal.
-unfold Rdiv; rewrite Rmult_comm.
-case (ex_RInt_gen_unique _ _ _ (ex_intro _ elm fact1)) as [w [isw qw]].
-now rewrite <- (qw _ fact2), <- (qw _ fact1); reflexivity.
+rewrite <- (is_RInt_gen_unique _ _ fact1), (is_RInt_gen_unique _ _ fact2).
+now rewrite Rmult_comm.
 Qed.
 
 Lemma div_pow2_le x n : 0 <= x -> x / 2 ^ n <= x.
