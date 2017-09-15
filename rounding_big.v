@@ -1,4 +1,4 @@
-Require Import BigZ.
+Require Import Interval.BigNumsCompat.
 
 Definition hmult (magnifier x y : bigZ) := (x * y / magnifier)%bigZ.
 Definition hdiv (magnifier x y : bigZ) := (x * magnifier / y)%bigZ.

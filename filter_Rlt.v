@@ -344,7 +344,7 @@ apply (filterlim_le (F := filter_prod F G) (fun p => RInt f (fst p) (snd p))
                           (filter_and _ _ mmid cmp)).
     intros [a b]; simpl; intros [[[Ig [Hg1 Hg2]] [If [Hf1 Hf2]]] [cmp']]. 
     apply RInt_le;
-      [apply Rle_trans with m;apply Rlt_le | exists If| exists Ig| ]; tauto.
+      [apply Rle_trans with m;apply Rlt_le | exists If | idtac..]; try exists Ig; tauto.
   intros P HP; specialize (intf P HP); unfold filtermapi, filtermap in intf |- *.
   apply: filter_imp intf.
   intros [a b]; simpl; intros [y [inty Py]].

@@ -1,4 +1,4 @@
-Require Import BigZ rounding_big.
+Require Import Interval.BigNumsCompat rounding_big.
 
 Eval vm_compute in hpi (10 ^ 1000) 10.
 

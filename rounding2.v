@@ -705,7 +705,8 @@ induction p.
       pattern 4 at 2; replace 4 with (4 * 1) by ring.
       apply Rmult_le_compat_l; try psatzl R.
       rewrite Rabs_pos_eq;[ | apply pow2_ge_0].
-      pattern 1 at 3; replace 1 with (1 * 1) by ring.        
+      change 2 with (IZR 2).
+      replace 1 with (1 * 1) by ring.
       now simpl; rewrite Rmult_1_r; apply Rmult_le_compat; auto; psatzl R.
     rewrite Rabs_mult; apply Rmult_le_compat_l; try lt0.
     rewrite Rabs_Rinv; cycle 1.
@@ -715,6 +716,7 @@ induction p.
     assert (59/100 < Rabs (B + hsm)).
       now unfold B; rewrite Rabs_pos_eq; psatzl R.
     rewrite -> Rabs_mult, Rinv_mult_distr; try psatzl R.
+    change 4 with (2 * 2).
     apply Rmult_le_compat; try lt0.
       replace 2 with (/ / 2) by field.          
       now apply Rinv_le_contravar; lt0.

@@ -372,7 +372,10 @@ intros n1 intx; induction n1.
     rewrite !Rmult_1_l; field; lt0.
   split;[rewrite d1; lt0 |].
   rewrite -> d1, d2; apply Rinv_lt_contravar; try lt0.
-  rewrite <- (Rmult_1_r (2)) at 2; rewrite <- sqrt_1 at 5.
+  rewrite <- (Rmult_1_r 2) at 2.
+  change 2 with (IZR 2).
+  rewrite <- sqrt_1.
+  change (IZR 2) with 2.
   now apply Rmult_lt_compat_l, sqrt_lt_1; lt0.
 assert (1 < y_ m x) by now apply y_gt_1.
 destruct (ex_derive_ag (S m) x) as [d [e [Pd [Pe Ps]]]]; try lt0.
@@ -442,7 +445,7 @@ end.
 assert (1 < sqrt (y_ m x)).
   now rewrite <- sqrt_1; apply sqrt_lt_1; lt0.
 apply Rmult_lt_compat_r;[psatzl R | ].
-apply Ropp_lt_contravar; rewrite <- (Rmult_1_r 1).
+apply (Ropp_lt_contravar _ 1); rewrite <- (Rmult_1_r 1).
 apply Rmult_le_0_lt_compat; psatzl R.
 Qed.
 
@@ -1906,7 +1909,7 @@ apply Req_le.
 replace ((Rpower (y_ 1 a - 1) (2 ^ n) / Rpower 8 (2 ^ n - 1)) ^ 2) with
   ((Rpower (y_ 1 a - 1) (2 ^ n)) ^ 2 / (Rpower 8 (2 ^ n - 1)) ^ 2) by
   (field; apply Rgt_not_eq; unfold Rpower; apply exp_pos).
-rewrite <- !(Rpower_pow 2); simpl (INR 2); try psatzl R; try apply exp_pos.
+rewrite <- !(Rpower_pow 2); change (INR 2) with 2; try psatzl R; try apply exp_pos.
 rewrite -> Rpower_mult, (Rmult_comm (2 ^ n) 2).
 unfold Rdiv; rewrite Rmult_assoc; apply (f_equal (Rmult _)).
 rewrite -> Rpower_mult, Rmult_minus_distr_r, Rmult_1_l.
