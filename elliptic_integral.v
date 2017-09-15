@@ -157,9 +157,8 @@ apply is_RInt_gen_ext with (fun x => (-1) * (-1 * (ellf a b ((-1 * x) + 0)))).
     now apply refl_equal.
   intros x y _ _ z pz; unfold ellf.
   replace ((-1 * z + 0) ^ 2) with (z ^ 2) by  ring.
-  (* bug : this should have been solved by ring. *)
-  rewrite <- Rmult_assoc, <- Ropp_mult_distr_l, <- Ropp_mult_distr_r.
-  now rewrite -> Ropp_involutive, !Rmult_1_l.
+  change eq with (@eq R).
+  ring.
 apply (is_RInt_gen_scal _ (-1) (-v2)).
 (* bug : here I need to use the ssreflect apply. *)
 (* with plain apply I need (@is_RInt_gen_comp_lin R_NormedModule _ _ _ _). *)

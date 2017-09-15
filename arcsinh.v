@@ -39,9 +39,12 @@ Local Ltac lt0 :=
 Definition arcsinh x := ln (x + sqrt (x ^ 2 + 1)).
 
 Lemma arcsinh_sinh : forall x, arcsinh (sinh x) = x.
+Proof.
 intros x; unfold sinh, arcsinh.
-pattern 1 at 5; rewrite <- exp_0, <- (Rminus_eq_0 x); unfold Rminus.
+change 2 with (IZR 2).
+rewrite <- exp_0, <- (Rminus_eq_0 x); unfold Rminus.
 rewrite exp_plus.
+change (IZR 2) with 2.
 match goal with |- context[sqrt ?a] => 
   replace a with (((exp x + exp(-x))/2)^2) by field
 end. 
