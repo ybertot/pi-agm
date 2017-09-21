@@ -278,7 +278,7 @@ assert (dv : Derive (v_ 1) x = 1 / (2 * sqrt(x))).
 assert (du : Derive (u_ 1) x = 1 / 2).
   unfold u_; apply is_derive_unique, (is_derive_ext (fun x => (1 + x)/2)); auto.
   auto_derive;[tauto | reflexivity].
-rewrite -> dv, du; field; lt0.
+now rewrite -> dv, du; field; lt0.
 Qed.
 
 (* This is equation 26 in submitted version of "distant decimals of pi" *)
@@ -372,7 +372,7 @@ intros n1 intx; induction n1.
     rewrite !Rmult_1_l; field; lt0.
   split;[rewrite d1; lt0 |].
   rewrite -> d1, d2; apply Rinv_lt_contravar; try lt0.
-  rewrite <- (Rmult_1_r (2)) at 2; rewrite <- sqrt_1 at 5.
+  rewrite <- (Rmult_1_r (2)) at 2; rewrite <- sqrt_1.
   now apply Rmult_lt_compat_l, sqrt_lt_1; lt0.
 assert (1 < y_ m x) by now apply y_gt_1.
 destruct (ex_derive_ag (S m) x) as [d [e [Pd [Pe Ps]]]]; try lt0.
@@ -411,6 +411,9 @@ rewrite -> Rmin_left, Rmax_right in Pc1; try lt0.
 now rewrite Pc2; repeat apply Rmult_lt_0_compat; lt0.
 Qed.
 
+Lemma IZR_Zneg p : IZR (Zneg p) = -IZR(Zpos p).
+Proof. reflexivity. Qed.
+
 Lemma z_gt_1 x n : 0 < x < 1 -> (1 <= n)%nat -> 1 < z_ n x.
 Proof.
 intros intx h; induction h.
@@ -442,7 +445,8 @@ end.
 assert (1 < sqrt (y_ m x)).
   now rewrite <- sqrt_1; apply sqrt_lt_1; lt0.
 apply Rmult_lt_compat_r;[psatzl R | ].
-apply Ropp_lt_contravar; rewrite <- (Rmult_1_r 1).
+rewrite IZR_Zneg.
+apply Ropp_lt_contravar. rewrite - (Rmult_1_r 1).
 apply Rmult_le_0_lt_compat; psatzl R.
 Qed.
 
@@ -1885,7 +1889,7 @@ rewrite (Rplus_comm ((y_ n a + -1) ^ 2/8) 1).
 apply over_ystep, y_gt_1; assumption.
 Qed.
 
-(* This property 34 in submitted version of "distant decimals of pi" *)
+(* This is property 34 in submitted version of "distant decimals of pi" *)
 Lemma majoration_y_n n a : 0 < a < 1 ->
   0 <= y_ (n + 1) a - 1 <=
         Rpower (y_ 1 a - 1) (2 ^ n) / (Rpower 8 (2 ^ n - 1)).
@@ -1906,8 +1910,9 @@ apply Req_le.
 replace ((Rpower (y_ 1 a - 1) (2 ^ n) / Rpower 8 (2 ^ n - 1)) ^ 2) with
   ((Rpower (y_ 1 a - 1) (2 ^ n)) ^ 2 / (Rpower 8 (2 ^ n - 1)) ^ 2) by
   (field; apply Rgt_not_eq; unfold Rpower; apply exp_pos).
-rewrite <- !(Rpower_pow 2); simpl (INR 2); try psatzl R; try apply exp_pos.
-rewrite -> Rpower_mult, (Rmult_comm (2 ^ n) 2).
+rewrite <- !(Rpower_pow 2), ?INR_IZR_INZ; simpl (Z.of_nat 2);
+  try psatzl R; try apply exp_pos.
+rewrite -> Rpower_mult; rewrite (Rmult_comm (2 ^ n) 2).
 unfold Rdiv; rewrite Rmult_assoc; apply (f_equal (Rmult _)).
 rewrite -> Rpower_mult, Rmult_minus_distr_r, Rmult_1_l.
 replace (2 ^ n * 2 - 2) with ((2 ^ S n - 1) - 1) by (simpl; ring).

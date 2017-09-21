@@ -1,4 +1,5 @@
-Require Import BigZ rounding_big.
+From Bignums Require Import BigZ.
+Require Import rounding_big.
 
 Eval vm_compute in hpi (10 ^ 1000) 10.
 

@@ -390,6 +390,7 @@ rewrite Rabs_mult; apply Rmult_le_0_lt_compat; cycle 3.
     now apply Rabs_pos.
   now apply Rabs_pos.
 replace (f x / g x) with ((f x / g x - 1) + 1) by ring.
+change 3 with (1 + 2).
 apply Rle_lt_trans with (1 := Rabs_triang _ _); apply Rplus_lt_compat; cycle 1.
   now rewrite Rabs_right; lt0.
 apply Rlt_trans with (eps' / 4).
