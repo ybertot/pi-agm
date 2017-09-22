@@ -247,7 +247,7 @@ Lemma y_error e' y h :
   e' < /10 -> e <= e' / 2 -> 1 <= y <= 71/50 -> Rabs h < e' ->
   let y1 := (1 + y)/(2 * sqrt y) in
   y1 - e' < r_div (1 + (y + h)) (2 * (r_sqrt (y + h))) < y1 + e'.
-Proof.
+Proof using ce r_div_spec r_sqrt_spec.
 intros ce' cc cy ch y1.
 apply Rabs_def2 in ch.
 assert (-/10 <= h <= /10) by psatzl R.
@@ -348,7 +348,7 @@ Lemma z_error e' y z h h' :
   let v := (1 + z * y)/((1 + z) * sqrt y) in
   v - e' < r_div (1 + r_mult (z + h') (y + h))
                   (r_mult (1 + (z + h')) (r_sqrt (y + h))) < v + e'.
-Proof.
+Proof using ce r_div_spec r_mult_spec r_sqrt_spec.
 intros smalle' smalle inty intz he' h'e' v.
 set (u := (1 + (z + h') * (y + h)) / ((1 + (z + h')) * sqrt (y + h))).
 set (u' := (1 + z * (y + h)) / ((1 + z) * sqrt (y + h))).
@@ -515,6 +515,7 @@ Lemma quotient_error : forall e' y z h h', e' < /40 ->
   Rabs h < e' / 2 -> Rabs h' < e' -> e <= e' / 4 ->
   1 < y < 51 / 50 -> 1 < z < 6 / 5 ->
   Rabs (r_div (1 + (y + h)) (1 + (z + h')) - (1 + y)/(1 + z)) <  13 / 10 * e'.
+Proof using e ce r_div_spec.
 intros e' y z h h' smalle' smallh smallh' smalle bndy bndz.
 apply Rabs_def2 in smallh; apply Rabs_def2 in smallh'.
 destruct (r_div_spec (1 + (y + h)) (1 + (z + h'))) as [ld ud]; try psatzl R.
@@ -565,7 +566,7 @@ Lemma product_error_step :
     e < e2 / 5 -> /2 < p < 921/1000 ->
     /2 < v <= 1 -> Rabs h < e1 -> Rabs h' < e2 ->
     Rabs (r_mult (p + h) (v + h') - p * v) < e1 + 23/20 * e2.
-Proof.
+Proof using ce r_mult_spec.
 intros p v e1 e2 h h' smalle1 smalle2 cmpee2 p45 v1 smallh smallh'.
 apply Rabs_def2 in smallh; apply Rabs_def2 in smallh'.
 replace (r_mult (p + h) (v + h') - p * v) with
@@ -622,7 +623,7 @@ Lemma ry_step : forall p y,
    (1 <= p)%nat ->
    Rabs (y - y_ p (/sqrt 2)) < 2 * e ->
    Rabs (r_div (1 + y) (2 * (r_sqrt y)) - y_ (p + 1) (/sqrt 2)) < 2 * e.
-Proof.
+Proof using ce r_div_spec r_sqrt_spec.
 intros p y p1 ch.
 assert (double_e : 2 * e < / 10) by psatzl R.
 set (h := y - y_ p (/sqrt 2)).
@@ -648,7 +649,7 @@ Lemma rz_step :
   Rabs (z - z_ p (/sqrt 2)) < 4 * e ->
   Rabs (r_div (1 + r_mult z y) (r_mult (1 + z) (r_sqrt y)) -
         z_ (p + 1) (/ sqrt 2)) < 4 * e.
-Proof.
+Proof using r_div_spec r_mult_spec r_sqrt_spec ce.
 intros y z p p1 cy cz.
 set (h := y - y_ p (/sqrt 2)).
 set (h' := z - z_ p (/sqrt 2)).
@@ -679,7 +680,7 @@ Lemma rprod_step :
    Rabs (r_mult prod (r_div (1 + r_div (1 + y) (2 * (r_sqrt y)))
               (1 + r_div (1 + r_mult z y) (r_mult (1 + z) (r_sqrt y))))
           - pr (p + 1)) < 4 * (3/2) * INR (p + 1) * e.
-Proof.
+Proof using r_mult_spec r_div_spec r_sqrt_spec ce.
 intros p y z prd p1 smallnp cy cz cprd.
 assert (four_e : 4 * e < /40) by psatzl R.
 assert (vs2 := ints).
@@ -753,7 +754,7 @@ Lemma rpi_rec_correct (p n : nat) s y z prod :
     Rabs (prod - pr p) < 4 * (3/2) * p * e ->
     Rabs (rpi_rec n s y z prod - agmpi (p + n)) <
       (2 + sqrt 2) * 4 * (3/2) * (p + n) * e + 2 * e.
-Proof.
+Proof using r_sqrt_spec r_mult_spec r_div_spec ce.
 assert (1414/1000 < sqrt 2 < 1415/1000) by (split; interval).
 assert (1189/1000 < sqrt (sqrt 2)) by interval.
 intros p1 eb sq; rewrite sq; clear sq; revert p1 eb.
@@ -822,7 +823,7 @@ Qed.
 
 Lemma ry1_correct : let '(_, y1 , _) := rsyz in
   Rabs (y1 - y_ 1 (/sqrt 2)) < 2 * e.
-Proof.
+Proof using r_sqrt_spec r_div_spec ce.
 assert (sqrt 2 - e <= r_sqrt 2 <= sqrt 2).
  assert (two_0 : 0 <= 2) by psatzl R.
  destruct (r_sqrt_spec 2 two_0); psatzl R.
@@ -843,7 +844,7 @@ Qed.
 
 Lemma rz1_correct : let '(_, _, z1) := rsyz in
   Rabs (z1 - z_ 1 (/sqrt 2)) < 4 * e.
-Proof.
+Proof using ce r_sqrt_spec.
 unfold rsyz, rs2; rewrite z_1;[|split;interval].
 assert (two_0 : 0 <= 2) by psatzl R.
 destruct (r_sqrt_spec _ two_0).
@@ -877,7 +878,7 @@ Qed.
 
 Lemma ry1_bnd : let '(_, y1, _) := rsyz in
    1007/1000 < y1 < 52/50.
-Proof.
+Proof using ce r_sqrt_spec r_div_spec.
 unfold rsyz, rs2.
 assert (help1 : forall a b c, 0 < a -> b * a < c -> b <= c / a).
    intros a b c a0 bac; apply Rmult_le_reg_r with a;[psatzl R | ].
@@ -913,7 +914,7 @@ Qed.
 
 Lemma rz1_bnd : let '(_, _, z1) := rsyz in
    1183/1000 < z1 < 119/100.
-Proof.
+Proof using ce r_sqrt_spec.
 unfold rsyz, rs2.
 assert (1414/1000 < sqrt 2 < 1415/1000) by (split; approx_sqrt).
 assert (141/100 < r_sqrt 2 < 1415/1000).
@@ -925,6 +926,7 @@ Qed.
 
 Lemma q1_bnd : let '(_, y1, z1) := rsyz in
   90/100 < r_div (1 + y1) (1 + z1) < 94/100.
+Proof using r_div_spec r_sqrt_spec ce.
 assert (ty := ry1_bnd).
 assert (tz := rz1_bnd).
 revert ty tz; unfold rsyz, rs2; intros ty tz.
@@ -947,6 +949,7 @@ apply Rinv_1_lt_contravar; psatzl R.
 Qed.
 
 Lemma rpi1_correct : Rabs (rpi1 - pr 1) < 4 * (3/2) * e.
+Proof using r_sqrt_spec r_div_spec ce.
 assert (141/100 < sqrt 2 < 142/100) by (split; approx_sqrt).
 assert (bnd_z1 : 1 < z_ 1 (/ sqrt 2) < 6/5).
   now rewrite z_1;[split | split]; interval.
@@ -973,7 +976,7 @@ Qed.
 
 Lemma rpi_correct : forall n, (1 <= n)%nat -> 6 * n * e < /100 ->
   Rabs (rpi n - agmpi n) < (21 * n + 2) * e.
-Proof.
+Proof using ce r_div_spec r_mult_spec r_sqrt_spec.
 pattern 6 at 1; replace 6 with (4 * (3 / 2)) by field.
 intros [|p] p1 cpe; [lia | ]; unfold rpi.
 rewrite (Rmult_plus_distr_r _ _ e).
@@ -993,7 +996,7 @@ Qed.
 Lemma precision_correct :
   forall n, (2 <= n)%nat -> (6 * n * e < / 100) ->
   Rabs (rpi n - PI) < agmpi n - PI + (21 * n + 2) * e.
-Proof.
+Proof using ce r_div_spec r_mult_spec r_sqrt_spec.
 intros n n1 small_error.
 assert (small_error' : 6 * n * e < /100).
  apply Rle_lt_trans with (2 := small_error).
@@ -1017,6 +1020,7 @@ Qed.
 Lemma million_correct :
   e = Rpower 10 (-(10 ^ 6 + 4)) ->
   Rabs (rpi 20 - PI) < /10 * Rpower 10 (-(10 ^ 6)).
+Proof using ce r_div_spec r_mult_spec r_sqrt_spec.
 intros em.
 assert (e < /100000).
  rewrite em, Rpower_Ropp, Rpower_plus, Rinv_mult_distr.
@@ -1028,7 +1032,7 @@ assert (e < /100000).
     apply Ropp_lt_contravar, Rmult_lt_compat_r.
      rewrite <- ln_1; apply ln_increasing; psatzl R.
     pattern 1 at 1; rewrite <- (pow_O 10); apply Rlt_pow;[psatzl R | lia].
-    pattern 4 at 3; replace 4 with (INR 4) by (simpl; ring).
+     replace 4 with (INR 4) by (simpl; ring).
    rewrite Rpower_pow, Rpower_1; simpl; psatzl R.
   apply Rgt_not_eq, exp_pos.
  apply Rgt_not_eq, exp_pos.
@@ -1036,7 +1040,7 @@ assert (toe : (21 * 20 + 3) * e < /10 * Rpower 10 (- 10 ^ 6)).
  rewrite em, Ropp_plus_distr, Rpower_plus, (Rmult_comm (Rpower _ _)).
  rewrite <- Rmult_assoc; apply Rmult_lt_compat_r.
   solve[unfold Rpower; apply exp_pos].
- replace (-4) with (-INR 4) by (simpl; ring).
+ replace (-(4)) with (-INR 4) by (simpl; ring).
  rewrite Rpower_Ropp, Rpower_pow; simpl; psatzl R.
 apply Rlt_trans with (2 := toe).
 assert (twenty_1 : (1 <= 20)%nat) by lia.
@@ -1067,6 +1071,7 @@ Hypothesis big_magnifier : 1000 < magnifier.
 Variable pos_magnifier : 0 < magnifier.
 
 Lemma pos_magnifierR : (0 < IZR magnifier)%R.
+Proof using pos_magnifier.
 apply (IZR_lt 0); exact pos_magnifier.
 Qed.
 
@@ -1081,7 +1086,7 @@ Definition h2 := 2 * h1.
 Definition floor : R -> Z := Rcomplements.floor.
 
 Lemma floorP (x : R) :  (IZR (floor x) <= x < IZR (floor x) + 1)%R.
-Proof.
+Proof using.
 unfold floor, Rcomplements.floor.
 destruct floor_ex as [v vp]; simpl; psatzl R.
 Qed.
@@ -1110,7 +1115,7 @@ Definition r_sqrt (x : R) : R := hR (Rh (sqrt x)).
 
 Lemma hdiv_spec :
   forall x y : Z, 0 < y -> hR (hdiv x y) = r_div (hR x) (hR y).
-Proof.
+Proof using pos_magnifier.
 intros x y y0; unfold hdiv, r_div, hR.
 replace (IZR x/ IZR magnifier / (IZR y / IZR magnifier))%R with
  (IZR x / IZR y)%R by
@@ -1144,7 +1149,7 @@ Qed.
 Lemma hmult_spec :
   forall x y : Z, (0 <= x -> 0 <= y ->
    hR (hmult x y) = r_mult (hR x) (hR y))%Z.
-Proof.
+Proof using pos_magnifier.
 intros x y x0 y0; unfold hmult, r_mult, hR.
 replace (IZR x / IZR magnifier * (IZR y /IZR magnifier))%R
  with (IZR x * IZR y /(IZR magnifier*IZR magnifier))%R;
@@ -1178,7 +1183,7 @@ Qed.
 
 Lemma hsqrt_spec :
   forall x : Z, (0<= x -> hR (hsqrt x) = r_sqrt (hR x))%Z.
-Proof.
+Proof using pos_magnifier.
 intros x x0; unfold hsqrt, r_sqrt, hR.
 assert (0 < IZR magnifier)%R by (apply (IZR_lt 0); assumption).
 apply f_equal with (f := fun x => (IZR x / IZR magnifier)%R).
@@ -1227,7 +1232,7 @@ Qed.
 
 Lemma hdiv_pos :
   forall x y, (0 <= x -> 0 < y -> 0 <= hdiv x y).
-Proof.
+Proof using pos_magnifier.
 intros x y x0 y0; unfold hdiv.
 apply Z.div_pos.
  apply Z.mul_nonneg_nonneg.
@@ -1238,7 +1243,7 @@ Qed.
 
 Lemma hmult_pos :
   forall x y, 0 <= x -> 0 <= y -> 0 <= hmult x y.
-Proof.
+Proof using pos_magnifier.
 intros x y x0 y0; unfold hmult.
 apply Z.div_pos.
  apply Z.mul_nonneg_nonneg; assumption.
@@ -1247,11 +1252,12 @@ Qed.
 
 Lemma hsqrt_pos :
   forall x, 0 <= hsqrt x.
-Proof.
+Proof using.
 intros x; unfold hsqrt; apply Z.sqrt_nonneg.
 Qed.
 
 Lemma hR_half_non_zero : forall x, (/2 < hR x)%R -> 0 < x.
+Proof using pos_magnifier.
 intros x cx; apply lt_IZR.
 simpl (IZR 0).
 unfold hR in cx; apply Rmult_lt_reg_r with (/IZR magnifier)%R.
@@ -1260,29 +1266,30 @@ apply Rlt_trans with (2 := cx); rewrite Rmult_0_l; psatzl R.
 Qed.
 
 Lemma hplus_spec : forall x y, (hR (x + y) = hR x + hR y)%R.
-Proof.
+Proof using.
 intros; unfold hR, Rdiv.
 rewrite plus_IZR, Rmult_plus_distr_r; reflexivity.
 Qed.
 
 Lemma hscal2_spec : forall x, (hR (2 * x) = 2 * hR x)%R.
-Proof.
+Proof using.
 intros; unfold hR, Rdiv.
 rewrite mult_IZR, Rmult_assoc; reflexivity.
 Qed.
 
 Lemma h1_spec : hR h1 = 1%R.
-Proof.
+Proof using pos_magnifier.
 unfold hR, Rdiv; apply Rinv_r; apply Rgt_not_eq, (IZR_lt 0); assumption.
 Qed.
 
 Lemma h2_spec : hR h2 = 2%R.
-Proof.
+Proof using pos_magnifier.
 unfold hR, Rdiv, h2, h1; rewrite mult_IZR; simpl (IZR 2).
 field; apply Rgt_not_eq, (IZR_lt 0); assumption.
 Qed.
 
 Lemma hR_gt_0 : forall x, (0 < hR x)%R -> 0 < x.
+Proof using pos_magnifier.
 intros x x0; apply (lt_IZR 0); simpl (IZR 0).
 apply (Rmult_lt_reg_r (/IZR magnifier)).
  apply Rinv_0_lt_compat, (IZR_lt 0); assumption.
@@ -1290,7 +1297,7 @@ rewrite Rmult_0_l; exact x0.
 Qed.
 
 Lemma floor_IZR (v : Z) : floor (IZR v) = v.
-Proof.
+Proof using.
 clear.
 destruct (floorP (IZR v)) as [xle xcl].
 apply le_IZR in xle.
@@ -1299,7 +1306,7 @@ intros xcl; apply lt_IZR in xcl; lia.
 Qed.
 
 Lemma Rh_hR (v : Z) : Rh (hR v) = v.
-Proof.
+Proof using pos_magnifier.
 unfold Rh, RbZ, hR.
 replace (IZR v / IZR magnifier * IZR magnifier)%R with (IZR v)%R.
  rewrite floor_IZR; reflexivity.
@@ -1307,6 +1314,7 @@ field; apply Rgt_not_eq, pos_magnifierR.
 Qed.
 
 Lemma hR_pos : forall x, (0 <= hR x)%R -> 0 <= x.
+Proof using pos_magnifier.
 intros x x0; apply (le_IZR 0); simpl (IZR 0).
 apply (Rmult_le_reg_r (/IZR magnifier)).
  apply Rinv_0_lt_compat, (IZR_lt 0); assumption.
@@ -1314,19 +1322,21 @@ rewrite Rmult_0_l; exact x0.
 Qed.
 
 Lemma h2_pos : 0 < h2.
+Proof using pos_magnifier.
 unfold h2; apply Z.mul_pos_pos.
  reflexivity.
 assumption.
 Qed.
 
 Lemma h1_pos : 0 < h1.
+Proof using pos_magnifier.
 assumption.
 Qed.
 
 Open Scope R_scope.
 
 Lemma hR_Rh (v : R) : v - /IZR magnifier < hR (Rh v) <= v.
-Proof.
+Proof using pos_magnifier.
 unfold hR, Rh, RbZ.
 destruct (floorP (v * IZR magnifier)) as [xle xcl].
 assert (pm:= pos_magnifierR).
@@ -1340,21 +1350,24 @@ Qed.
 
 Lemma r_div_spec : forall x y, 0 < y ->
    x / y - /IZR magnifier < r_div x y <= x / y.
+Proof using pos_magnifier.
 intros x y y0; unfold r_div; apply hR_Rh.
 Qed.
 
 Lemma r_mult_spec : forall x y, 0 <= x -> 0 <= y ->
    x * y - /IZR magnifier < r_mult x y <= x * y.
+Proof using pos_magnifier.
 intros x y x0 y0; unfold r_mult; apply hR_Rh.
 Qed.
 
 Lemma r_sqrt_spec : forall x, 0 <= x ->
     sqrt x - /IZR magnifier < r_sqrt x <= sqrt x.
+Proof using pos_magnifier.
 intros; apply hR_Rh.
 Qed.
 
 Lemma dummy : 0 < /IZR magnifier < /1000.
-Proof.
+Proof using big_magnifier pos_magnifier.
 split;[apply Rinv_0_lt_compat, (IZR_lt 0); assumption|].
 apply Rinv_1_lt_contravar;[psatzl R | ].
 replace 1%R with (IZR 1) by reflexivity;
@@ -1371,7 +1384,7 @@ Lemma hpi_rpi_rec (n p : nat) s2 y z prod:
     Rabs (hR prod - pr p) < 4 * (3/2) * INR p * /IZR magnifier ->
     hR (hpi_rec n s2 y z prod) =
     rpi_rec r_div r_sqrt r_mult n (hR s2) (hR y) (hR z) (hR prod).
-Proof.
+Proof using big_magnifier pos_magnifier.
 intros p1 s2q; rewrite s2q; clear s2q s2.
 revert p y z prod p1.
 assert (/IZR magnifier < /100).
@@ -1481,33 +1494,33 @@ rewrite qy, qz, qpr; apply (IHn (p + 1)%nat);[ lia | | | | ].
   rewrite <- qy; exact ty.
  rewrite <- qz; exact tz.
 rewrite <- qpr; apply rprod_step; auto.
-   exact dummy.
-  exact r_mult_spec.
- exact r_div_spec.
+     exact dummy.
+    exact r_mult_spec.
+  exact r_div_spec.
 exact r_sqrt_spec.
 Qed.
 
 Definition hs2 := hsqrt h2.
 
 Lemma hs2_bnd : 141/100 < hR hs2 < 1415/1000.
-Proof.
+Proof using pos_magnifier big_magnifier.
 unfold hs2; rewrite hsqrt_spec, h2_spec;[ |apply Z.lt_le_incl, h2_pos].
 assert (1414/1000 < sqrt 2 < 1415/1000) by (split; approx_sqrt).
 assert (/IZR magnifier < / 1000).
- apply Rinv_1_lt_contravar; [psatzl R | replace 1000 with (IZR (40 * 25))].
-  apply IZR_lt; assumption.
- rewrite mult_IZR; simpl; ring.
+  apply Rinv_1_lt_contravar; [psatzl R | replace 1000 with (IZR (40 * 25))].
+    apply IZR_lt; assumption.
+  rewrite mult_IZR; simpl; ring.
 destruct (r_sqrt_spec 2); psatzl R.
 Qed.
 
 Lemma hss2_bnd : 117/100 < hR (hsqrt hs2) < 119/100.
-Proof.
+Proof using pos_magnifier big_magnifier.
 assert (hs2b := hs2_bnd).
 assert (1187/1000 < sqrt (hR hs2) < 119/100) by (split; approx_sqrt).
 assert (/IZR magnifier < / 1000).
- apply Rinv_1_lt_contravar; [psatzl R | replace 1000 with (IZR (40 * 25))].
-  apply IZR_lt; assumption.
- rewrite mult_IZR; simpl; ring.
+  apply Rinv_1_lt_contravar; [psatzl R | replace 1000 with (IZR (40 * 25))].
+   apply IZR_lt; assumption.
+  rewrite mult_IZR; simpl; ring.
 rewrite hsqrt_spec;[ | apply hR_pos; psatzl R].
 destruct (r_sqrt_spec (hR hs2)); psatzl R.
 Qed.
@@ -1518,7 +1531,7 @@ Definition hsyz :=
   (hs2, hdiv (h1 + hs2) (2 * ss2), ss2).
 
 Lemma hy1_spec : hR (snd (fst (hsyz))) = snd (fst (rsyz r_div r_sqrt)).
-Proof.
+Proof using big_magnifier pos_magnifier.
 unfold hsyz, hs2.
 assert (t := h2_pos).
 assert (t' := Z.lt_le_incl _ _ h2_pos).
@@ -1527,7 +1540,7 @@ assert (0 <= hsqrt h2)%Z.
  apply hR_pos; fold hs2; psatzl R.
 destruct hss2_bnd.
 assert (0 <= hsqrt hs2)%Z.
- apply hR_pos; psatzl R.
+ now apply hR_pos; psatzl R.
 unfold hsyz, hs2, fst, snd.
 rewrite hdiv_spec, hplus_spec, hscal2_spec, !hsqrt_spec,
     h2_spec, h1_spec; auto.
@@ -1536,6 +1549,7 @@ fold hs2; apply hR_gt_0; psatzl R.
 Qed.
 
 Lemma hz1_spec : hR (snd hsyz) = snd (rsyz r_div r_sqrt).
+Proof using big_magnifier pos_magnifier.
 assert (t := Z.lt_le_incl _ _ h2_pos).
 unfold hsyz, fst, snd, hs2; rewrite !hsqrt_spec, h2_spec; auto.
 apply hR_pos; fold hs2; destruct hs2_bnd; psatzl R.
@@ -1551,7 +1565,7 @@ Definition hpi n :=
 Lemma hpi_rpi (n : nat) :
   6 * INR n * /IZR magnifier < / 100 ->
   hR (hpi n) = rpi r_div r_sqrt r_mult n.
-Proof.
+Proof using big_magnifier pos_magnifier.
 destruct n as [ | n]; intros small_e.
  simpl; rewrite hplus_spec, hsqrt_spec, h2_spec.
   reflexivity.
@@ -1602,7 +1616,7 @@ Qed.
 Require Import Zwf.
 Lemma Zpow_Rpower : forall x y, (0 < x) %Z -> (0 <= y)%Z ->
    IZR (x ^ y) = Rpower (IZR x) (IZR y). (* standard *)
-Proof.
+Proof using.
 clear.
 intros x y x0; assert (0 < IZR x)%R by (apply (IZR_lt 0); assumption).
 induction y as [y IHy] using (well_founded_ind (Zwf_well_founded 0)).
@@ -1617,7 +1631,7 @@ Lemma hpi_n1 :
   forall n, hpi (n + 1) = hpi_rec n hs2 (snd (fst hsyz))
                 (snd hsyz) (hdiv (h1 + snd (fst hsyz) )
                                  (h1 + snd hsyz)).
-Proof.
+Proof using.
 intros n; replace (n + 1)%nat with (S n) by ring; reflexivity.
 Qed.
 
@@ -1626,6 +1640,7 @@ Lemma integer_pi :
   600 * INR (n + 1) < IZR magnifier < Rpower 531 (2 ^ n)/ 14 ->
   Rabs (hR (hpi (n + 1)) - PI)
      < (21 * INR (n + 1) + 3) /IZR magnifier.
+Proof using big_magnifier pos_magnifier.
 intros n n1; replace (600 * INR (n + 1)) with (6 * INR (n + 1) * 100) by ring.
 intros intp.
 assert (msp := r_mult_spec).
@@ -1716,7 +1731,7 @@ Qed.
 Lemma integer_pi_million :
   IZR magnifier = Rpower 10 (10 ^ 6 + 4) ->
   (Rabs (hR (hpi 20) - PI) < 6/100 * Rpower 10 (-10 ^ 6))%R.
-Proof.
+Proof using big_magnifier pos_magnifier.
 intros magnifierq.
 assert (nineteen1 : (1 <= 19)%nat) by lia.
 assert (magnifier_10k : 100000 < IZR magnifier).
@@ -1756,7 +1771,7 @@ Ltac cmp_pow :=
 Lemma integer_pi_ofive :
   IZR magnifier = Rpower 10 (10 ^ 5 + 4) ->
   (Rabs (hR (hpi 17) - PI) < 5/100 * Rpower 10 (-10 ^ 5))%R.
-Proof.
+Proof using big_magnifier pos_magnifier.
 intros magnifierq.
 assert (sixteen1 : (1 <= 16)%nat) by lia.
 assert (magnifier_10k : 100000 < IZR magnifier).
@@ -1783,7 +1798,7 @@ Qed.
 Lemma integer_pi_othree :
   IZR magnifier = Rpower 10 (10 ^ 3 + 4) ->
   (Rabs (hR (hpi 10) - PI) < 3/100 * Rpower 10 (-10 ^ 3))%R.
-Proof.
+Proof using big_magnifier pos_magnifier.
 intros magnifierq.
 assert (nine1 : (1 <= 9)%nat) by lia.
 assert (magnifier_10k : 10000 < IZR magnifier).
@@ -1811,35 +1826,20 @@ Lemma integer_pi_othree_bin :
   IZR magnifier = Rpower 2 3336 ->
   (Rabs (hR (hpi 10) - PI))
      < 213 * Rpower 2 (-14) * Rpower 2 (-3322).
-Proof.
+Proof using big_magnifier pos_magnifier.
 intros magnifierq.
-assert (num : 3336 = IZR 3336).
-replace 1 with (IZR 1) by reflexivity.
-repeat (rewrite <- plus_IZR || rewrite <- mult_IZR); apply f_equal; ring.
 assert (nine1 : (1 <= 9)%nat) by lia.
 assert (prem : 600 * INR (9 + 1) < IZR magnifier < Rpower 531 (2 ^ 9)/14).
- split.
-  apply Rlt_trans with (Rpower 2 13).
-   repeat (rewrite <- Rpower_mult || rewrite Rpower_plus ||
-           rewrite Rpower_1); simpl; psatzl R.
-   rewrite magnifierq; apply Rpower_lt; psatzl R.
- rewrite magnifierq.
- apply Rmult_lt_reg_r with 14;[psatzl R | ].
- apply Rlt_trans with (Rpower 2 3336 * Rpower 2 4).
-  apply Rmult_lt_compat_l;[apply exp_pos | ].
-  repeat (rewrite <- Rpower_mult || rewrite Rpower_plus ||
-           rewrite Rpower_1); simpl; psatzl R.
- unfold Rdiv; rewrite Rmult_assoc, Rinv_l, Rmult_1_r;[ | psatzl R].
- rewrite <- Rpower_plus.
- unfold Rpower; apply exp_increasing; interval.
+  split.
+    now rewrite magnifierq; unfold Rpower; simpl; interval.
+  rewrite magnifierq; unfold Rpower; interval.
 apply Rlt_le_trans with (1 := integer_pi _ nine1 prem).
 replace (21 * INR (9 + 1) + 3) with 213 by (simpl; ring).
 rewrite magnifierq.
+rewrite Rmult_assoc; apply Rmult_le_compat_l;[psatzl R | ].
 replace 3336 with (14 + 3322) by ring; rewrite Rpower_plus.
-unfold Rdiv; rewrite Rinv_mult_distr, <- Rmult_assoc, Rpower_Ropp.
-  apply Req_le, f_equal; rewrite Rpower_Ropp; reflexivity.
- apply Rgt_not_eq, exp_pos.
-apply Rgt_not_eq, exp_pos.
+rewrite Rinv_mult_distr, <- !Rpower_Ropp; try (apply Rgt_not_eq, exp_pos).
+apply Req_le; reflexivity.
 Qed.
 
 End high_precision.
@@ -1922,64 +1922,52 @@ Lemma pi_million :
 Proof.
 intros pr n ctr n'.
 assert (main : hR (10 ^ (10 ^ 6)) n' < PI < hR (10 ^ (10 ^ 6)) (n' + 1)).
- assert (cd : (0 < 10 ^ 4)%Z) by (compute; reflexivity).
- assert (cp : (0 < 10 ^ (10 ^ 6))%Z).
-  apply Z.pow_pos_nonneg; [reflexivity | compute; discriminate].
- assert (t':Rabs (hR (10 ^ (10 ^ 6) * 10 ^ 4) n - PI)
+  assert (cd : (0 < 10 ^ 4)%Z) by reflexivity.
+  assert (cp : (0 < 10 ^ (10 ^ 6))%Z).
+    apply Z.pow_pos_nonneg; [reflexivity | discriminate].
+  assert (t':Rabs (hR (10 ^ (10 ^ 6) * 10 ^ 4) n - PI)
                 < 6/100 * Rpower 10 (- 10 ^ 6)).
-  assert (powm : hR (10 ^ (10 ^ 6) * 10 ^ 4) n = hR (10 ^ (10 ^ 6 + 4)) n).
-   unfold hR; rewrite Z.pow_add_r;[reflexivity | | ]; compute; discriminate.
-  rewrite powm.
-  assert (gt1000 : (1000 < 10 ^ (10 ^ 6 + 4))%Z).
-   assert (st : (1000 = 1 ^ (10 ^ 6) * 1000)%Z).
-    rewrite Z.pow_1_l, Z.mul_1_l;[reflexivity | ].
-    apply Z.pow_nonneg;compute; discriminate.
-   rewrite st, Z.pow_add_r;[ | compute; discriminate | compute; discriminate].
-   apply Z.mul_lt_mono_nonneg.
-      apply Z.pow_nonneg; compute; discriminate.
-     apply Z.pow_lt_mono_l;[reflexivity | compute; split;[discriminate | reflexivity]].
-    compute; discriminate.
-   compute; reflexivity.
-  assert (cp' : (0 < 10 ^ (10 ^ 6 + 4))%Z).
-   apply Z.pow_pos_nonneg; [reflexivity | compute; discriminate].
-  assert (q : IZR (10 ^ (10 ^ 6 + 4)) = Rpower 10 (10 ^ 6 + 4)).
-   rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
-   replace (IZR 10) with 10 by (simpl; ring).
-   apply f_equal; rewrite plus_IZR.
-   change 6%Z with (Z.of_nat 6).
-   rewrite <- pow_IZR.
-   replace (IZR 10) with 10 by (simpl; ring).
-   replace (IZR 4) with 4 by (simpl; ring).
-   reflexivity.
-  apply (integer_pi_million (10 ^ (10 ^ 6 + 4)) gt1000 cp' q).
- assert (ctr' : (Rh (10 ^ 10 ^ 6 * 10 ^ 4)
+    assert (powm : hR (10 ^ (10 ^ 6) * 10 ^ 4) n = hR (10 ^ (10 ^ 6 + 4)) n).
+      unfold hR; rewrite Z.pow_add_r;[reflexivity | | ]; compute; discriminate.
+    rewrite powm.
+    assert (gt1000 : (1000 < 10 ^ (10 ^ 6 + 4))%Z).
+      assert (st : (1000 = 1 ^ (10 ^ 6) * 1000)%Z).
+        rewrite Z.pow_1_l, Z.mul_1_l;[reflexivity | ].
+        apply Z.pow_nonneg;compute; discriminate.
+      rewrite st, Z.pow_add_r;[ | compute; discriminate | compute; discriminate].
+      apply Z.mul_lt_mono_nonneg.
+            apply Z.pow_nonneg; compute; discriminate.
+          apply Z.pow_lt_mono_l;[| compute; split;[discriminate |]]; reflexivity.
+        discriminate.
+      reflexivity.
+    assert (cp' : (0 < 10 ^ (10 ^ 6 + 4))%Z).
+      apply Z.pow_pos_nonneg; [reflexivity | compute; discriminate].
+    assert (q : IZR (10 ^ (10 ^ 6 + 4)) = Rpower 10 (10 ^ 6 + 4)).
+      rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
+      apply f_equal; rewrite plus_IZR.
+      rewrite Zpow_Rpower, <- Rpower_pow; try psatzl R; try lia.
+      apply (f_equal (fun x => Rpower 10 x + 4)); simpl; ring.
+    apply (integer_pi_million (10 ^ (10 ^ 6 + 4)) gt1000 cp' q).
+  assert (ctr' : (Rh (10 ^ 10 ^ 6 * 10 ^ 4)
                    (6 / 100 * Rpower 10 (- 10 ^ 6)) + 1 <
                   n mod 10 ^ 4 <
                    10 ^ 4 - (Rh (10 ^ 10 ^ 6 * 10 ^ 4)
                    (6/ 100 * Rpower 10 (- 10 ^ 6)) + 1))%Z).
- assert (sm: (Rh (10 ^ 10 ^ 6 * 10 ^ 4) (6/ 100 * Rpower 10 (- 10 ^ 6)) = 600)%Z).
-   unfold Rh; rewrite mult_IZR.
-   rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
-   rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
-   replace (IZR 10) with 10 by (simpl; ring).
-   replace (IZR 6) with (INR 6) by (simpl; ring).
-   rewrite Rpower_pow, !Rmult_assoc, (Rmult_comm (6/100)),
+    assert (sm: (Rh (10 ^ 10 ^ 6 * 10 ^ 4) (6/ 100 * Rpower 10 (- 10 ^ 6)) = 600)%Z).
+      unfold Rh; rewrite mult_IZR.
+      rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
+      rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
+      replace (IZR 6) with (INR 6) at 2 by (simpl; ring).
+      rewrite Rpower_pow, !Rmult_assoc, (Rmult_comm (6/100)),
       <- Rmult_assoc;[ | psatzl R].
-   rewrite <- Rpower_plus, Rplus_opp_l, Rpower_O, Rmult_1_l;[ | psatzl R].
-   rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
-   replace (IZR 4) with (INR 4) by (simpl; ring).
-   replace (IZR 10) with 10 by (simpl; ring).
-   rewrite Rpower_pow;[ | psatzl R].
-   replace (10 ^ 4 * (6 / 100)) with (IZR 20 * IZR 30) by (simpl; psatzl R).
-   unfold RbZ; rewrite <- mult_IZR, floor_IZR; reflexivity.
-  rewrite sm.
-  assert (s10m' : (10 ^ 4 = 10000)%Z) by ring.
-  assert (s10m : (forall x, x  mod 10 ^ 4 = x mod 10000)%Z).
-   clear; assert (s10m : (10 ^ 4 = 10000)%Z) by ring.
-   intros x; rewrite !Z.mod_eq, s10m;
-   [reflexivity | compute; discriminate | compute; discriminate].
-  rewrite s10m, s10m'.
-  assumption.
+      rewrite <- Rpower_plus, Rplus_opp_l, Rpower_O, Rmult_1_l;[ | psatzl R].
+      rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
+      replace (IZR 4) with (INR 4) by (simpl; ring).
+      rewrite Rpower_pow;[ | psatzl R].
+      replace (10 ^ 4 * (6 / 100)) with (IZR 20 * IZR 30) by (simpl; psatzl R).
+      unfold RbZ; rewrite <- mult_IZR, floor_IZR; reflexivity.
+    rewrite sm.
+    exact ctr.
  assert (t := rerounding_simple (10 ^ (10 ^ 6)) (10 ^ 4) (6/100 * Rpower 10 (-10 ^ 6))
              PI n cd cp t' ctr').
  exact t.
@@ -1988,7 +1976,6 @@ rewrite hplus_spec; unfold hR at 2; simpl (IZR 1).
 unfold Rdiv; rewrite Rmult_1_l.
 rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
 rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
-replace (IZR 10) with 10 by (simpl; field).
 replace (IZR 6) with (INR 6) by (simpl; field).
 rewrite Rpower_pow;[|psatzl R].
 rewrite Rpower_Ropp; psatzl R.
@@ -2003,64 +1990,56 @@ Lemma pi_ofive :
 Proof.
 intros pr n ctr n'.
 assert (main : hR (10 ^ (10 ^ 5)) n' < PI < hR (10 ^ (10 ^ 5)) (n' + 1)).
- assert (cd : (0 < 10 ^ 4)%Z) by (compute; reflexivity).
- assert (cp : (0 < 10 ^ (10 ^ 5))%Z).
-  apply Z.pow_pos_nonneg; [reflexivity | compute; discriminate].
- assert (t':Rabs (hR (10 ^ (10 ^ 5) * 10 ^ 4) n - PI) < 5/100 * Rpower 10 (- 10 ^ 5)).
-  assert (powm : hR (10 ^ (10 ^ 5) * 10 ^ 4) n = hR (10 ^ (10 ^ 5 + 4)) n).
-   unfold hR; rewrite Z.pow_add_r;[reflexivity | | ]; compute; discriminate.
-  rewrite powm.
-  assert (gt1000 : (1000 < 10 ^ (10 ^ 5 + 4))%Z).
-   assert (st : (1000 = 1 ^ (10 ^ 5) * 1000)%Z).
-    rewrite Z.pow_1_l, Z.mul_1_l;[reflexivity | ].
-    apply Z.pow_nonneg;compute; discriminate.
-   rewrite st, Z.pow_add_r;[ | compute; discriminate | compute; discriminate].
-   apply Z.mul_lt_mono_nonneg.
-      apply Z.pow_nonneg; compute; discriminate.
-     apply Z.pow_lt_mono_l;[reflexivity | compute; split;[discriminate | reflexivity]].
-    compute; discriminate.
-   compute; reflexivity.
-  assert (cp' : (0 < 10 ^ (10 ^ 5 + 4))%Z).
-    apply Z.pow_pos_nonneg;
-    [reflexivity | compute; discriminate].
+  assert (cd : (0 < 10 ^ 4)%Z) by (compute; reflexivity).
+  assert (cp : (0 < 10 ^ (10 ^ 5))%Z).
+    apply Z.pow_pos_nonneg; [reflexivity | discriminate].
+  assert (t':Rabs (hR (10 ^ (10 ^ 5) * 10 ^ 4) n - PI) < 5/100 * Rpower 10 (- 10 ^ 5)).
+    assert (powm : hR (10 ^ (10 ^ 5) * 10 ^ 4) n = hR (10 ^ (10 ^ 5 + 4)) n).
+      unfold hR; rewrite Z.pow_add_r;[reflexivity | | ]; compute; discriminate.
+    rewrite powm.
+    assert (gt1000 : (1000 < 10 ^ (10 ^ 5 + 4))%Z).
+      assert (st : (1000 = 1 ^ (10 ^ 5) * 1000)%Z).
+        rewrite Z.pow_1_l, Z.mul_1_l;[reflexivity | ].
+        apply Z.pow_nonneg;compute; discriminate.
+      rewrite st, Z.pow_add_r;[ | compute; discriminate | compute; discriminate].
+      apply Z.mul_lt_mono_nonneg.
+            apply Z.pow_nonneg; compute; discriminate.
+          apply Z.pow_lt_mono_l;[| compute; split;[discriminate | ]]; reflexivity.
+        discriminate.
+      reflexivity.
+    assert (cp' : (0 < 10 ^ (10 ^ 5 + 4))%Z).
+      apply Z.pow_pos_nonneg;[reflexivity | compute; discriminate].
 (* funny : a bug by the user here, (replacing 5 by 6), causes a time costly computation. *)
-  assert (q : IZR (10 ^ (10 ^ 5 + 4)) = Rpower 10  (10 ^ 5 + 4)).
-   rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
-   replace (IZR 10) with 10 by (simpl; ring).
-   apply f_equal; rewrite plus_IZR.
-   change 5%Z with (Z.of_nat 5).
-   rewrite <- pow_IZR.
-   replace (IZR 10) with 10 by (simpl; ring).
-   replace (IZR 4) with 4 by (simpl; ring).
-   reflexivity.
-  apply (integer_pi_ofive (10 ^ (10 ^ 5 + 4)) gt1000 cp' q).
-assert (ctr' : (Rh (10 ^ 10 ^ 5 * 10 ^ 4) (5/ 100 * Rpower 10 (- 10 ^ 5)) + 1 <
+    assert (q : IZR (10 ^ (10 ^ 5 + 4)) = Rpower 10  (10 ^ 5 + 4)).
+      rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
+      apply f_equal; rewrite plus_IZR.
+      rewrite Zpow_Rpower, <- Rpower_pow; try psatzl R; try lia.
+      apply (f_equal (fun x => Rpower 10 x + 4)); simpl; ring.
+    apply (integer_pi_ofive (10 ^ (10 ^ 5 + 4)) gt1000 cp' q).
+  assert (ctr' : (Rh (10 ^ 10 ^ 5 * 10 ^ 4) (5/ 100 * Rpower 10 (- 10 ^ 5)) + 1 <
        n mod 10 ^ 4 <
        10 ^ 4 - (Rh (10 ^ 10 ^ 5 * 10 ^ 4) (5/ 100 * Rpower 10 (- 10 ^ 5)) + 1))%Z).
- assert (sm: (Rh (10 ^ 10 ^ 5 * 10 ^ 4) (5/ 100 * Rpower 10 (- 10 ^ 5)) = 500)%Z).
-   unfold Rh; rewrite mult_IZR.
-   rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
-   rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
-   replace (IZR 10) with 10 by (simpl; ring).
-   replace (IZR 5) with (INR 5) by (simpl; ring).
-   rewrite Rpower_pow, !Rmult_assoc, (Rmult_comm (5/100)), <- Rmult_assoc;
-     [ | psatzl R].
-   rewrite <- Rpower_plus, Rplus_opp_l, Rpower_O, Rmult_1_l;[ | psatzl R].
-   rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
-   replace (IZR 4) with (INR 4) by (simpl; ring).
-   replace (IZR 10) with 10 by (simpl; field).
-   rewrite Rpower_pow;[ | psatzl R].
-   replace (10 ^ 4 * (5/100)) with (IZR 500) by (simpl; psatzl R).
-   unfold RbZ; rewrite floor_IZR; reflexivity.
-  rewrite sm.
-  assumption.
- exact (rerounding_simple (10 ^ (10 ^ 5)) (10 ^ 4) _
+    assert (sm: (Rh (10 ^ 10 ^ 5 * 10 ^ 4) (5/ 100 * Rpower 10 (- 10 ^ 5)) = 500)%Z).
+      unfold Rh; rewrite mult_IZR.
+      rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
+      rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
+      replace (IZR 5) with (INR 5) at 2 by (simpl; ring).
+      rewrite Rpower_pow, !Rmult_assoc, (Rmult_comm (5/100)), <- Rmult_assoc;
+        [ | psatzl R].
+      rewrite <- Rpower_plus, Rplus_opp_l, Rpower_O, Rmult_1_l;[ | psatzl R].
+      rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
+      replace (IZR 4) with (INR 4) by (simpl; ring).
+      rewrite Rpower_pow;[ | psatzl R].
+      replace (10 ^ 4 * (5/100)) with (IZR 500) by (simpl; psatzl R).
+      unfold RbZ; rewrite floor_IZR; reflexivity.
+    rewrite sm.
+    assumption.
+  exact (rerounding_simple (10 ^ (10 ^ 5)) (10 ^ 4) _
              PI n cd cp t' ctr').
 split;[apply Rlt_Rminus; tauto | destruct main as [_ main]]; revert main.
 rewrite hplus_spec; unfold hR at 2; simpl (IZR 1); unfold Rdiv; rewrite Rmult_1_l.
 rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
 rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
-replace (IZR 10) with 10 by (simpl; field).
 replace (IZR 5) with (INR 5) by (simpl; field).
 rewrite Rpower_pow;[|psatzl R].
 rewrite Rpower_Ropp; psatzl R.
@@ -2077,63 +2056,50 @@ Lemma pi_othree_bin :
 Proof.
 intros pr n ctr n'.
 assert (main : hR (2 ^ 3322) n' < PI < hR (2 ^ 3322) (n' + 1)).
- assert (cd : (0 < 2 ^ 14)%Z) by (compute; reflexivity).
- assert (cp : (0 < 2 ^ 3322)%Z).
-  apply Z.pow_pos_nonneg;
-    [reflexivity | compute; discriminate].
- assert (t':Rabs (hR (2 ^ 3322 * 2 ^ 14) n - PI) < 213 * Rpower 2 (- 14) *
+  assert (cd : (0 < 2 ^ 14)%Z) by (compute; reflexivity).
+  assert (cp : (0 < 2 ^ 3322)%Z).
+    apply Z.pow_pos_nonneg;[reflexivity | compute; discriminate].
+  assert (t':Rabs (hR (2 ^ 3322 * 2 ^ 14) n - PI) < 213 * Rpower 2 (- 14) *
               Rpower 2 (-3322)).
-  assert (powm : hR (2 ^ 3322 * 2 ^ 14) n = hR (2 ^ 3336) n).
-   unfold hR; rewrite <- Z.pow_add_r;
-     [reflexivity | | ]; compute; discriminate.
-  rewrite powm.
-  assert (gt1000 : (1000 < 2 ^ 3336)%Z).
-   apply Z.lt_trans with ((2 ^ 10)%Z).
-    reflexivity.
-   apply Z.pow_lt_mono_r;
-     [ | rewrite <- Z.leb_le | ]; reflexivity.
+    assert (powm : hR (2 ^ 3322 * 2 ^ 14) n = hR (2 ^ 3336) n).
+      unfold hR; rewrite <- Z.pow_add_r;
+        [reflexivity | | ]; compute; discriminate.
+    rewrite powm.
+    assert (gt1000 : (1000 < 2 ^ 3336)%Z).
+      apply Z.lt_trans with ((2 ^ 10)%Z).
+        reflexivity.
+      apply Z.pow_lt_mono_r;
+        [ | rewrite <- Z.leb_le | ]; reflexivity.
 (* In other proofs, this is done by direct computations. *)
-  assert (cp' : (0 < 2 ^ 3336)%Z).
-   apply Z.pow_pos_nonneg; [reflexivity | compute; discriminate].
-  assert (q : IZR (2 ^ 3336)%Z = Rpower 2 3336).
-   rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
-   replace (IZR 2) with 2 by reflexivity.
-   apply f_equal.
-   change (3336%Z) with (3 * 11 * 20 * 5 + 4 * 9)%Z.
-   rewrite !plus_IZR, !mult_IZR; simpl; ring.
-  apply (integer_pi_othree_bin _ gt1000 cp' q).
- assert (ctr' : (Rh (2 ^ 3322 * 2 ^ 14)
+      assert (cp' : (0 < 2 ^ 3336)%Z).
+      apply Z.pow_pos_nonneg; [reflexivity | compute; discriminate].
+    assert (q : IZR (2 ^ 3336)%Z = Rpower 2 3336).
+      rewrite Zpow_Rpower;[ | | compute; discriminate]; reflexivity.
+    now apply (integer_pi_othree_bin _ gt1000 cp' q).
+  assert (ctr' : (Rh (2 ^ 3322 * 2 ^ 14)
                   (213 * Rpower 2 (-14) * Rpower 2 (-3322)) + 1 <
        n mod 2 ^ 14 <
        2 ^ 14 - (Rh (2 ^ 3322 * 2 ^ 14)
              (213 * Rpower 2 (-14) * Rpower 2 (-3322)) + 1))%Z).
- assert (sm: (Rh (2 ^ 3322 * 2 ^ 14) (213 * Rpower 2 (-14) * Rpower 2 (-3322)) = 213)%Z).
-   unfold Rh; rewrite mult_IZR.
-   rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
-   rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
-   replace (IZR 2) with 2 by (simpl; ring).
-   rewrite !Rmult_assoc, <- !Rpower_plus.
-   replace (IZR 3322) with
-     (IZR (3 * 11 * 5 * 20 + 22)) by (apply f_equal; reflexivity).
-   rewrite plus_IZR, !mult_IZR; simpl.
-   match goal with |- (RbZ (_ * Rpower _ ?x) = _)%Z =>
-     assert (x0 : x = 0); [ring | rewrite x0, Rpower_O, Rmult_1_r;
+    assert (sm: (Rh (2 ^ 3322 * 2 ^ 14) (213 * Rpower 2 (-14) * Rpower 2 (-3322)) = 
+                   213)%Z).
+      unfold Rh; rewrite mult_IZR.
+      rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
+      rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
+      rewrite !Rmult_assoc, <- !Rpower_plus.
+      match goal with |- (RbZ (_ * Rpower _ ?x) = _)%Z =>
+       assert (x0 : x = 0); [ring | rewrite x0, Rpower_O, Rmult_1_r;
                  [  | psatzl R]]
-   end.
-   replace 213 with (IZR 10 * IZR 20 + IZR 13) by (simpl; ring).
-   rewrite <- !mult_IZR, <- !plus_IZR.
-   unfold RbZ; rewrite floor_IZR; reflexivity.
-  rewrite sm.
-  assumption.
+      end.
+      unfold RbZ; rewrite floor_IZR; reflexivity.
+    rewrite sm.
+    assumption.
  exact (rerounding_simple (2 ^ 3322) (2 ^ 14) _
              PI n cd cp t' ctr').
 split;[apply Rlt_Rminus; tauto | destruct main as [_ main]]; revert main.
 rewrite hplus_spec; unfold hR at 2; simpl (IZR 1); unfold Rdiv; rewrite Rmult_1_l.
 rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
-rewrite <- Rpower_Ropp; replace (IZR 2) with 2 by reflexivity.
-replace (IZR 3322) with 3322;[psatzl R | ].
-replace (3322%Z) with (3 * 11 * 10 * 10 + 22)%Z by reflexivity.
-rewrite plus_IZR, !mult_IZR; simpl; ring.
+rewrite <- Rpower_Ropp, <- IZR_Zneg; psatzl R.
 Qed.
 
 Lemma change_magnifier : forall p1 p2 x, (0 < p1)%Z ->
@@ -2143,21 +2109,21 @@ Proof.
 intros p1 p2 x p0 cmpp.
 assert (0 < p2)%Z by (apply Z.lt_trans with (1 := p0) (2 :=cmpp)).
 unfold hR; split.
- apply Rmult_lt_reg_r with (IZR p1); [apply (IZR_lt 0); assumption | ].
- rewrite Rmult_minus_distr_r.
- unfold Rdiv at 2; rewrite Rmult_assoc, Rinv_l, Rmult_1_r;
-  [|apply Rgt_not_eq, (IZR_lt 0); assumption].
- apply Rmult_lt_reg_r with (IZR p2); [apply (IZR_lt 0); assumption | ].
- rewrite Rmult_minus_distr_r, Rmult_1_l.
- unfold Rdiv; rewrite !Rmult_assoc, (Rmult_comm (/ _)), !Rmult_assoc.
- rewrite Rinv_r, Rmult_1_r;[ | apply Rgt_not_eq, (IZR_lt 0); assumption].
- assert (help : forall x y z, x < z + y -> x - y < z) by (intros; psatzl R).
- apply help; clear help; rewrite <- !mult_IZR,  <- plus_IZR;  apply IZR_lt.
- pattern (x * p1)%Z at 1; rewrite (Z_div_mod_eq (x * p1)  (p2));
-  [|apply Zlt_gt; assumption].
- rewrite (Zmult_comm (p2)).
- apply Zplus_lt_compat_l.
- destruct (Zmod_pos_bound (x * p1) (p2)); assumption.
+  apply Rmult_lt_reg_r with (IZR p1); [apply (IZR_lt 0); assumption | ].
+  rewrite Rmult_minus_distr_r.
+  unfold Rdiv at 2; rewrite Rmult_assoc, Rinv_l, Rmult_1_r;
+    [|apply Rgt_not_eq, (IZR_lt 0); assumption].
+  apply Rmult_lt_reg_r with (IZR p2); [apply (IZR_lt 0); assumption | ].
+  rewrite Rmult_minus_distr_r, Rmult_1_l.
+  unfold Rdiv; rewrite !Rmult_assoc, (Rmult_comm (/ _)), !Rmult_assoc.
+  rewrite Rinv_r, Rmult_1_r;[ | apply Rgt_not_eq, (IZR_lt 0); assumption].
+  assert (help : forall x y z, x < z + y -> x - y < z) by (intros; psatzl R).
+  apply help; clear help; rewrite <- !mult_IZR,  <- plus_IZR;  apply IZR_lt.
+  pattern (x * p1)%Z at 1; rewrite (Z_div_mod_eq (x * p1)  (p2));
+    [|apply Zlt_gt; assumption].
+  rewrite (Zmult_comm (p2)).
+  apply Zplus_lt_compat_l.
+  destruct (Zmod_pos_bound (x * p1) (p2)); assumption.
 apply Rmult_le_reg_r with (IZR p1); [apply (IZR_lt 0); assumption | ].
  unfold Rdiv at 1; rewrite Rmult_assoc, Rinv_l, Rmult_1_r;
   [|apply Rgt_not_eq, (IZR_lt 0); assumption].
@@ -2178,17 +2144,14 @@ Lemma pi_othree :
     let n' := (n * 10 ^ (10 ^ 3 + 4) / 2 ^ 3336)%Z in
       (265 < n' mod 10 ^ 4 < 9735)%Z ->
    0 < PI - hR (10 ^ (10 ^ 3)) (n' / 10 ^ 4) < Rpower 10 (-(Rpower 10 3)).
+Proof.
 assert (helpring : forall b a c:R, a - c = a - b + (b - c))
           by (intros; ring).
 assert (gt1000 : (1000 < 2 ^ 3336)%Z)
    by (rewrite <- Z.ltb_lt; reflexivity).
 assert (p0 : (0 < 2 ^ 3336)%Z) by (rewrite <- Z.ltb_lt; reflexivity).
 assert (q : IZR (2 ^ 3336) = Rpower 2 3336).
- rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
- replace (IZR 2) with 2 by reflexivity.
- apply f_equal.
- change (3336%Z) with (3 * 11 * 20 * 5 + 4 * 9)%Z.
- rewrite plus_IZR, !mult_IZR; simpl; ring.
+  rewrite Zpow_Rpower;[ | | compute; discriminate]; reflexivity.
 assert (t := integer_pi_othree_bin (2 ^ 3336) gt1000 p0 q).
 intros magnifier n n' ctr; fold magnifier in q, t.
 (* fold or change did not manage to avoid heavy computation here *)
@@ -2222,73 +2185,60 @@ assert (pwr2 : hR (10 ^ 10 ^ 3 * 10 ^ 4) n' = hR (10 ^ (10 ^ 3 + 4)) n').
      (unfold hR; rewrite pwr; reflexivity).
 assert (n'cl : Rabs (hR (10 ^ 10 ^ 3 * (10 ^ 4)) n' - PI) <
             264 * /IZR (10 ^ (10 ^ 3) * 10 ^ 4)%Z).
- rewrite pwr2, <- pwr.
- assert (exists v, v = hR (10 ^ (10 ^ 3 + 4)) n') as [v hv].
-  eapply ex_intro; eapply refl_equal.
- assert (exists vp, vp = magnifier) as [vp hvp].
-  eapply ex_intro; eapply refl_equal.
- rewrite <- hv.
+  rewrite pwr2, <- pwr.
+  assert (exists v, v = hR (10 ^ (10 ^ 3 + 4)) n') as [v hv].
+    eapply ex_intro; eapply refl_equal.
+  assert (exists vp, vp = magnifier) as [vp hvp].
+    eapply ex_intro; eapply refl_equal.
+  rewrite <- hv.
  (* BUG: I can't do this
  replace (v - PI) with
   ((v - hR vp n) + (hR vp n - PI)) by ring. *)
   rewrite (helpring (hR magnifier n)).
- apply Rle_lt_trans with (1 := Rabs_triang _ _).
- apply Rlt_trans with (/IZR (10 ^ (10 ^ 3 + 4)) +
+  apply Rle_lt_trans with (1 := Rabs_triang _ _).
+  apply Rlt_trans with (/IZR (10 ^ (10 ^ 3 + 4)) +
                     213 * Rpower 2 (-14) * Rpower 2 (-3322)).
-  apply Rplus_lt_compat.
-   assert (0 < / IZR (10 ^ (10 ^ 3 + 4))).
-    apply Rinv_0_lt_compat, (IZR_lt 0); vm_compute; reflexivity.
-   apply Rabs_def1.
+    apply Rplus_lt_compat.
+      assert (0 < / IZR (10 ^ (10 ^ 3 + 4))).
+        apply Rinv_0_lt_compat, (IZR_lt 0); vm_compute; reflexivity.
+      apply Rabs_def1.
   (* BUG? : I don't understand why psatzl R can't do this one *)
-    apply Rle_lt_trans with 0;[ | psatzl R].
-    rewrite hv; apply Rle_minus; destruct t'' as [_ it]; exact it.
-   apply Rplus_lt_reg_r with (hR magnifier n).
-   unfold Rminus; rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-   rewrite hv; rewrite Rplus_comm; destruct t'' as [it _]; exact it.
-  exact t'.
- assert (num : 3322 = IZR 3322).
-  change 1 with (IZR 1); repeat (rewrite <- plus_IZR || rewrite <- mult_IZR);
-  reflexivity.
- assert (num14 : 14 = IZR 14).
-  change 1 with (IZR 1); repeat (rewrite <- plus_IZR || rewrite <- mult_IZR);
-  reflexivity.
- assert (num213 : 213 = IZR 213).
-  change 1 with (IZR 1); repeat (rewrite <- plus_IZR || rewrite <- mult_IZR);
-  reflexivity.
- assert (num264 : 264 = IZR 264).
-  change 1 with (IZR 1); repeat (rewrite <- plus_IZR || rewrite <- mult_IZR);
-  reflexivity.
- rewrite num, num213, num264, num14.
- change 2 with (IZR 2).
- assert (0 < IZR (10 ^ (10 ^ 3 + 4))).
-  apply (IZR_lt 0); apply Z.pow_pos_nonneg;[reflexivity | compute; discriminate].
- apply Rmult_lt_reg_r with (IZR (10 ^ (10 ^ 3 + 4))).
-  assumption.
+        apply Rle_lt_trans with 0;[ | psatzl R].
+        rewrite hv; apply Rle_minus; destruct t'' as [_ it]; exact it.
+      apply Rplus_lt_reg_r with (hR magnifier n).
+      unfold Rminus; rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+      rewrite hv; rewrite Rplus_comm; destruct t'' as [it _]; exact it.
+    exact t'.
+  assert (0 < IZR (10 ^ (10 ^ 3 + 4))).
+    apply (IZR_lt 0); apply Z.pow_pos_nonneg;[reflexivity | compute; discriminate].
+  apply Rmult_lt_reg_r with (IZR (10 ^ (10 ^ 3 + 4))).
+    assumption.
 (* Bug? here, I can't finish the rewriting wit Rmult_1_r *)
- rewrite Rmult_plus_distr_r, 3!Rmult_assoc, Rinv_l;
-  [ | apply Rgt_not_eq; assumption].
+  rewrite Rmult_plus_distr_r, 3!Rmult_assoc, Rinv_l;
+    [ | apply Rgt_not_eq; assumption].
  (* I have to set the instantiation precisely! *)
- rewrite (Rmult_1_r (IZR 264)).
- rewrite (Rmult_comm (Rpower (IZR 2) (-IZR 3322))
+  rewrite (Rmult_1_r (IZR 264)).
+  rewrite (Rmult_comm (Rpower 2 (-3322))
            (IZR (10 ^ (10 ^ 3 + 4)))).
- rewrite (Rmult_comm (Rpower (IZR 2) (-IZR 14))).
- rewrite <- 2!Rmult_assoc.
- apply Rmult_lt_reg_r with (Rpower (IZR 2) (IZR 14)).
-  apply exp_pos.
- rewrite Rmult_plus_distr_r, !Rmult_assoc, <- Rpower_plus, Rplus_opp_l.
- rewrite Rpower_O, Rmult_1_r;[ |apply (IZR_lt 0); reflexivity ].
- apply Rmult_lt_reg_r with (Rpower (IZR 2) (IZR 3322)).
-  apply exp_pos.
- rewrite Rmult_plus_distr_r, !Rmult_assoc, <- !Rpower_plus, Rplus_opp_l.
- rewrite Rpower_O, Rmult_1_r;[ |apply (IZR_lt 0); reflexivity ].
- rewrite <- !plus_IZR, <- Zpow_Rpower;
-  [ | reflexivity | vm_compute; discriminate ].
- rewrite Rmult_1_l, <- !mult_IZR.
- rewrite <- plus_IZR.
- apply IZR_lt.
- change (2 ^ (14 + 3322) + (213 * 10 ^ (10 ^ 3 + 4)) <
+  rewrite (Rmult_comm (Rpower (IZR 2) (-IZR 14))).
+  rewrite <- 2!Rmult_assoc.
+  apply Rmult_lt_reg_r with (Rpower (IZR 2) (IZR 14)).
+    apply exp_pos.
+  rewrite Rmult_plus_distr_r, !Rmult_assoc, <- Rpower_plus, Rplus_opp_l.
+  rewrite Rpower_O, Rmult_1_r;[ |apply (IZR_lt 0); reflexivity ].
+  apply Rmult_lt_reg_r with (Rpower (IZR 2) (IZR 3322)).
+    apply exp_pos.
+  rewrite Rmult_plus_distr_r, !Rmult_assoc, <- !Rpower_plus.
+  rewrite <- (plus_IZR (Zneg 3322)).
+  rewrite Rpower_O, Rmult_1_r;[ |apply (IZR_lt 0); reflexivity ].
+  rewrite <- !plus_IZR, <- Zpow_Rpower;
+    [ | reflexivity | vm_compute; discriminate ].
+  rewrite Rmult_1_l, <- !mult_IZR.
+  rewrite <- plus_IZR.
+  apply IZR_lt.
+  change (2 ^ (14 + 3322) + (213 * 10 ^ (10 ^ 3 + 4)) <
     264 * 2 ^ (14 + 3322))%Z.
- rewrite <- Z.ltb_lt; vm_compute; reflexivity.
+  rewrite <- Z.ltb_lt; vm_compute; reflexivity.
 assert (ctr' :
  (Rh (10 ^ 10 ^ 3 * 10 ^ 4) (264 * / IZR (10 ^ 10 ^ 3 * 10 ^ 4)) + 1 <
        n' mod 10 ^ 4 <
@@ -2296,26 +2246,20 @@ assert (ctr' :
        (Rh (10 ^ 10 ^ 3 * 10 ^ 4) (264 * / IZR (10 ^ 10 ^ 3 * 10 ^ 4)) + 1))%Z).
  assert (sm: (Rh (10 ^ 10 ^ 3 * 10 ^ 4) (264 * /IZR (10 ^ 10 ^ 3 * 10 ^ 4))
                = 264)%Z).
-  unfold Rh; rewrite Rmult_assoc, Rinv_l, Rmult_1_r;
-   [ | apply Rgt_not_eq, (IZR_lt 0); vm_compute; reflexivity].
- assert (num264 : 264 = IZR 264).
-  change 1 with (IZR 1); repeat (rewrite <- plus_IZR || rewrite <- mult_IZR);
-  reflexivity.
-  unfold RbZ; rewrite num264, floor_IZR; reflexivity.
- rewrite sm; assumption.
- destruct (rerounding_simple (10 ^ 10 ^ 3) (10 ^ 4)
+    unfold Rh; rewrite Rmult_assoc, Rinv_l, Rmult_1_r;
+      [ | apply Rgt_not_eq, (IZR_lt 0); vm_compute; reflexivity].
+    unfold RbZ; rewrite floor_IZR; reflexivity.
+  rewrite sm; assumption.
+destruct (rerounding_simple (10 ^ 10 ^ 3) (10 ^ 4)
           (264 * /IZR (10 ^ (10 ^ 3) * 10 ^ 4)) PI n' d0 k0 n'cl ctr')
    as [rrs1 rrs2].
-split.
- (* psatzl does not do this one *)
- apply Rlt_Rminus; assumption.
+split;[psatzl R | ].
 revert rrs2; unfold hR, Rdiv; rewrite plus_IZR.
 rewrite Rmult_plus_distr_r; intros rrs2.
 rewrite Rlt_minus_l; apply Rlt_le_trans with (1 := rrs2).
 rewrite Rplus_comm; apply Rplus_le_compat_r.
 apply Req_le; clear.
-change (IZR 1) with 1; rewrite Rmult_1_l, Rpower_Ropp.
-replace 10 with (IZR 10) by (simpl; ring).
+rewrite Rmult_1_l, Rpower_Ropp.
 replace 3 with (IZR 3) by (simpl; ring).
 rewrite <- Zpow_Rpower;[ | reflexivity | compute; discriminate].
 rewrite <- Zpow_Rpower;[ | reflexivity | compute; discriminate].
@@ -2327,10 +2271,6 @@ Proof.
 apply lt_IZR.
 rewrite !Zpow_Rpower;[ | reflexivity | discriminate | reflexivity | discriminate ].
 rewrite plus_IZR, Zpow_Rpower;[ | reflexivity | discriminate].
-replace (IZR (3321942)) with 3321942; cycle 1.
-  replace (3321942)%Z with (42 + 100 * (19 + 100 * (32 + 100 * 3)))%Z
-    by reflexivity.
-  now repeat (rewrite  plus_IZR || rewrite mult_IZR); simpl; psatzl R.
 simpl; unfold Rpower; apply exp_increasing; interval.
 Qed.
 
@@ -2383,77 +2323,12 @@ end.
 rewrite H; ring.
 Qed.
 
-Ltac R_to_Z n :=
-  match n with
-   | 1 => constr:(1%Z)
-   | (1 + ?x) => let v1 := R_to_Z x in
-     let w := constr:(Z.add 1 v1) in
-     let w' := eval compute in w in w'
-   | (1 + 1) * ?x => let v1 := R_to_Z x in
-     let w := constr:(Z.mul 2 v1) in
-     let w' := eval compute in w in w'
-  end.
-
-(* A tactic that generates a real number in the right
- pattern for the display machinery. *)
-Ltac Z_to_R n :=
-let b1 := eval compute in (Z.eqb n 1)%Z in
-match b1 with
-  true => constr:(1%R)
-| false =>
-  let b2 := eval compute in (Z.eqb n 2)%Z in
-  match b2 with
-    true => constr:(2%R)
-  | false => let b3 := eval compute in (Z.eqb n 3)%Z in
-    match b3 with
-      true => constr:(3%R)
-    | false =>
-      let b := eval compute in (Z.ltb 0 n) in
-      match b with
-        false => 0
-      | true => let b' := eval compute in (Z.odd n) in
-        let r := eval compute in (Z.div n 2) in
-        let rv := Z_to_R r in
-        let drv := constr:((2 * rv)%R) in
-        match b' with
-          true => constr:((1 + drv)%R)
-        | false => constr:(drv)
-        end
-      end
-    end
-  end
-end.
-
-Fixpoint IPR p :=
-  match p with
-  | xH => 1
-  | xO xH => 2
-  | xI xH => 1 + 2
-  |  xO q => 2 * IPR q
-  | xI q => 1 + 2 * IPR q
-end.
-
-Lemma IZR_IPR p : IZR (Zpos p) = IPR p.
-Proof.
-induction p as [[p | p | ] IHp | [p | p | ] IHp | ]; try reflexivity; simpl IPR.
-        replace (Z.pos p~1~1) with (1 + 2 * Zpos p~1)%Z by reflexivity.
-        rewrite -> plus_IZR, mult_IZR, IHp; simpl; ring.
-      replace (Z.pos p~0~1) with (1 + 2 * Zpos p~0)%Z by reflexivity.
-      rewrite -> plus_IZR, mult_IZR, IHp; simpl; ring.
-    simpl; ring.
-  replace (Z.pos p~1~0) with (2 * Z.pos p~1)%Z by reflexivity.
-  rewrite mult_IZR, IHp; simpl; ring.
-replace (Z.pos p~0~0) with (2 * Z.pos p~0)%Z by reflexivity.
-rewrite mult_IZR, IHp; simpl; ring.
-Qed.
-
 Lemma million_digit_lb_bin : (2 ^ 3321942 < 2 * 10 ^ (10 ^ 6 + 4))%Z.
 Proof.
 apply lt_IZR.
 rewrite mult_IZR; simpl (IZR 2); rewrite <- (exp_ln 2);[ | psatzl R].
 rewrite !Zpow_Rpower;[ | reflexivity | discriminate | reflexivity | discriminate ].
 replace (10 ^ 6 + 4)%Z with 1000004%Z by reflexivity.
-rewrite !IZR_IPR; simpl; replace (2 * 1) with 2 by ring.
 unfold Rpower; rewrite <- exp_plus; apply exp_increasing; interval.
 Qed.
 
@@ -2462,8 +2337,6 @@ Lemma pi_osix :
     hR (10 ^ (10 ^ 6)) (snd million_digit_pi) < PI <
     hR (10 ^ (10 ^ 6)) (snd million_digit_pi) + Rpower 10 (-(Rpower 10 6)).
 Proof.
-assert (num14 : 14 = IZR 14) by (compute; ring).
-assert (num2 : 2 = IZR 2) by (compute; ring).
 assert (main : fst million_digit_pi = true ->
          0 < PI - hR (10 ^ (10 ^ 6)) (snd million_digit_pi) <
            Rpower 10 (-(Rpower 10 6)));
@@ -2478,181 +2351,150 @@ assert
     let n' := (n * 10 ^ (10 ^ 6 + 4) / 2 ^ prec)%Z in
     ((427 <? n' mod 10 ^ 4)%Z && (n' mod 10 ^ 4 <? 9573)%Z = true) ->
    0 < PI - hR (10 ^ (10 ^ 6)) (n' / 10 ^ 4) < Rpower 10 (-(Rpower 10 6))).
- let v := decompose_big_number prec' in set (u := v).
- let v := eval compute in (Z.eqb prec' 1)%Z in set (b1 := v).
- let v := Z_to_R prec in set (precr := v).
- let v := Z_to_R prec' in set (prec'r := v).
- assert (qb' : prec'r = IZR u).
- assert (qb'' : prec'r = IZR prec').
-  unfold prec'r, prec'; rewrite IZR_IPR; simpl IPR; ring.
-  rewrite qb''; apply f_equal; reflexivity.
- let v := eval compute in (prec - prec')%Z in set (u' := v).
- assert (qb : precr = IZR (u + u')).
-  replace (u + u')%Z with prec by reflexivity.
-  unfold precr, prec; rewrite IZR_IPR; simpl IPR; ring.
- assert (helpring : forall b a c:R, a - c = a - b + (b - c)) by (intros; ring).
- assert (gt1000 : (1000 < 2 ^ prec)%Z).
-  change 1000%Z with (1000 * 1)%Z.
-  change prec with (10 + (prec - 10))%Z.
-  rewrite Z.pow_add_r;[ | compute | compute ]; try discriminate.
-  apply Z.mul_lt_mono_nonneg;[discriminate | reflexivity | discriminate| ].
-  rewrite <- Z.pow_gt_1;[ reflexivity | reflexivity].
- assert (p0 : (0 < 2 ^ prec)%Z).
-  apply Z.pow_pos_nonneg;[reflexivity | discriminate].
- assert (q : IZR (2 ^ prec) = Rpower 2 precr).
-  rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
-  simpl (IZR 2).
-  now apply f_equal; rewrite qb; apply f_equal.
- intros magnifier n n'.
- assert (nineteen1 : (1 <= 19)%nat) by lia.
- assert (t' : 600 * INR 20 < IZR magnifier < Rpower 531 (2 ^ 19) / 14).
-  split.
+  assert (helpring : forall b a c:R, a - c = a - b + (b - c)) by (intros; ring).
+  assert (gt1000 : (1000 < 2 ^ prec)%Z).
+    change 1000%Z with (1000 * 1)%Z.
+    change prec with (10 + (prec - 10))%Z.
+    rewrite Z.pow_add_r;[ | compute | compute ]; try discriminate.
+    apply Z.mul_lt_mono_nonneg;[discriminate | reflexivity | discriminate| ].
+    rewrite <- Z.pow_gt_1;[ reflexivity | reflexivity].
+  assert (p0 : (0 < 2 ^ prec)%Z).
+    apply Z.pow_pos_nonneg;[reflexivity | discriminate].
+  assert (q : IZR (2 ^ prec) = Rpower 2 (IZR prec)).
+    apply Zpow_Rpower;[reflexivity | compute; discriminate].
+  intros magnifier n n'.
+  assert (nineteen1 : (1 <= 19)%nat) by lia.
+  assert (t' : 600 * INR 20 < IZR magnifier < Rpower 531 (2 ^ 19) / 14).
+    split.
 (* This does not work, probably because 3321929 does not seem to parse,
    even as an integer.
   replace magnifier with ((2 ^ 13 * 2 ^ 3321929)%Z);[ | ].
   I believe now that this is because there are too many potential computations
   in the hypotheses.  A clear should help (March 22, 2017)
 *)
-   apply Rlt_trans with (IZR (2 ^ 14)); cycle 1.
-     apply IZR_lt, Z.pow_lt_mono_r; clear; compute; auto; discriminate.
-   change 14%Z with (Z.of_nat 14); rewrite <- pow_IZR; simpl IZR.
-   now replace (INR 20) with 20 by (simpl; ring); psatzl R.
-  clear -num14; apply Rmult_lt_reg_r with 14;[psatzl R |unfold Rdiv ].
-  rewrite Rmult_assoc, Rinv_l, Rmult_1_r;[ | psatzl R].
-  unfold magnifier; rewrite -> Zpow_Rpower, <- (exp_ln 14);
+      apply Rlt_trans with (IZR (2 ^ 14)); cycle 1.
+        apply IZR_lt, Z.pow_lt_mono_r; clear; compute; auto; discriminate.
+      change 14%Z with (Z.of_nat 14); rewrite <- pow_IZR; simpl IZR.
+      now replace (INR 20) with 20 by (simpl; ring); psatzl R.
+    apply Rmult_lt_reg_r with 14;[psatzl R |unfold Rdiv ].
+    rewrite Rmult_assoc, Rinv_l, Rmult_1_r;[ | psatzl R].
+    unfold magnifier; rewrite -> Zpow_Rpower, <- (exp_ln 14);
     try (unfold prec; lia); try psatzl R.
-  unfold Rpower; rewrite <- exp_plus; apply exp_increasing.
-  unfold prec; rewrite IZR_IPR; simpl; replace (2 * 1) with 2 by ring.
-  now  interval.
- assert (t'' := integer_pi magnifier gt1000 p0 19 nineteen1 t'); clear t'.
- rewrite andb_true_iff, 2!Z.ltb_lt; intros ctr.
- assert (t' : Rabs (hR magnifier n - PI) <
-        423 * Rpower 2 (-14) * Rpower 2 (-prec'r));[|clear t''].
-  replace 423 with (21 * INR (19 + 1) + 3) by (simpl; ring).
-  rewrite Rmult_assoc.
-  replace (Rpower 2 (-14) * Rpower 2 (-prec'r)) with (/IZR magnifier).
-   exact t''.
-  rewrite <- Rpower_plus, <- Ropp_plus_distr, Rpower_Ropp, num14.
-  rewrite qb', <- plus_IZR, num2.
-  unfold magnifier; rewrite Zpow_Rpower;[ | reflexivity| discriminate].
-  now apply f_equal, f_equal, f_equal.
+    unfold Rpower; rewrite <- exp_plus; apply exp_increasing.
+    now unfold prec; interval.
+  assert (t'' := integer_pi magnifier gt1000 p0 19 nineteen1 t'); clear t'.
+  rewrite andb_true_iff, 2!Z.ltb_lt; intros ctr.
+  assert (t' : Rabs (hR magnifier n - PI) <
+        423 * Rpower 2 (-14) * Rpower 2 (-IZR prec'));[|clear t''].
+    replace 423 with (21 * INR (19 + 1) + 3) by (simpl; ring).
+    rewrite Rmult_assoc.
+    replace (Rpower 2 (-14) * Rpower 2 (-IZR prec')) with (/IZR magnifier).
+      exact t''.
+    rewrite <- Rpower_plus, IZR_Zneg, <- Ropp_plus_distr, Rpower_Ropp.
+    now unfold magnifier; rewrite <- plus_IZR, q.
 (* fold or change did not manage to avoid heavy computation here *)
- assert (p20 : (0 < 10 ^ (10 ^ 6 + 4))%Z).
-  apply Z.pow_pos_nonneg;[reflexivity | compute; discriminate].
- assert (cmpp : (10 ^ (10 ^ 6 + 4) < 2 ^ prec)%Z)
+  assert (p20 : (0 < 10 ^ (10 ^ 6 + 4))%Z).
+    apply Z.pow_pos_nonneg;[reflexivity | compute; discriminate].
+  assert (cmpp : (10 ^ (10 ^ 6 + 4) < 2 ^ prec)%Z)
    by exact pow10million_pow2.
- assert (t := change_magnifier _ _ n p20 cmpp).
+  assert (t := change_magnifier _ _ n p20 cmpp).
 (* again, fold n' does not work here *)
- assert (t'' :
-   hR magnifier n - / IZR (10 ^ (10 ^ 6 + 4)) <
-   hR (10 ^ (10 ^ 6 + 4)) n' <= hR magnifier n) by exact t; clear t.
+  assert (t'' :
+    hR magnifier n - / IZR (10 ^ (10 ^ 6 + 4)) <
+    hR (10 ^ (10 ^ 6 + 4)) n' <= hR magnifier n) by exact t; clear t.
 (* This does not work either
 replace (n * 10 ^ (10 ^ 3 + 4) / magnifier)%Z with
   n' in t;[ | unfold n', magnifier].
 *)
- assert (k0 : (0 < 10 ^ (10 ^ 6))%Z).
-  apply Z.pow_pos_nonneg;[reflexivity | vm_compute; discriminate].
- assert (d0 : (0 < 10 ^ 4)%Z) by
+  assert (k0 : (0 < 10 ^ (10 ^ 6))%Z).
+    apply Z.pow_pos_nonneg;[reflexivity | vm_compute; discriminate].
+  assert (d0 : (0 < 10 ^ 4)%Z) by
     (rewrite <- Z.ltb_lt; vm_compute; reflexivity).
- assert (pwr : (10 ^ (10 ^ 6 + 4) = 10 ^ 10 ^ 6 * 10 ^ 4)%Z).
-  rewrite <- Z.pow_add_r;[reflexivity | | ]; compute; discriminate.
- assert (pwr2 : hR (10 ^ 10 ^ 6 * 10 ^ 4) n' = hR (10 ^ (10 ^ 6 + 4)) n').
-   rewrite pwr; reflexivity.
- assert (n'cl : Rabs (hR (10 ^ 10 ^ 6 * (10 ^ 4)) n' - PI) <
+  assert (pwr : (10 ^ (10 ^ 6 + 4) = 10 ^ 10 ^ 6 * 10 ^ 4)%Z).
+    rewrite <- Z.pow_add_r;[reflexivity | | ]; compute; discriminate.
+  assert (pwr2 : hR (10 ^ 10 ^ 6 * 10 ^ 4) n' = hR (10 ^ (10 ^ 6 + 4)) n').
+    rewrite pwr; reflexivity.
+  assert (n'cl : Rabs (hR (10 ^ 10 ^ 6 * (10 ^ 4)) n' - PI) <
             426 * /IZR (10 ^ (10 ^ 6) * 10 ^ 4)).
-  rewrite pwr2, <- pwr.
-  rewrite (helpring (hR magnifier n)).
+    rewrite pwr2, <- pwr.
+    rewrite (helpring (hR magnifier n)).
 (*  assert (exists v, v = hR (10 ^ (10 ^ 6 + 4)) n') as [v hv].
    eapply ex_intro; eapply refl_equal.
   assert (exists vp, vp = magnifier) as [vp hvp].
    eapply ex_intro; eapply refl_equal.
   rewrite <- hv. *)
-  apply Rle_lt_trans with (1 := Rabs_triang _ _).
-  apply Rlt_trans with (/IZR (10 ^ (10 ^ 6 + 4)) +
-                    423 * Rpower 2 (-14) * Rpower 2 (-prec'r)).
-   apply Rplus_lt_compat.
-    assert (0 < / IZR (10 ^ (10 ^ 6 + 4))).
-     apply Rinv_0_lt_compat, (IZR_lt 0).
-     apply Z.pow_pos_nonneg;[reflexivity | vm_compute; discriminate].
-    apply Rabs_def1.
+    apply Rle_lt_trans with (1 := Rabs_triang _ _).
+    apply Rlt_trans with (/IZR (10 ^ (10 ^ 6 + 4)) +
+                    423 * Rpower 2 (-14) * Rpower 2 (-IZR prec')).
+      apply Rplus_lt_compat.
+        assert (0 < / IZR (10 ^ (10 ^ 6 + 4))).
+          apply Rinv_0_lt_compat, (IZR_lt 0).
+          apply Z.pow_pos_nonneg;[reflexivity | vm_compute; discriminate].
+        apply Rabs_def1.
   (* BUG? : I don't understand why psatzl R can't do this one *)
-     apply Rle_lt_trans with 0;[ | psatzl R].
-     apply Rle_minus; destruct t'' as [_ it]; exact it.
-    apply Rplus_lt_reg_r with (hR magnifier n).
-    unfold Rminus; rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_comm.
-    destruct t'' as [it _]; exact it.
-   exact t'.
-  assert (num423 : 423 = IZR 423) by (rewrite IZR_IPR; simpl; ring).
-  assert (num426 : 426 = IZR 426) by (rewrite IZR_IPR; simpl; ring).
-  assert (num517 : 517 = IZR 517) by (rewrite IZR_IPR; simpl; ring).
-  rewrite qb', num423, num426, num14, num2.
-  assert (0 < IZR (10 ^ (10 ^ 6 + 4))).
-   now apply (IZR_lt 0); apply Z.pow_pos_nonneg;[clear|compute; discriminate].
-  apply Rmult_lt_reg_r with (IZR (10 ^ (10 ^ 6 + 4)));[assumption | ].
+          psatzl R.
+        apply Rplus_lt_reg_r with (hR magnifier n).
+        unfold Rminus; rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_comm.
+        destruct t'' as [it _]; exact it.
+      exact t'.
+    assert (0 < IZR (10 ^ (10 ^ 6 + 4))).
+      now apply (IZR_lt 0); apply Z.pow_pos_nonneg;[clear|compute; discriminate].
+    apply Rmult_lt_reg_r with (IZR (10 ^ (10 ^ 6 + 4)));[assumption | ].
 (* Bug? here, I can't finish the rewriting wit Rmult_1_r *)
-  rewrite Rmult_plus_distr_r, 3!Rmult_assoc, Rinv_l;
-   [ | apply Rgt_not_eq; assumption].
-(* I have to set the instantiation precisely! *)
-  rewrite (Rmult_1_r (IZR 426)).
-  rewrite (Rmult_comm (Rpower (IZR 2) (-IZR u))
-           (IZR (10 ^ (10 ^ 6 + 4)))).
-  rewrite (Rmult_comm (Rpower (IZR 2) (-IZR 14))).
-  rewrite <- 2!Rmult_assoc.
-  apply Rmult_lt_reg_r with (Rpower (IZR 2) (IZR 14)).
-   apply exp_pos.
-  rewrite Rmult_plus_distr_r, !Rmult_assoc, <- Rpower_plus, Rplus_opp_l.
-  rewrite Rpower_O, Rmult_1_r;[ |apply (IZR_lt 0); reflexivity ].
-  apply Rmult_lt_reg_r with (Rpower (IZR 2) (IZR u)).
-   apply exp_pos.
-  rewrite Rmult_plus_distr_r, !Rmult_assoc, <- !Rpower_plus, Rplus_opp_l.
-  rewrite Rpower_O, Rmult_1_r;[ |apply (IZR_lt 0); reflexivity ].
-  rewrite <- !plus_IZR, <- Zpow_Rpower;
-   [ | reflexivity | vm_compute; discriminate ].
-  rewrite Rmult_1_l, <- !mult_IZR.
-  rewrite <- plus_IZR.
-  apply IZR_lt.
-  change (2 ^ (14 + u) + (423 * 10 ^ (10 ^ 6 + 4)) <
-     426 * 2 ^ (14 + u))%Z.
-  assert (uq' : (14 + u = prec)%Z) by (rewrite <- Z.eqb_eq; vm_compute; reflexivity).
-  rewrite uq'; apply Z.lt_trans with (2 * 10 ^ (10 ^ 6 + 4) + 423 * 10 ^ (10 ^ 6 + 4))%Z.
-   apply Z.add_lt_mono_r.
-   exact million_digit_lb_bin.
-  rewrite <- Z.mul_add_distr_r; apply Z.mul_lt_mono_nonneg.
-     rewrite <- Z.leb_le; vm_compute; reflexivity.
-    rewrite <- Z.ltb_lt; vm_compute; reflexivity.
-   apply Z.lt_le_incl, Z.pow_pos_nonneg;[| rewrite <- Z.leb_le; vm_compute]; reflexivity.
-  exact pow10million_pow2.
- assert (b10pos : 0  < IZR (10 ^ 10 ^ 6 * 10 ^ 4)).
-  now apply (IZR_lt 0), Z.mul_pos_pos;[apply Z.pow_pos_nonneg;
+    rewrite Rmult_plus_distr_r, 3!Rmult_assoc, Rinv_l, (Rmult_1_r 426);
+      [ | apply Rgt_not_eq; assumption].
+    rewrite (Rmult_comm (Rpower 2 (-IZR prec')) (IZR (10 ^ (10 ^ 6 + 4)))).
+    rewrite (Rmult_comm (Rpower 2 (-14))).
+    rewrite <- 2!Rmult_assoc.
+    apply Rmult_lt_reg_r with (Rpower 2 (IZR 14)).
+      apply exp_pos.
+    rewrite Rmult_plus_distr_r, !Rmult_assoc, <- Rpower_plus, IZR_Zneg, Rplus_opp_l.
+    rewrite Rpower_O, Rmult_1_r;[ |apply (IZR_lt 0); reflexivity ].
+    apply Rmult_lt_reg_r with (Rpower (IZR 2) (IZR prec')).
+      apply exp_pos.
+    rewrite Rmult_plus_distr_r, !Rmult_assoc, <- !Rpower_plus, Rplus_opp_l.
+    rewrite Rpower_O, Rmult_1_r;[ |apply (IZR_lt 0); reflexivity ].
+     rewrite <- !plus_IZR, <- Zpow_Rpower;
+       [ | reflexivity | vm_compute; discriminate ].
+    rewrite Rmult_1_l, <- !mult_IZR.
+    rewrite <- plus_IZR.
+    apply IZR_lt.
+    assert (uq' : (14 + prec' = prec)%Z) by (rewrite <- Z.eqb_eq; vm_compute; reflexivity).
+    rewrite uq'; apply Z.lt_trans with (2 * 10 ^ (10 ^ 6 + 4) + 423 * 10 ^ (10 ^ 6 + 4))%Z.
+      apply Z.add_lt_mono_r.
+      exact million_digit_lb_bin.
+    rewrite <- Z.mul_add_distr_r; apply Z.mul_lt_mono_nonneg.
+          rewrite <- Z.leb_le; vm_compute; reflexivity.
+        rewrite <- Z.ltb_lt; vm_compute; reflexivity.
+      apply Z.lt_le_incl, Z.pow_pos_nonneg;[| rewrite <- Z.leb_le; vm_compute]; reflexivity.
+    exact pow10million_pow2.
+  assert (b10pos : 0  < IZR (10 ^ 10 ^ 6 * 10 ^ 4)).
+    now apply (IZR_lt 0), Z.mul_pos_pos;[apply Z.pow_pos_nonneg;
        [|discriminate] | ]; clear.
- assert (ctr' :
+  assert (ctr' :
   (Rh (10 ^ 10 ^ 6 * 10 ^ 4) (426 * / IZR (10 ^ 10 ^ 6 * 10 ^ 4)) + 1 <
        n' mod 10 ^ 4 <
        10 ^ 4 -
        (Rh (10 ^ 10 ^ 6 * 10 ^ 4) (426 * / IZR (10 ^ 10 ^ 6 * 10 ^ 4)) + 1))%Z).
-  assert (sm: (Rh (10 ^ 10 ^ 6 * 10 ^ 4) (426 * /IZR (10 ^ 10 ^ 6 * 10 ^ 4))
+    assert (sm: (Rh (10 ^ 10 ^ 6 * 10 ^ 4) (426 * /IZR (10 ^ 10 ^ 6 * 10 ^ 4))
                = 426)%Z).
-   unfold Rh; rewrite Rmult_assoc, Rinv_l, Rmult_1_r;
-   [ | apply Rgt_not_eq; assumption].
-   assert (num426 : 426 = IZR 426).
-    change 1 with (IZR 1); repeat (rewrite <- plus_IZR || rewrite <- mult_IZR);
-     reflexivity.
-   unfold RbZ; rewrite num426, floor_IZR; reflexivity.
-  rewrite sm. assumption.
+      unfold Rh; rewrite Rmult_assoc, Rinv_l, Rmult_1_r;
+        [ | apply Rgt_not_eq; assumption].
+
+   unfold RbZ; rewrite floor_IZR; reflexivity.
+  rewrite sm; assumption.
   destruct (rerounding_simple (10 ^ 10 ^ 6) (10 ^ 4) _ PI n' d0 k0 n'cl ctr')
     as [rrs1 rrs2].
- split.
- (* psatzl does not do this one *)
-  apply Rlt_Rminus; exact rrs1.
- revert rrs2; unfold hR, Rdiv; rewrite plus_IZR.
- rewrite Rmult_plus_distr_r; intros rrs2.
- rewrite Rlt_minus_l; apply Rlt_le_trans with (1 := rrs2).
- rewrite Rplus_comm; apply Rplus_le_compat_r.
- apply Req_le; clear.
- change (IZR 1) with 1; rewrite Rmult_1_l, Rpower_Ropp; apply f_equal.
- rewrite -> Zpow_Rpower, IZR_IPR;[ | reflexivity | discriminate].
- rewrite -> Zpow_Rpower, !IZR_IPR;[ | reflexivity | discriminate].
- now simpl; replace (2 * 1) with 2 by ring.
+  split.
+    psatzl R.
+  revert rrs2; unfold hR, Rdiv; rewrite plus_IZR.
+  rewrite Rmult_plus_distr_r; intros rrs2.
+  rewrite Rlt_minus_l; apply Rlt_le_trans with (1 := rrs2).
+  rewrite Rplus_comm; apply Rplus_le_compat_r.
+  apply Req_le; clear.
+  rewrite Rmult_1_l, Rpower_Ropp; apply f_equal.
+  rewrite -> Zpow_Rpower;[ | reflexivity | discriminate].
+  now rewrite -> Zpow_Rpower;[ | reflexivity | discriminate].
 unfold million_digit_pi; fold prec.
 revert main.
 lazy zeta.
@@ -2663,17 +2505,9 @@ destruct (Z.div_eucl (cpt * 10 ^ (10 ^ 6 + 4) / (2 ^ prec)) (10 ^ 4))
 unfold fst, snd; lazy zeta; tauto.
 Qed.
 
-Lemma powertwo_overestimate_10p10p6 : (10 ^ (10 ^ 6 + 4) < 2 ^ 3321942)%Z.
-Proof.
-apply lt_IZR.
-rewrite !Zpow_Rpower; rewrite <- ?Z.ltb_lt, <- ?Z.leb_le; try reflexivity.
-simpl Z.add; rewrite !IZR_IPR; simpl; unfold Rpower.
-apply exp_increasing. 
-interval.
-Qed.
 (* In coq-8.4pl3, a bug in the implementation of psatzl prevents this
   file from being imported at the beginning of the session. *)
-Require Import BigZ.
+From Bignums Require Import BigZ.
 Require rounding_big.
 
 Local Open Scope bigZ.
@@ -2797,6 +2631,7 @@ Lemma big_pi_osix :
     (IZR [snd rounding_big.million_digit_pi] * Rpower 10 (-(Rpower 10 6)) < PI <
     IZR [snd rounding_big.million_digit_pi] * Rpower 10 (-(Rpower 10 6))
    + Rpower 10 (-(Rpower 10 6)))%R.
+Proof.
 destruct big_million_eq as [f s].
 rewrite f, s.
 (* replace here does not work: it triggers the humongous computation. *)
@@ -2804,8 +2639,5 @@ rewrite f, s.
 (* Here we need the clear tactic, otherwise, it again triggers a humongous
   computation.  I don't know why. *)
 clear; rewrite Rpower_Ropp, !Zpow_Rpower; try (reflexivity || discriminate).
- replace (IZR 10) with 10%R by (simpl; ring).
- replace (IZR 6) with 6%R by (simpl; ring).
- reflexivity.
 generalize pi_osix; unfold hR; rewrite big; intros tmp; exact tmp.
 Qed.

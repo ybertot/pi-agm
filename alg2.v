@@ -343,8 +343,8 @@ apply Rle_trans with (2 ^ (n + 1) * (7 * Rpower 531 (-2 ^ n)) ^ 2).
   now apply Rmult_le_compat_l;[| apply pow_incr]; lt0.
 rewrite Rpow_mult_distr.
 rewrite <- (Rpower_pow 2 (Rpower _ _)); try lt0.
-rewrite Rpower_mult; simpl INR.
-replace (- 2 ^ n * 2) with (- 2 ^ (n + 1)) by now rewrite pow_add; simpl; ring.
+rewrite Rpower_mult; replace (INR 2) with 2 by (simpl; ring).
+replace (- 2 ^ n * 2) with (- (2 ^ (n + 1))) by now rewrite pow_add; simpl; ring.
 apply Rle_trans with
   (2 ^ (n + 1) * (7 ^ 2 * Rpower 531 (-INR (2 * (n + 1))))).
   repeat apply Rmult_le_compat_l; try lt0.
@@ -450,11 +450,10 @@ apply Rplus_le_compat.
   [|unfold Rpower; apply exp_pos].
   unfold Rpower at 1; rewrite <- Ropp_mult_distr_l, -> Ropp_mult_distr_r.
   rewrite <- ln_Rinv; try lt0.
-  replace (exp (2 ^ (n - 1) * ln (/ 531))) with (Rpower (/531) (2 ^ (n - 1)))
-    by reflexivity.
+  change (exp (2 ^ (n - 1) * ln (/ 531))) with (Rpower (/531) (2 ^ (n - 1))).
   rewrite Rpower_mult_distr; try (unfold Rpower; lt0).
   rewrite <- (Rpower_1 531) at 1;try lt0;  rewrite <- Rpower_Ropp; try lt0.
-  rewrite <- Rpower_plus; replace (-1 + 2) with 1 by ring.
+  rewrite <- Rpower_plus; replace (-(1) + 2) with 1 by ring.
   rewrite Rpower_1; try lt0.
   apply Rle_trans with (Rpower 531 1);[ unfold Rpower; interval | ].
   now apply Rle_Rpower; try lt0; apply pow_R1_Rle; lt0.
