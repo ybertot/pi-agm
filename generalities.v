@@ -120,7 +120,7 @@ rewrite <- sqrt_mult_alt; try lt0.
 rewrite -> Rinv_l, sqrt_1; auto with real.
 Qed.
 
-(* TOD0 : move to standard. *)
+(* TODO : move to standard. *)
 Lemma sqrt_pow_2 x : 0 <= x -> sqrt x ^ 2 = x.
 Proof. now intros x0; simpl; rewrite -> Rmult_1_r, sqrt_sqrt. Qed.
 
