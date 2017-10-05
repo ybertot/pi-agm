@@ -201,6 +201,10 @@ Qed.
 Fixpoint ag (a b : R) (n : nat) :=
   match n with 0 => (a, b) | S p => ag ((a + b)/2) (sqrt(a * b)) p end.
 
+Definition a_ n x := fst (ag 1 x n).
+
+Definition b_ n x := snd (ag 1 x n).
+
 Lemma ag_step a b n : (ag a b (S n)) =
         ((fst (ag a b n) + snd (ag a b n)) / 2,
          sqrt (fst (ag a b n) * snd (ag a b n))).
@@ -208,6 +212,12 @@ Proof.
 revert a b; induction n as [ | n IHn]; auto.
 now intros a b; simpl; rewrite <- IHn; simpl.
 Qed.
+
+Lemma a_step n x : a_ (S n) x = (a_ n x + b_ n x) / 2.
+Proof. now unfold a_, b_; rewrite ag_step. Qed.
+
+Lemma b_step n x : b_ (S n) x = sqrt (a_ n x * b_ n x).
+Proof. now unfold a_, b_; rewrite ag_step. Qed.
 
 Definition M a b : R :=
   iota (fun v => filterlim (fun n =>fst (ag a b n)) Hierarchy.eventually

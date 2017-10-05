@@ -1,5 +1,5 @@
 Require Import Psatz Reals Coquelicot.Coquelicot Interval.Interval_tactic
-  generalities agmpi.
+  generalities elliptic_integral agmpi.
 Coercion INR : nat >-> R.
 Open Scope R_scope.
 
@@ -98,7 +98,7 @@ assert (0 < /sqrt x) by (apply Rinv_0_lt_compat; psatzl R).
 assert (yz: forall k, (1 <= k)%nat -> y_ k x <= z_ k x).
  intros k ck; case (eq_nat_dec k 1) as [k1 | kn1].
     rewrite k1; rewrite y_s; auto; unfold yfun.
-    unfold y_, u_, v_, z_, u_, v_; simpl.
+    unfold y_, z_, a_, b_; simpl.
     assert (dn : Derive (fun x => sqrt (1 * x)) x = / (2 * sqrt x)).
       apply is_derive_unique; auto_derive;[psatzl R | rewrite !Rmult_1_l].
       now field; psatzl R.
