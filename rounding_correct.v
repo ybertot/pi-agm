@@ -2135,32 +2135,32 @@ replace (3322%Z) with (3 * 11 * 10 * 10 + 22)%Z by reflexivity.
 rewrite plus_IZR, !mult_IZR; simpl; ring.
 Qed.
 
-Lemma change_magnifier : forall p1 p2 x, (0 < p1)%Z ->
-  (p1 < p2)%Z ->
-  hR p2 x - /IZR p1 < hR p1 (x * p1/p2) <= hR p2 x.
+Lemma change_magnifier : forall m1 m2 x, (0 < m2)%Z ->
+  (m2 < m1)%Z ->
+  hR m1 x - /IZR m2 < hR m2 (x * m2/m1) <= hR m1 x.
 Proof.
-intros p1 p2 x p0 cmpp.
-assert (0 < p2)%Z by (apply Z.lt_trans with (1 := p0) (2 :=cmpp)).
+intros m1 m2 x p0 cmpp.
+assert (0 < m1)%Z by (apply Z.lt_trans with (1 := p0) (2 :=cmpp)).
 unfold hR; split.
- apply Rmult_lt_reg_r with (IZR p1); [apply (IZR_lt 0); assumption | ].
+ apply Rmult_lt_reg_r with (IZR m2); [apply (IZR_lt 0); assumption | ].
  rewrite Rmult_minus_distr_r.
  unfold Rdiv at 2; rewrite Rmult_assoc, Rinv_l, Rmult_1_r;
   [|apply Rgt_not_eq, (IZR_lt 0); assumption].
- apply Rmult_lt_reg_r with (IZR p2); [apply (IZR_lt 0); assumption | ].
+ apply Rmult_lt_reg_r with (IZR m1); [apply (IZR_lt 0); assumption | ].
  rewrite Rmult_minus_distr_r, Rmult_1_l.
  unfold Rdiv; rewrite !Rmult_assoc, (Rmult_comm (/ _)), !Rmult_assoc.
  rewrite Rinv_r, Rmult_1_r;[ | apply Rgt_not_eq, (IZR_lt 0); assumption].
  assert (help : forall x y z, x < z + y -> x - y < z) by (intros; psatzl R).
  apply help; clear help; rewrite <- !mult_IZR,  <- plus_IZR;  apply IZR_lt.
- pattern (x * p1)%Z at 1; rewrite (Z_div_mod_eq (x * p1)  (p2));
+ pattern (x * m2)%Z at 1; rewrite (Z_div_mod_eq (x * m2)  (m1));
   [|apply Zlt_gt; assumption].
- rewrite (Zmult_comm (p2)).
+ rewrite (Zmult_comm (m1)).
  apply Zplus_lt_compat_l.
- destruct (Zmod_pos_bound (x * p1) (p2)); assumption.
-apply Rmult_le_reg_r with (IZR p1); [apply (IZR_lt 0); assumption | ].
+ destruct (Zmod_pos_bound (x * m2) (m1)); assumption.
+apply Rmult_le_reg_r with (IZR m2); [apply (IZR_lt 0); assumption | ].
  unfold Rdiv at 1; rewrite Rmult_assoc, Rinv_l, Rmult_1_r;
   [|apply Rgt_not_eq, (IZR_lt 0); assumption].
-apply Rmult_le_reg_r with (IZR p2); [apply (IZR_lt 0); assumption | ].
+apply Rmult_le_reg_r with (IZR m1); [apply (IZR_lt 0); assumption | ].
 unfold Rdiv; rewrite !Rmult_assoc, (Rmult_comm (/ _)), !Rmult_assoc.
  rewrite Rinv_r, Rmult_1_r;[ | apply Rgt_not_eq, (IZR_lt 0); assumption].
 rewrite <- !mult_IZR;  apply IZR_le.
@@ -2194,11 +2194,11 @@ intros magnifier n n' ctr; fold magnifier in q, t.
 assert (t' :
  Rabs (hR magnifier n - PI) < 213 * Rpower 2 (-14) * Rpower 2 (-3322))
  by exact t; clear t.
-assert (p20 : (0 < 10 ^ (10 ^ 3 + 4))%Z).
+assert (m10 : (0 < 10 ^ (10 ^ 3 + 4))%Z).
  apply Z.pow_pos_nonneg;[reflexivity | compute; discriminate].
 assert (cmpp : (10 ^ (10 ^ 3 + 4) < 2 ^ 3336)%Z).
  rewrite <- Z.ltb_lt; vm_compute; reflexivity.
-assert (t := change_magnifier _ (2 ^ 3336) n p20 cmpp).
+assert (t := change_magnifier (2 ^ 3336) _ n m10 cmpp).
 fold magnifier in t.
 (* again, fold n' does not work here *)
 assert (t'' :
@@ -2536,11 +2536,11 @@ assert
   unfold magnifier; rewrite Zpow_Rpower;[ | reflexivity| discriminate].
   now apply f_equal, f_equal, f_equal.
 (* fold or change did not manage to avoid heavy computation here *)
- assert (p20 : (0 < 10 ^ (10 ^ 6 + 4))%Z).
+ assert (m10 : (0 < 10 ^ (10 ^ 6 + 4))%Z).
   apply Z.pow_pos_nonneg;[reflexivity | compute; discriminate].
  assert (cmpp : (10 ^ (10 ^ 6 + 4) < 2 ^ prec)%Z)
    by exact pow10million_pow2.
- assert (t := change_magnifier _ _ n p20 cmpp).
+ assert (t := change_magnifier _ _ n m10 cmpp).
 (* again, fold n' does not work here *)
  assert (t'' :
    hR magnifier n - / IZR (10 ^ (10 ^ 6 + 4)) <
