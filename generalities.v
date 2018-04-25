@@ -304,9 +304,6 @@ unfold rho; destruct (Req_EM_T (x + h) x) as [abs | _];[psatzl R | ].
 replace (x + h - x) with h by ring; reflexivity.
 Qed.
 
-Lemma ball_Rabs x y e : ball x e y <-> Rabs (y - x) < e.
-Proof. intros; tauto. Qed.
-
 Lemma cv_div2 a : is_lim_seq (fun n => a / 2 ^ n) 0.
 Proof.
 apply is_lim_seq_mult with a 0.
