@@ -351,7 +351,6 @@ apply Rle_trans with
   rewrite !Rpower_Ropp; apply Rinv_le_contravar. 
     now unfold Rpower; lt0.
   apply Rle_Rpower; try lt0.
-    now apply pos_INR.
   rewrite mult_INR; simpl INR.
   clear; induction n as [|n IHn].
     now simpl; lt0.

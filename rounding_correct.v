@@ -1,5 +1,7 @@
 Require Import Psatz Reals Coquelicot.Coquelicot Interval.Interval_tactic
   generalities agmpi.
+Require Import Zwf.
+
 Coercion INR : nat >-> R.
 Open Scope R_scope.
 
@@ -1390,7 +1392,7 @@ revert p y z prod p1.
 assert (/IZR magnifier < /100).
  apply Rinv_1_lt_contravar;[psatzl R |].
  replace 100 with (IZR 100) by (simpl; psatzl R).
- apply IZR_lt; apply Zlt_trans with 1000%Z;[reflexivity |assumption].
+ apply IZR_lt; apply Z.lt_trans with 1000%Z;[reflexivity |assumption].
 assert (1 < sqrt 2) by approx_sqrt.
 assert (0 <= h2)%Z by (apply Z.lt_le_incl, h2_pos).
 destruct (r_sqrt_spec 2); try psatzl R.
@@ -1613,7 +1615,6 @@ unfold hs2, rs2; rewrite hsqrt_spec, h2_spec; try lia.
 reflexivity.
 Qed.
 
-Require Import Zwf.
 Lemma Zpow_Rpower : forall x y, (0 < x) %Z -> (0 <= y)%Z ->
    IZR (x ^ y) = Rpower (IZR x) (IZR y). (* standard *)
 Proof using.
@@ -2120,7 +2121,7 @@ unfold hR; split.
   assert (help : forall x y z, x < z + y -> x - y < z) by (intros; psatzl R).
   apply help; clear help; rewrite <- !mult_IZR,  <- plus_IZR;  apply IZR_lt.
   pattern (x * p1)%Z at 1; rewrite (Z_div_mod_eq (x * p1)  (p2));
-    [|apply Zlt_gt; assumption].
+    [|apply Z.lt_gt; assumption].
   rewrite (Zmult_comm (p2)).
   apply Zplus_lt_compat_l.
   destruct (Zmod_pos_bound (x * p1) (p2)); assumption.

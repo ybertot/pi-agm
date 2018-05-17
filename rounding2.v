@@ -584,7 +584,7 @@ induction p.
     rewrite Rmult_plus_distr_r; enough (0 <= n * ln 10) by lt0.
     now apply Rmult_le_pos; try lt0; apply pos_INR.
   assert (ihsm : -/100 <= hsm <= /100).
-    apply Fcore_Raux.Rabs_le_inv, Rlt_le, Rlt_trans with (1 := intsm).
+    apply Raux.Rabs_le_inv, Rlt_le, Rlt_trans with (1 := intsm).
     apply Rle_lt_trans with (3 ^ n/2 * (/10 ^ (n + 0 + 4) / 3 ^ (n + 0))); auto.
     apply Rmult_le_compat_l; try lt0; cycle 1.
 (* using intha here. *)
