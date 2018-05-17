@@ -3,3 +3,8 @@
 *.v.d
 .*.aux
 Makefile
+*~
+lia.cache
+graph.*
+bug*
+/#*

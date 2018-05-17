@@ -39,8 +39,9 @@ Local Ltac lt0 :=
 Definition arcsinh x := ln (x + sqrt (x ^ 2 + 1)).
 
 Lemma arcsinh_sinh : forall x, arcsinh (sinh x) = x.
+Proof.
 intros x; unfold sinh, arcsinh.
-pattern 1 at 5; rewrite <- exp_0, <- (Rminus_eq_0 x); unfold Rminus.
+rewrite <- exp_0, <- (Rminus_eq_0 x); unfold Rminus.
 rewrite exp_plus.
 match goal with |- context[sqrt ?a] => 
   replace a with (((exp x + exp(-x))/2)^2) by field
@@ -51,6 +52,7 @@ rewrite ln_exp; reflexivity.
 Qed.
 
 Lemma sinh_arcsinh x : sinh (arcsinh x) = x.
+Proof.
 unfold sinh, arcsinh.
 assert (cmp : 0 < x + sqrt (x ^ 2 + 1)).
  destruct (Rle_dec x 0).
@@ -72,6 +74,7 @@ field_simplify; [rewrite pow2_sqrt;[field | lt0] | lt0].
 Qed.
 
 Lemma sinh_lt : forall x y, x < y -> sinh x < sinh y.
+Proof.
 intros x y xy; destruct (MVT_cor2 sinh cosh x y xy) as [c [Pc _]].
  intros; apply derivable_pt_lim_sinh.
 apply Rplus_lt_reg_r with (Ropp (sinh x)); rewrite Rplus_opp_r.
@@ -81,6 +84,7 @@ Qed.
 
 Lemma derivable_pt_lim_arcsinh :
   forall x, derivable_pt_lim arcsinh x (/sqrt (x ^ 2 + 1)).
+Proof.
 intros x; unfold arcsinh.
 assert (0 < x + sqrt (x ^ 2 + 1)).
  destruct (Rle_dec x 0);[ | assert (0 < x) by psatzl R; lt0].
@@ -111,6 +115,7 @@ apply Rmult_eq_reg_l with (x + sqrt (x ^ 2 + 1));[ | lt0].
 Qed.
 
 Lemma arcsinh_lt : forall x y, x < y -> arcsinh x < arcsinh y.
+Proof.
 intros x y xy.
 case (Rle_dec (arcsinh y) (arcsinh x));[ | psatzl R].
 intros abs; case (Rlt_not_le _ _ xy).
@@ -120,12 +125,14 @@ apply Rlt_le, sinh_lt; assumption.
 Qed.
 
 Lemma arcsinh_le : forall x y, x <= y -> arcsinh x <= arcsinh y.
+Proof.
 intros x y [xy | xqy].
  apply Rlt_le, arcsinh_lt; assumption.
 rewrite xqy; apply Rle_refl.
 Qed.
 
 Lemma arcsinh_0 : arcsinh 0 = 0.
+Proof.
  unfold arcsinh; rewrite pow_ne_zero, !Rplus_0_l, sqrt_1, ln_1;
   [reflexivity | discriminate].
 Qed.
@@ -134,6 +141,7 @@ Lemma equiv_ln_arcsinh :
   forall f, (forall n, 0 < f n) ->
   Un_cv f 0 ->
   Un_cv (fun n => ln (/f n)/arcsinh (/f n)) 1.
+Proof.
 intros f fp cvf.
 assert (ctv : continuity_pt Rinv 1) by (reg; lt0).
 intros eps ep.
