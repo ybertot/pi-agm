@@ -35,9 +35,70 @@ replace (- PI / 2) with (- (PI / 2)) by field.
 apply filterlim_Ropp_left.
 Qed.
 
+Lemma atan_left_inv x : -PI / 2 < x < PI / 2 -> atan (tan x) = x.
+Proof.
+intros [intx1 intx2].
+destruct (atan_bound (tan x)).
+destruct (Rtotal_order (atan (tan x)) x) as [abs | [ it | abs]]; auto;
+  apply tan_increasing in abs; try fourier; rewrite atan_right_inv in abs;
+  fourier.
+Qed.
+
+Lemma atan_lim_pinfty : Lim atan p_infty = PI/2.
+Proof. 
+assert (t := PI2_RGT_0).
+apply is_lim_unique; intros P [eps Peps].
+assert (ep2 : 0 < Rmin eps (PI/4)).
+  apply Rmin_glb_lt;[apply cond_pos | fourier].
+set (eps' := mkposreal _ ep2).
+assert (eps' < PI / 2).
+  unfold eps'; simpl.
+  apply Rle_lt_trans with (PI/4).
+    now apply Rmin_r.
+  fourier.
+assert (eps' <= eps).
+  now unfold eps'; simpl; apply Rmin_l.
+assert (0 < eps') by apply cond_pos.
+exists (tan (PI / 2 - eps')); intros x cx.
+apply Peps. change (Rabs (atan x -PI/2) < eps).
+  rewrite Rabs_left; cycle 1.
+  destruct (atan_bound x); fourier.
+enough (PI / 2 - eps' < atan x) by fourier.
+rewrite <- (atan_left_inv (PI/2 - eps')); cycle 1.
+  now split; psatzl R.
+now apply atan_increasing.
+Qed.
+
+Lemma atan_lim_minfty : Lim atan m_infty = -PI/2.
+Proof. 
+assert (t := PI2_RGT_0).
+apply is_lim_unique; intros P [eps Peps].
+assert (ep2 : 0 < Rmin eps (PI/4)).
+  apply Rmin_glb_lt;[apply cond_pos | fourier].
+set (eps' := mkposreal _ ep2).
+assert (eps' < PI / 2).
+  unfold eps'; simpl.
+  apply Rle_lt_trans with (PI/4).
+    now apply Rmin_r.
+  fourier.
+assert (eps' <= eps).
+  now unfold eps'; simpl; apply Rmin_l.
+assert (0 < eps') by apply cond_pos.
+exists (tan (-PI / 2 + eps')); intros x cx.
+apply Peps; change (Rabs (atan x - -PI/2) < eps).
+  rewrite Rabs_right; cycle 1.
+  destruct (atan_bound x); fourier.
+enough (atan x < -PI / 2 + eps') by fourier.
+rewrite <- (atan_left_inv (-PI/2 + eps')); cycle 1.
+  now split; psatzl R.
+now apply atan_increasing.
+Qed.
+
 Lemma integral_atan_comp_scal m : 0 < m ->
    is_RInt_gen (fun x => /m * /((x / m) ^ 2 + 1)) 
        (Rbar_locally m_infty) (Rbar_locally p_infty) PI.
+Proof.
+(* assert (tmp := PI2_RGT_0). *)
 intros m0.
 assert (is_derive_atan_scal : forall x,  
            is_derive (fun x => atan (x / m)) x (/ m * /((x/m)^2 + 1))).
@@ -45,38 +106,59 @@ assert (is_derive_atan_scal : forall x,
   split; apply Rgt_not_eq; auto; apply Rplus_le_lt_0_compat.
     now apply pow2_ge_0.
   now apply pow2_gt_0, Rgt_not_eq.
-exists (fun p => atan(snd p/m) - atan (fst p/m)); split.
-  exists (Rgt 0) (Rlt 0); try (exists 0; intros; fourier).
-  intros u v _ _; simpl; apply (is_RInt_derive (fun x => atan (x/m))).
-    now intros x _; apply is_derive_atan_scal.
-  intros x _; apply (@ex_derive_continuous R_AbsRing R_NormedModule).
-  auto_derive; apply Rgt_not_eq, Rplus_le_lt_0_compat;[ | fourier].
-  now apply (pow2_ge_0 (x * / m)).
-replace PI with (PI/2 + PI/2) by field.
-apply (filterlim_comp_2 (G := locally (PI/2)) (H := locally (PI/2))
-           (fun x => atan (snd x/m)) (fun x =>  - (atan (fst x/m))) Rplus).
-    apply (filterlim_comp _ _ _ snd (fun x => atan (x / m)) _
-              (Rbar_locally p_infty));[apply filterlim_snd | ].
-    apply (filterlim_comp _ _ _ (fun x => x / m) atan _ (Rbar_locally p_infty)).
-      pattern p_infty at 2; replace p_infty with (Rbar_mult p_infty (/m)).
-        apply (filterlim_Rbar_mult_r (/m)).
-      now apply is_Rbar_mult_unique, is_Rbar_mult_p_infty_pos, Rinv_0_lt_compat.
-    apply filter_le_trans with (1 := lim_atan_p_infty).
-    now intros S; unfold at_left, within; apply filter_imp.
-  apply (filterlim_comp _ _ _ fst (fun x => - atan (x / m)) _
-             (Rbar_locally m_infty));[apply filterlim_fst | ].
-  apply (filterlim_comp _ _ _ (fun x => atan (x / m)) Ropp _ (at_right(-PI/2))).
-    apply
-        (filterlim_comp _ _ _ (fun x => (x / m)) atan _ (Rbar_locally m_infty)).
-      pattern m_infty at 2; replace m_infty with (Rbar_mult m_infty (/m)).
-        now apply filterlim_Rbar_mult_r.
-    now apply is_Rbar_mult_unique, is_Rbar_mult_m_infty_pos, Rinv_0_lt_compat.
-  apply lim_atan_m_infty.
-  replace (PI / 2) with (- (-PI / 2)) by field.
-  apply filter_le_trans with (at_left (- (- PI / 2))).
-    now apply filterlim_Ropp_right.
-  now intros S; unfold at_left, within; apply filter_imp.
-now apply (filterlim_plus (PI/2) (PI/2)).
+intros P [eps Peps].
+(* assert (ep2 : 0 < Rmin eps (PI/2)).
+  apply Rmin_glb_lt;[apply cond_pos | psatzl R].
+assert (eps' := mkposreal _ ep2).
+*)
+assert (atle : at_left (PI/2) (ball (PI/2) (pos_div_2 eps))).
+  now exists (pos_div_2 eps); intros; tauto.
+assert (atri : at_right (-PI/2) (ball (-PI/2) (pos_div_2 eps))).
+  now exists (pos_div_2 eps); intros; tauto.
+assert (H0 := lim_atan_p_infty _ atle).
+assert (H0' := lim_atan_m_infty _ atri).
+assert (abs' : 0 < / m) by now apply Rinv_0_lt_compat.
+assert (H1 : filterlim (fun x => x / m) (Rbar_locally p_infty)
+                (Rbar_locally p_infty)).
+  replace (Rbar_locally p_infty) with (Rbar_locally (Rbar_mult p_infty (/ m))) at 2.
+    now apply filterlim_Rbar_mult_r.
+  apply f_equal; simpl; case (Rle_dec 0 (/ m)).
+    intros r; case (Rle_lt_or_eq_dec 0 (/ m) r); auto.
+    now intros abs; rewrite <- abs in abs'; case (Rlt_irrefl 0).
+  now intros abs; case abs; apply Rlt_le.
+assert (H2 : filterlim (fun x => x / m) (Rbar_locally m_infty)
+                (Rbar_locally m_infty)).
+  replace (Rbar_locally m_infty) with (Rbar_locally (Rbar_mult m_infty (/ m))) at 2.
+    now apply filterlim_Rbar_mult_r.
+  apply f_equal; simpl; case (Rle_dec 0 (/ m)).
+    intros r; case (Rle_lt_or_eq_dec 0 (/ m) r); auto.
+    now intros abs; rewrite <- abs in abs'; case (Rlt_irrefl 0).
+  now intros abs; case abs; apply Rlt_le.
+assert (t := filterlim_comp R R R (fun x => x / m) atan (Rbar_locally p_infty)
+              (Rbar_locally p_infty) (at_left (PI/2)) H1 lim_atan_p_infty).
+assert (t' := filterlim_comp R R R (fun x => x / m) atan (Rbar_locally m_infty)
+              (Rbar_locally m_infty) (at_right (-PI/2)) H2 lim_atan_m_infty ).
+specialize (t _ atle).
+specialize (t' _ atri).
+unfold filtermapi, filtermap in t, t' |- *.
+apply (Filter_prod _ _ _ _ _ t' t).
+intros x y; exists (atan (y/m) - atan (x/m)); split.
+  apply (is_RInt_derive (fun x => atan (x / m))).
+    intros z _; exact (is_derive_atan_scal z).
+  intros z _; apply (ex_derive_continuous (fun x1 => /m * / ((x1 / m) ^ 2 + 1))).
+  auto_derive; change ((z / m) ^ 2 + 1 <> 0).
+  now apply Rgt_not_eq, Rplus_le_lt_0_compat;
+           [apply pow2_ge_0 | apply Rlt_0_1].
+apply Peps.
+change (Rabs ((atan (y / m) - atan (x / m)) - PI) < eps).
+replace ((atan (y / m) - atan (x / m)) - PI) with
+    ((atan (y / m) - PI / 2) - (atan (x / m) + PI / 2)) by field.
+apply Rle_lt_trans with (1 := Rabs_triang _ _).
+replace (pos eps) with (pos_div_2 eps + pos_div_2 eps) by (simpl; field).
+apply Rplus_lt_compat.
+  exact H3.
+rewrite <- Rabs_Ropp, !Ropp_plus_distr, Ropp_involutive, <- Ropp_div.
+exact H.
 Qed.
 
 Lemma atan_derivative_improper_integral :

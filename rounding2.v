@@ -32,7 +32,7 @@ Hypothesis r_square_spec :
 
 Lemma Rmult_le_compat' r1 r2 r3 r4 :
  0 <= r1 -> 0 <= r4 -> r1 <= r2 -> r3 <= r4 -> r1 * r3 <= r2 * r4.
-Proof.
+Proof using.
 intros r10 r40 r12 r34.
 destruct (Rle_dec 0 r3).
   now apply Rmult_le_compat; auto.
@@ -47,7 +47,7 @@ e <= e' ->
 2 * e' <= / 4 * / 2 ^ k ->
 0 <= u - v <= /4 * / 2 ^ k ->
 2 ^ k * r_square ((u + h) - (v + h')) <= 2 ^ k * (u - v) ^ 2 + 2 / 3 * e'.
-Proof.
+Proof using ce r_square_spec.
 intros inte' ee' inth inth' ek uv.
 assert (-/1000 <= h <= 0) by psatzl R.
 assert (-/1000 <= h' <= 0) by psatzl R.
@@ -100,7 +100,7 @@ e <= e' ->
 0 <= u - v <= /4 * / 2 ^ k ->
 2 ^ k * (u - v) ^ 2 - (2 / 3  + 2 ^ k) * e' <=
    2 ^ k * r_square ((u + h) - (v + h')).
-Proof.
+Proof using ce r_square_spec.
 intros inte' ee' inth inth' ek uv.
 assert (-/1000 <= h <= 0) by psatzl R.
 assert (-/1000 <= h' <= 0) by psatzl R.
@@ -145,7 +145,7 @@ Lemma agm1_error e' a b h h':
   0 <= e' <= /100 -> e <= / 10 * e' -> 4/5 <= a <= 6/7 -> 4/5 <= b <= 6/7 ->
   -e' <= h <= 0 -> -e' <= h' <= 0 ->
   (a + b) / 2 - 3/2 * e' <= r_half ((a + h) + (b + h')) <= (a + b)/2.
-Proof.
+Proof using ce r_half_spec.
 intros ce' cee'.
 revert a b h h'.
 assert (help1 : forall a b c, 0 < a -> b * a < c -> b <= c / a).
@@ -187,7 +187,7 @@ Lemma sum_error e' n hsm ha1 hb1 :
      (2 ^ n *
       r_square (a_ n (/ sqrt 2) + ha1 - (b_ n (/ sqrt 2) + hb1)) -
       salamin_sumand (S n))) < 3 ^ S (S n) / 2 * e'.
-Proof.
+Proof using ce r_square_spec.
 intros ee' inte' abshsm inth inth'.
 assert (ls : 3 ^ S (S n) / 2 * e' = 3 ^ S n / 2 * e' + 3 ^ S n * e').
   now rewrite <- Rmult_plus_distr_r, <- tech_pow_Rmult; field.
@@ -354,7 +354,7 @@ Lemma ssalamin_rec_step (n : nat) (a b am1 bm1 sum twopk : R) :
   ssalamin_rec (S n) a b am1 bm1 sum twopk =
   ssalamin_rec n ((a + b) / 2) (sqrt (a * b)) a b
      (sum - twopk * (am1 - bm1) ^ 2) (2 * twopk).
-Proof. reflexivity.  Qed.
+Proof using. reflexivity.  Qed.
 
 (* This assumes that /2 has a perfect representation, which is fair,
    and that half sums always have a perfect representation, which is
@@ -379,7 +379,7 @@ Lemma ssalamin_rec_correct  n p :
      (a_ (n - 1) (/sqrt 2)) (b_ (n - 1) (/sqrt 2))
      (1 - sum_f_R0 salamin_sumand (n - 1)) (2 ^ (n - 1)) =
   salamin_formula (p + n).
-Proof.
+Proof using.
 revert n; induction p;[reflexivity | ].
 intros n n1; rewrite ssalamin_rec_step.
 replace (S p + n)%nat with (p + S n)%nat by ring.
@@ -404,7 +404,7 @@ Qed.
 
 Lemma ssalamin_correct n :
   ssalamin n = salamin_formula (n + 1).
-Proof.
+Proof using.
 unfold ssalamin.
 replace (sqrt (/sqrt 2)) with (b_ 1 (/sqrt 2)) by
   (now unfold b_; simpl; rewrite Rmult_1_l).
@@ -421,7 +421,7 @@ Lemma agm2_error e' u v h h' :
   e <= /10 * e' ->
   -e' <= h <= 0 -> -e' <= h' <= 0 ->
   sqrt (u * v) - 3/ 2 * e' <= r_sqrt (r_mult (u + h) (v + h')) <= sqrt (u * v).
-Proof.
+Proof using ce r_mult_spec r_sqrt_spec.
 intros intu intv inte' ee' inth inth'.
 assert (help1 : forall a b c, 0 < a -> b * a < c -> b <= c / a).
    intros a b c a0 bac; apply Rmult_le_reg_r with a;[psatzl R | ].
@@ -528,8 +528,8 @@ now interval.
 Qed.
 
 Lemma cmp_3half_3 n : (1 <= n)%nat -> (3 / 2) ^ n <= 3 ^ n / 2.
-Proof.
-induction 1;[psatzl R | ].
+Proof using.
+clear; induction 1;[psatzl R | ].
 simpl; replace (3 * 3 ^ m / 2) with (3 * (3 ^ m / 2)) by field.
 apply Rmult_le_compat; try psatzl R.
 apply pow_le; psatzl R.
@@ -550,7 +550,7 @@ Lemma rsalamin_rec_correct n p a b am1 bm1 sum twopk ha hb ha1 hb1 hsm local_e :
   10 * e <= local_e ->
   Rabs (rsalamin_rec p a b am1 bm1 sum twopk - salamin_formula (p + n)) <= 
    16 * (3 / 2) ^ (p + n) * local_e + 8 * 3 ^ (p + n) * local_e + 10 * local_e.
-Proof.
+Proof using ce r_div_spec r_half_spec r_mult_spec r_sqrt_spec r_square_spec.
 revert n a b am1 bm1 sum twopk ha hb ha1 hb1 hsm local_e.
 assert (help1 : forall a b c, 0 < a -> b * a < c -> b <= c / a).
    intros a b c a0 bac; apply Rmult_le_reg_r with a;[psatzl R | ].
@@ -584,7 +584,7 @@ induction p.
     rewrite Rmult_plus_distr_r; enough (0 <= n * ln 10) by lt0.
     now apply Rmult_le_pos; try lt0; apply pos_INR.
   assert (ihsm : -/100 <= hsm <= /100).
-    apply Fcore_Raux.Rabs_le_inv, Rlt_le, Rlt_trans with (1 := intsm).
+    apply Raux.Rabs_le_inv, Rlt_le, Rlt_trans with (1 := intsm).
     apply Rle_lt_trans with (3 ^ n/2 * (/10 ^ (n + 0 + 4) / 3 ^ (n + 0))); auto.
     apply Rmult_le_compat_l; try lt0; cycle 1.
 (* using intha here. *)
@@ -705,7 +705,7 @@ induction p.
       pattern 4 at 2; replace 4 with (4 * 1) by ring.
       apply Rmult_le_compat_l; try psatzl R.
       rewrite Rabs_pos_eq;[ | apply pow2_ge_0].
-      pattern 1 at 3; replace 1 with (1 * 1) by ring.        
+      replace 1 with (1 * 1) by ring.
       now simpl; rewrite Rmult_1_r; apply Rmult_le_compat; auto; psatzl R.
     rewrite Rabs_mult; apply Rmult_le_compat_l; try lt0.
     rewrite Rabs_Rinv; cycle 1.
@@ -715,10 +715,11 @@ induction p.
     assert (59/100 < Rabs (B + hsm)).
       now unfold B; rewrite Rabs_pos_eq; psatzl R.
     rewrite -> Rabs_mult, Rinv_mult_distr; try psatzl R.
+    replace 4 with (2 * 2) by ring.
     apply Rmult_le_compat; try lt0.
-      replace 2 with (/ / 2) by field.          
+      replace 2 with (/ / 2) by field.
       now apply Rinv_le_contravar; lt0.
-    replace 2 with (/ / 2) by field.          
+    replace 2 with (/ / 2) by field.
     now apply Rinv_le_contravar; lt0.
   now psatzl R.
 (* End of base case here. *)
@@ -858,7 +859,7 @@ Lemma rsalamin_correct (n : nat) :
  0 <= e <= / 10 ^ (n + 6) / 3 ^ (n + 1) ->
   Rabs (rsalamin n - salamin_formula (n + 1)) <=
   (160 * (3 / 2) ^ (n + 1) + 80 * 3 ^ (n + 1) + 100) * e.
-Proof.
+Proof using ce r_div_spec r_half_spec r_mult_spec r_sqrt_spec r_square_spec.
 intros ce'; unfold rsalamin.
 assert (t := rsalamin_rec_correct 1 n (r_half (1 + r_sqrt (/ 2)))
               (r_sqrt (r_sqrt (/ 2))) 1
@@ -920,7 +921,6 @@ assert (- (3 / 2) * (10 * e) <= r_sqrt (r_sqrt (/ 2)) - b_ 1 (/ sqrt 2) <= 0).
      sqrt (sqrt (/2) + e1 * e) + e2 * e /\ -1 <= e2 <= 0)
             as [e2 [Q Pe2]];[| rewrite Q; clear Q].
     destruct (r_sqrt_spec (sqrt (/2) + e1 * e)); try psatzl R.
-
        apply Rle_trans with (/2 + (-1 * / 2));[lt0 | ].
       apply Rplus_le_compat; [interval | ].
       apply Rle_trans with (e1 * /2).

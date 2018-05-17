@@ -1,4 +1,4 @@
-Require Import BigZ.
+From Bignums Require Import BigZ.
 
 Definition hmult (magnifier x y : bigZ) := (x * y / magnifier)%bigZ.
 Definition hdiv (magnifier x y : bigZ) := (x * magnifier / y)%bigZ.
