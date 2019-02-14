@@ -1,4 +1,4 @@
-Require Import Reals Coquelicot.Coquelicot Fourier Psatz.
+Require Import Reals Coquelicot.Coquelicot Psatz.
 Require Import filter_Rlt atan_derivative_improper_integral.
 Require Import generalities.
 Import mathcomp.ssreflect.ssreflect.
@@ -18,7 +18,7 @@ assert (m <= a) by apply Rmin_l.
 assert (m <= b) by apply Rmin_r.
 set (g := (fun x => /m * (/m * /((x /m) ^ 2 + 1))));
 apply (ex_RInt_gen_bound g); try solve[apply Rbar_locally_filter ].
-    apply filter_Rlt_witness with 0; exists 0; intros; fourier.
+    apply filter_Rlt_witness with 0; exists 0; intros; lra.
   exists (/m * PI); apply (is_RInt_gen_scal _ (/m) PI), integral_atan_comp_scal.
   easy.
 exists (Rgt 0) (Rlt 0); try (exists 0; intros; psatzl R).
