@@ -44,8 +44,7 @@ assert (n = (pred n + 1)%nat) by now destruct n; lia.
     intros nis1; rewrite nis1; simpl; rewrite z_1, y_s, y_0; unfold yfun; auto.
     split; interval.
 set (k := (n - 1)%nat); assert (nk1 : n = (k + 1)%nat).
-  destruct n; simpl; try lia; unfold k.
-  now rewrite Nat.add_comm, Nat.sub_succ, Nat.sub_0_r.
+  now destruct n; simpl; try lia.
 intros nn1; assert (k1 : (1 <= k)%nat) by lia.
 assert (t := bound_agmpi k k1); rewrite nk1.
 split;
@@ -1920,9 +1919,9 @@ assert (main : hR (10 ^ (10 ^ 6)) n' < PI < hR (10 ^ (10 ^ 6)) (n' + 1)).
     assert (cp' : (0 < 10 ^ (10 ^ 6 + 4))%Z).
       apply Z.pow_pos_nonneg; [reflexivity | compute; discriminate].
     assert (q : IZR (10 ^ (10 ^ 6 + 4)) = Rpower 10 (10 ^ 6 + 4)).
-      rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
+      rewrite Zpow_Rpower; try (clear; lia); try lra.
       apply f_equal; rewrite plus_IZR.
-      rewrite Zpow_Rpower, <- Rpower_pow; try psatzl R; try lia.
+      rewrite Zpow_Rpower, <- Rpower_pow; try lra; try (clear; lia).
       apply (f_equal (fun x => Rpower 10 x + 4)); simpl; ring.
     apply (integer_pi_million (10 ^ (10 ^ 6 + 4)) gt1000 cp' q).
   assert (ctr' : (Rh (10 ^ 10 ^ 6 * 10 ^ 4)
@@ -1996,7 +1995,7 @@ assert (main : hR (10 ^ (10 ^ 5)) n' < PI < hR (10 ^ (10 ^ 5)) (n' + 1)).
     assert (q : IZR (10 ^ (10 ^ 5 + 4)) = Rpower 10  (10 ^ 5 + 4)).
       rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
       apply f_equal; rewrite plus_IZR.
-      rewrite Zpow_Rpower, <- Rpower_pow; try psatzl R; try lia.
+      rewrite Zpow_Rpower, <- Rpower_pow; try psatzl R; try (clear; lia).
       apply (f_equal (fun x => Rpower 10 x + 4)); simpl; ring.
     apply (integer_pi_ofive (10 ^ (10 ^ 5 + 4)) gt1000 cp' q).
   assert (ctr' : (Rh (10 ^ 10 ^ 5 * 10 ^ 4)
@@ -2311,7 +2310,7 @@ assert
   assert (q : IZR (2 ^ prec) = Rpower 2 (IZR prec)).
     apply Zpow_Rpower;[reflexivity | compute; discriminate].
   intros magnifier n n'.
-  assert (nineteen1 : (1 <= 19)%nat) by lia.
+  assert (nineteen1 : (1 <= 19)%nat) by (clear; lia).
   assert (t' : 600 * INR 20 < IZR magnifier < Rpower 531 (2 ^ 19) / 14).
     split.
 (* This does not work, probably because 3321929 does not seem to parse,
@@ -2327,7 +2326,7 @@ assert
     apply Rmult_lt_reg_r with 14;[psatzl R |unfold Rdiv ].
     rewrite Rmult_assoc, Rinv_l, Rmult_1_r;[ | psatzl R].
     unfold magnifier; rewrite -> Zpow_Rpower, <- (exp_ln 14);
-    try (unfold prec; lia); try psatzl R.
+    try (unfold prec; clear; lia); try psatzl R.
     unfold Rpower; rewrite <- exp_plus; apply exp_increasing.
     now unfold prec; interval.
   assert (t'' := integer_pi magnifier gt1000 p0 19 nineteen1 t'); clear t'.

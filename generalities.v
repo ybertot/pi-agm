@@ -1,4 +1,4 @@
-Require Import Reals Coquelicot.Coquelicot Fourier Psatz.
+Require Import Reals Coquelicot.Coquelicot Psatz.
 Require Import filter_Rlt atan_derivative_improper_integral.
 Require Import arcsinh.
 Require Import Interval.Interval_tactic.
@@ -607,15 +607,12 @@ exists (RInt f a y); split; cycle 1.
         destruct (Req_dec z a) as [za | nza].
           rewrite -> za,Rplus_opp_r, Rabs_R0; fourier.
         rewrite Rabs_left; try fourier.
-        now apply Rnot_le_lt; intros abs; case nza; apply Rle_antisym; fourier.
       now apply ex_RInt_const.
     intros z pz; apply Rlt_le, close.
       destruct (Rle_dec a a') as [aa' | a'a].
         rewrite -> Rmin_left, Rmax_right in pz; destruct pz; try fourier.
-        now apply Rgt_not_eq; assumption.
       rewrite -> Rmin_right, Rmax_left in pz; destruct pz;
       apply Rnot_le_lt in a'a; try fourier.
-      now apply Rlt_not_eq; assumption.
     apply Rlt_trans with (Rabs (a' - a));[ | tauto].
     unfold abs, minus, plus, opp; simpl.
     destruct (Rle_dec a a') as [aa' | a'a].
