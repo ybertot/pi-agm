@@ -606,13 +606,13 @@ exists (RInt f a y); split; cycle 1.
           try rewrite (Rabs_left (a' - a)); try lra.
         destruct (Req_dec z a) as [za | nza].
           rewrite -> za,Rplus_opp_r, Rabs_R0; lra.
-        rewrite Rabs_left; try lra.
+        now rewrite Rabs_left; lra.
       now apply ex_RInt_const.
     intros z pz; apply Rlt_le, close.
       destruct (Rle_dec a a') as [aa' | a'a].
-        rewrite -> Rmin_left, Rmax_right in pz; destruct pz; try lra.
+        now rewrite -> Rmin_left, Rmax_right in pz; destruct pz; lra.
       rewrite -> Rmin_right, Rmax_left in pz; destruct pz;
-      apply Rnot_le_lt in a'a; try lra.
+      now apply Rnot_le_lt in a'a; lra.
     apply Rlt_trans with (Rabs (a' - a));[ | tauto].
     unfold abs, minus, plus, opp; simpl.
     destruct (Rle_dec a a') as [aa' | a'a].

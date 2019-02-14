@@ -44,7 +44,7 @@ assert (n = (pred n + 1)%nat) by now destruct n; lia.
     intros nis1; rewrite nis1; simpl; rewrite z_1, y_s, y_0; unfold yfun; auto.
     split; interval.
 set (k := (n - 1)%nat); assert (nk1 : n = (k + 1)%nat).
-  now destruct n; simpl; try lia.
+  now destruct n; simpl; lia.
 intros nn1; assert (k1 : (1 <= k)%nat) by lia.
 assert (t := bound_agmpi k k1); rewrite nk1.
 split;
