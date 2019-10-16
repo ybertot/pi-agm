@@ -638,7 +638,7 @@ assert (fact1 :
     unfold ellf; rewrite sqrt_square; field_simplify; auto.
         split; lt0.
       lt0.
-    unfold Rdiv at 1; rewrite Rmult_0_l; lt0.
+    lt0.
   now apply is_RInt_gen_ell.
 assert (fact2 : is_RInt_gen (fun x =>
                        /Rmax a b * (/Rmax a b * /((x /Rmax a b ) ^ 2 + 1)))
@@ -678,7 +678,7 @@ apply (is_RInt_gen_ext (ellf (Rmin a b) (Rmin a b))); auto.
   unfold ellf; rewrite sqrt_square; field_simplify; auto.
       split; lt0.
     lt0.
-  unfold Rdiv at 1; rewrite Rmult_0_l; lt0.
+  lt0.
 now apply is_RInt_gen_ell.
 assert (fact2 : is_RInt_gen (fun x =>
                        /Rmin a b * (/Rmin a b * /((x /Rmin a b ) ^ 2 + 1)))

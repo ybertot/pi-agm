@@ -365,7 +365,6 @@ rewrite <- Rpow_mult_distr.
 rewrite -> Nat.add_comm, !pow_add.
 rewrite <- (Rmult_assoc (7 ^ 2)), <- (Rmult_assoc (/11)).
 apply Rmult_le_compat; try lt0.
-  now interval.
 now apply pow_incr; interval.
 Qed.
 
@@ -574,7 +573,7 @@ rewrite Rpow_mult_distr; apply Rmult_le_compat; try apply pow2_ge_0.
 assert (nm1 : n = ((n - 1) + 1)%nat) by lia.
 replace (64 * Rpower 531 (-2 ^ n)) with
   ((8 * Rpower 531 (-2 ^ (n - 1))) ^ 2); cycle 1.
-  field_simplify; simpl; rewrite -> !Rdiv_1, Rmult_1_r, <- Rpower_plus.
+  field_simplify; simpl; rewrite -> Rmult_1_r, <- Rpower_plus.
   rewrite <- Ropp_plus_distr.
   assert (help2 : forall a, a + a = 2 * a) by now intros; ring.
   rewrite -> (help2 (2 ^ _)), tech_pow_Rmult.

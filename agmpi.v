@@ -466,7 +466,6 @@ assert (z_ (n + 1) x <= sqrt (y_ n x));[ | split;[|assumption]].
 rewrite -> y_step, z_step; auto.
 apply Rmult_le_reg_r with (2 * (1 + z_ n x) * (sqrt (y_ n x)));[lt0 | ].
 unfold yfun; field_simplify;[ | split; lt0| lt0].
-unfold Rdiv; rewrite -> Rinv_1, !Rmult_1_r.
 apply Rplus_le_reg_r with (- (y_ n x * z_ n x + y_ n x + 1)); ring_simplify.
 replace (y_ n x * z_ n x - y_ n x) with (y_ n x * (z_ n x - 1)) by ring.
 apply Rle_trans with (1 * (z_ n x - 1) + 1);[psatzl R | ].
