@@ -11,16 +11,23 @@ cc -o pi_agm -lmpfr pi_agm.c
 
 # Displaying theorems in Coq
 
-## Coq installed through opam (works with coq-8.6 and coq-8.7)
+## Coq installed through opam (last checked with coq 8.11 and interval 4.0)
 
 If you installed coq through opam, you can compile the whole library and
 install it by typing
 
     opam repo add coq-released http://coq.inria.fr/opam/released
-    opam install coq-interval
     opam install coq-pi-agm
 
-You can see the main theorems by launching the <code>coqtop</code> and
+If you want to compile your own copy of the files, you can perform the
+following actions
+
+    opam repo add coq-released http://coq.inria.fr/opam/released
+    opam install coq-interval
+    coq_makefile -f _CoqProject -o Makefile
+    make
+
+You can see the main theorems by launching the <code>coqtop</code> program and
 typing the following commands:
 
     Require Import agm.hrounding_correct agm.agmpi agm.alg2 agm.rounding2.
