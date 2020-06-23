@@ -1,7 +1,7 @@
 Require Import Reals Coquelicot.Coquelicot Fourier Psatz.
 Require Import filter_Rlt atan_derivative_improper_integral.
 Require Import elliptic_integral arcsinh generalities.
-Require Import Interval.Interval_tactic.
+Require Import Interval.Tactic.
 Import mathcomp.ssreflect.ssreflect.
 
 Hint Mode ProperFilter' - + : typeclass_instances.

@@ -1,7 +1,7 @@
 Require Import Reals Coquelicot.Coquelicot Fourier Psatz.
 Require Import filter_Rlt atan_derivative_improper_integral arcsinh.
 Require Import elliptic_integral generalities agmpi rounding_big alg2.
-Require Import Interval.Interval_tactic.
+Require Import Interval.Tactic.
 Require Import rounding_correct.
 
 Import mathcomp.ssreflect.ssreflect.
@@ -463,7 +463,8 @@ split; cycle 1.
     apply Rplus_le_compat_r, sqrt_le_1;[interval | interval | ].
     replace ((u + h) * (v + h')) with 
         ((u * v) + (u + h) * h' + v * h) by ring.
-    now rewrite !Rplus_assoc; apply Rplus_le_compat_l; interval.
+    rewrite !Rplus_assoc.
+    now apply Rplus_le_compat_l; interval with (i_prec 100).
   rewrite <- (Rplus_0_r (sqrt (u * v))); apply Rplus_le_compat.
     now rewrite Rplus_0_r; apply Req_le.
   enough (0 <= -(e2 * e')) by psatzl R.
@@ -963,7 +964,7 @@ assert (- (3 / 2) * (10 * e) <= r_sqrt (r_sqrt (/ 2)) - b_ 1 (/ sqrt 2) <= 0).
     rewrite pow2_sqrt;[ | lt0].
     apply Rplus_le_compat_l, Rminus_le.
     replace (e1 * e) with (e1 * e * 1) at 3 by ring.
-    now rewrite <- Rmult_minus_distr_l; interval.
+    now rewrite <- Rmult_minus_distr_l; interval with (i_prec 100).
   assert (h : forall a b c, a + c <= b -> a <= b - c) by (intros; psatzl R).
   apply h, Rle_trans with (2 := intermediate).
   rewrite -> inv_sqrt, Rplus_comm; try lt0.

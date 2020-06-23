@@ -1,4 +1,4 @@
-Require Import Psatz Reals Coquelicot.Coquelicot Interval.Interval_tactic
+Require Import Psatz Reals Coquelicot.Coquelicot Interval.Tactic
   generalities elliptic_integral agmpi.
 Require Import Bool Zwf.
 

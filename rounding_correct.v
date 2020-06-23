@@ -1,4 +1,4 @@
-Require Import Psatz Reals Coquelicot.Coquelicot Interval.Interval_tactic
+Require Import Psatz Reals Coquelicot.Coquelicot Interval.Tactic
   generalities elliptic_integral agmpi.
 Require Import Bool.
 
@@ -308,7 +308,7 @@ split.
   apply Rplus_le_lt_compat.
     rewrite <- Rminus_le_0; unfold y2; apply Rmult_le_compat_l;[interval | ].
     apply Rle_Rinv;[interval | interval | apply Rmult_le_compat_l; [lt0 | ]].
-    now assert (e1 * e' <= 0) by interval; lt0.
+    now assert (e1 * e' <= 0) by interval with (i_prec 50); lt0.
   now rewrite Ropp_mult_distr_l; apply Rmult_lt_compat_r; psatzl R.
 replace (y1 + e') with ((e' / 14) + (y1 + (0  + 13/14 * e'))) by field.
 apply Rabs_def2 in propagated_error.
@@ -317,7 +317,7 @@ assert (help : forall a b c d e, e - b < a -> b + (d - e) < c -> d < a + c).
 apply help with (1 := proj1 propagated_error), Rplus_lt_compat_l; clear help.
 assert (help : forall a b c, a + b - c = b + (a - c)) by (intros; ring).
 rewrite help; clear help.
-apply Rplus_le_lt_compat;[interval | ].
+apply Rplus_le_lt_compat;[interval with (i_prec 50) | ].
 set (e'' := e1 * e' / sqrt (y + h)).
 replace (2 * (sqrt (y + h) + e1 * e')) with
   (2 * (sqrt (y + h)) * (1 + e'')) by (unfold e''; field; interval).
@@ -325,14 +325,14 @@ unfold Rdiv; rewrite -> Rinv_mult_distr;
   [ | interval | unfold e''; interval].
 (* test different values of the lower bound here.  Need at least /6 if propagated
    error is at /14, and then bisection on y is needed for interval *)
-assert (- / 6 <= e'' <= 0) by (unfold e''; interval).
+assert (- / 6 <= e'' <= 0) by (unfold e''; interval with (i_prec 50)).
 apply Rle_lt_trans with (y2 * (1 - e'' + 2 * e'' ^ 2) - y2).
   apply Rplus_le_compat_r; rewrite <- Rmult_assoc.
   apply Rmult_le_compat_l; unfold y2;[interval|].
   apply Rmult_le_reg_r with (1 + e'');[|rewrite Rinv_l];try lt0.
   replace ((1 - e'' + 2 * e'' ^ 2) * (1 + e'')) with
          ( 1 + e'' ^ 2 * ( 1 + 2 * e'')) by ring.
-  now interval.
+  now interval with (i_prec 50).
 replace (y2 * (1 - e'' + 2 * e'' ^ 2) - y2) with
    (y2 * (- 1 + 2 * e'') *  (e1 / sqrt (y + h)) * e'); cycle 1.
   unfold e''; field; interval.
@@ -443,9 +443,9 @@ split.
                           ((1 + (z + h')) * (sqrt (y + h)))); cycle 1.
       apply Rmult_le_compat_l;[interval | apply Rle_Rinv; try interval].
       apply Rle_trans with ((1 + (z + h')) * (sqrt (y + h) + e2 * e')).
-        now assert (e3 * e' <= 0) by interval; psatzl R.
+        now assert (e3 * e' <= 0) by interval with (i_prec 50); lra.
       apply Rmult_le_compat_l;[interval | ].
-      now assert (e2 * e' <= 0) by interval; psatzl R.
+      now assert (e2 * e' <= 0) by interval with (i_prec 50); lra.
     rewrite <- (Rplus_assoc _ _ (e1 * e')), (Rdiv_plus_distr _ (e1 * e')).
     apply Rplus_le_compat_l.
     unfold Rdiv; rewrite Ropp_mult_distr_r, (Rmult_comm _ e'), Rmult_assoc.
@@ -457,7 +457,7 @@ split.
 rewrite <- (Rplus_assoc _ _ (e1 * e')), Rdiv_plus_distr.
 assert (step : forall a b, b <= 0 -> a + b <= a) by (intros; psatzl R).
 repeat (match goal with |- ?a + _ < _ => apply Rle_lt_trans with a end;
-            [now apply step; interval | ]).
+            [now apply step; interval with (i_prec 50) | ]).
 apply Rlt_trans with (u + 4 / 5 * e');cycle 1.
   now apply Rabs_def2 in propagated_error; psatzl R.
 assert (help5 : forall a b c, a - b < c -> a < b + c) by (intros; psatzl R).
@@ -478,17 +478,21 @@ apply Rplus_lt_compat.
                             ((1 + (z + h')) * (sqrt (y + h) + e2 * e') + c)^2)
             0 (e3 * e')) as [c [hc intc]].
     intros c intc; rewrite <- is_derive_Reals; apply dd1.
-    rewrite Rmin_right, Rmax_left in intc;[ | interval | interval].
+    rewrite Rmin_right, Rmax_left in intc;
+        [ | interval with (i_prec 50)| interval with (i_prec 50)].
     assert (- / 4 * e' <= e3 * e') by (apply Rmult_le_compat_r; try psatzl R).
-    now assert (-/50 <= c <= 0) by psatzl R; interval.
+      assert (tmp : -/50 <= c) by psatzl R.
+      apply Rlt_le_trans with (2 := tmp); interval.
   apply Rle_lt_trans with (1 := Rle_abs _).
   replace ((1 + (z + h')) * (sqrt (y + h) + e2 * e')) with
         ((1 + (z + h')) * (sqrt (y + h) + e2 * e') + 0) at 2 by ring.
-  rewrite Rmin_right, Rmax_left in intc;[ | interval | interval].
+  rewrite Rmin_right, Rmax_left in intc;
+    [ | interval with (i_prec 50) | interval with (i_prec 50)].
   assert (-/4 * e' <= e3 * e') by (apply Rmult_le_compat_r; try psatzl R).
-  assert (-/50 <= c <= 0) by psatzl R.
+  assert (-/50 <= c <= 0) by lra.
   rewrite hc; apply Rmult_le_0_lt_compat; try apply Rabs_pos;[interval | ].
-  rewrite Rminus_0_r, Rabs_left1, Ropp_mult_distr_l;[ | interval].
+  rewrite Rminus_0_r, Rabs_left1, Ropp_mult_distr_l;
+        [| interval with (i_prec 50)].
   now apply Rmult_lt_compat_r; psatzl R.
 replace u with
   ((1 + (z + h') * (y + h)) / ((1 + (z + h')) * (sqrt (y + h) + 0))) by
@@ -505,14 +509,18 @@ destruct (MVT_abs (fun c => (1 + (z + h') * (y + h)) /
                            ((1 + (z + h')) * (sqrt (y + h) + c)) ^ 2) 0 (e2 * e'))
      as [c [hc intc]].
   intros c intc; rewrite <- is_derive_Reals; apply dd2;[interval | interval | ].
-  rewrite Rmin_right, Rmax_left in intc;[ | interval | interval].
+  rewrite Rmin_right, Rmax_left in intc;
+    [ | interval with (i_prec 50) | interval with (i_prec 50)].
   assert (-/4 * e' <= e2 * e') by (apply Rmult_le_compat_r; try psatzl R).
-  now assert (-/50 <= c <= 0) by psatzl R; interval.
-rewrite Rmin_right, Rmax_left in intc;[ | interval | interval].
+   assert (lbc : -/50 <= c) by psatzl R.
+   apply Rlt_le_trans with (2 := lbc); interval.
+rewrite Rmin_right, Rmax_left in intc;
+   [ | interval with (i_prec 50) | interval with (i_prec 50)].
 assert (-/4 * e' <= e2 * e') by (apply Rmult_le_compat_r; try psatzl R).
 assert (-/50 <= c <= 0) by psatzl R.
 rewrite hc; apply Rmult_le_0_lt_compat; try apply Rabs_pos;[interval | ].
-rewrite Rminus_0_r, Rabs_left1, Ropp_mult_distr_l;[ | interval].
+rewrite Rminus_0_r, Rabs_left1, Ropp_mult_distr_l;
+  [ | interval with (i_prec 50)].
 now apply Rmult_lt_compat_r; psatzl R.
 Qed.
 
@@ -1807,8 +1815,8 @@ intros magnifierq.
 assert (nine1 : (1 <= 9)%nat) by lia.
 assert (prem : 600 * INR (9 + 1) < IZR magnifier < Rpower 531 (2 ^ 9)/14).
   split.
-    now rewrite magnifierq; unfold Rpower; simpl; interval.
-  rewrite magnifierq; unfold Rpower; interval.
+    now rewrite magnifierq; unfold Rpower; simpl; interval with (i_prec 3500).
+  rewrite magnifierq; unfold Rpower; interval with (i_prec 3500).
 apply Rlt_le_trans with (1 := integer_pi _ nine1 prem).
 replace (21 * INR (9 + 1) + 3) with 213 by (simpl; ring).
 rewrite magnifierq.
