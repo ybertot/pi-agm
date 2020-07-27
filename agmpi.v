@@ -1279,14 +1279,14 @@ assert (filterlim (fun x => arcsinh (/ sqrt x) / ln (/ sqrt x))
 apply equiv_trans with (g := fun x => arcsinh (/sqrt x)); cycle 4.
         now easy.
        now apply at_right_proper_filter.
-    exists pos_half; intros y y2 y0.
+    exists posreal_half; intros y y2 y0.
     change (Rabs (y - 0) < / 2) in y2.
     assert (1 < / sqrt y).
       rewrite Rabs_right in y2; [ | psatzl R].
       rewrite <- Rinv_1, <- sqrt_1.
       now apply Rinv_lt_contravar;[ lt0 | apply sqrt_lt_1_alt; psatzl R].
     now rewrite <- arcsinh_0; apply Rgt_not_eq, arcsinh_lt; lt0.
-  exists pos_half; intros y y2 y0.
+  exists posreal_half; intros y y2 y0.
   change (Rabs (y - 0) < / 2) in y2.
   assert (1 < / sqrt y).
     rewrite Rabs_right in y2; [ | psatzl R].
@@ -1384,7 +1384,7 @@ Proof.
 assert (pi_0 := PI_RGT_0).
 apply filterlim_ext_loc with
   (fun x => / (RInt (ellf 1 x) 0 (sqrt x) / ln (/ sqrt x))).
-  exists pos_half; intros y y2 y0; change (Rabs (y - 0) < / 2) in y2.
+  exists posreal_half; intros y y2 y0; change (Rabs (y - 0) < / 2) in y2.
   rewrite Rabs_right in y2;[ | lt0].
   replace (RInt (ellf 1 y) 0 (sqrt y)) with (/ 4 * ell 1 y); cycle 1.
     now rewrite -> quarter_elliptic; try lt0; field.
