@@ -1,7 +1,12 @@
 # pi-agm
 A formal description in Coq of computations of PI using arithmetic-geometric means
 
-Reminder: to generate a makefile, type coq_makefile -f _CoqProject -o Makefile
+To compile the coq code (assuming you have coq and all the required
+ dependencies)
+
+    coq_makefile -f _CoqProject -o Makefile
+    make
+
 
 To compile the C file, install the mpfr library, and then:
 
@@ -11,7 +16,7 @@ cc -o pi_agm -lmpfr pi_agm.c
 
 # Displaying theorems in Coq
 
-## Coq installed through opam (last checked with coq 8.11 and interval 4.0)
+## Coq installed through opam (last checked with coq 8.12 and interval 4.0)
 
 If you installed coq through opam, you can compile the whole library and
 install it by typing
