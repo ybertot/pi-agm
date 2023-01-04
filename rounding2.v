@@ -6,6 +6,7 @@ Require Import rounding_correct.
 
 Import mathcomp.ssreflect.ssreflect.
 
+#[export]
 Hint Mode ProperFilter' - + : typeclass_instances.
 
 Section rounded_operations.

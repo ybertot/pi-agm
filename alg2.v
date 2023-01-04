@@ -4,6 +4,7 @@ Require Import elliptic_integral generalities agmpi rounding_big.
 Require Import Interval.Tactic.
 Import mathcomp.ssreflect.ssreflect.
 
+#[export]
 Hint Mode ProperFilter' - + : typeclass_instances.
 
 Lemma ex_derive_ratio n x (intx : 0 < x < 1) :

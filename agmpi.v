@@ -4,6 +4,7 @@ Require Import elliptic_integral arcsinh generalities.
 Require Import Interval.Tactic.
 Import mathcomp.ssreflect.ssreflect.
 
+#[export]
 Hint Mode ProperFilter' - + : typeclass_instances.
 
 Definition ff (x : R) := M 1 x.
