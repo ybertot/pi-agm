@@ -4,6 +4,7 @@ Require Import arcsinh.
 Require Import Interval.Tactic.
 Import mathcomp.ssreflect.ssreflect.
 
+#[export]
 Hint Mode ProperFilter' - + : typeclass_instances.
 
 Ltac lt0 :=
@@ -289,8 +290,8 @@ assert (CVU rho_ rho c d ).
   destruct (cvrho y b_y _ ep2) as [N2 Pn2].
   apply Rle_lt_trans with (1 := R_dist_tri _ _ (rho_ (max N N2) y)).
   apply Rplus_lt_le_compat.
-   solve[rewrite R_dist_sym; apply Pn2, Max.le_max_r].
-  apply unif_ac; auto; solve [apply Max.le_max_l].
+   solve[rewrite R_dist_sym; apply Pn2, Nat.le_max_r].
+  apply unif_ac; auto; solve [apply Nat.le_max_l].
  exists N; intros; apply unif_ac'; solve[auto].
 intros eps ep.
 destruct (CVU_continuity _ _ _ _ H ctrho x bx eps ep) as [delta [dp Pd]].
@@ -309,7 +310,7 @@ Proof.
 apply is_lim_seq_mult with a 0.
     now apply is_lim_seq_const.
   apply (is_lim_seq_ext (fun n => (/2) ^ n)).
-    now symmetry; apply Rinv_pow; lt0.
+    now apply: pow_inv.
 apply is_lim_seq_geom; rewrite Rabs_right; lt0.
 now unfold is_Rbar_mult; simpl; rewrite Rmult_0_r.
 Qed.

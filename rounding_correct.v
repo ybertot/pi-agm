@@ -67,7 +67,7 @@ Lemma y_step_decr : forall y, 1 < y -> (1 + y)/(2 * sqrt y) < y.
 intros y cy.
 assert (1 < sqrt y) by (rewrite <- sqrt_1; apply sqrt_lt_1_alt; psatzl R).
 apply Rsqr_incrst_0; try psatzl R.
-  rewrite Rsqr_div; try psatzl R.
+  rewrite Rsqr_div'.
   rewrite Rsqr_mult, Rsqr_sqrt; try psatzl R.
   apply (Rmult_lt_reg_r (Rsqr 2 * y)); try (unfold Rsqr; psatzl R).
   unfold Rdiv; rewrite Rmult_assoc, Rinv_l; try (unfold Rsqr; psatzl R).
@@ -114,10 +114,10 @@ assert (yz: forall k, (1 <= k)%nat -> y_ k x <= z_ k x).
       [ | field; apply Rgt_not_eq; auto].
     replace (2 * sqrt (1 / x)) with (2 * /sqrt x)
       by now unfold Rdiv; rewrite Rmult_1_l, inv_sqrt; try tauto.
-    unfold Rdiv; rewrite Rinv_mult_distr, Rinv_involutive; try psatzl R.
+    unfold Rdiv; rewrite Rinv_mult, Rinv_inv; try psatzl R.
     apply Rmult_le_reg_r with (/sqrt x);
      [apply Rinv_0_lt_compat, sqrt_lt_R0; psatzl R | ].
-    rewrite <- Rinv_mult_distr, sqrt_sqrt; try psatzl R.
+    rewrite <- Rinv_mult, sqrt_sqrt; try psatzl R.
     rewrite !Rmult_assoc, Rinv_r, Rmult_1_r; try psatzl R.
     apply Rmult_le_reg_r with 2;[| rewrite !Rmult_assoc, Rinv_l, Rmult_1_r ];
       try psatzl R.
@@ -321,8 +321,7 @@ apply Rplus_le_lt_compat;[interval with (i_prec 50) | ].
 set (e'' := e1 * e' / sqrt (y + h)).
 replace (2 * (sqrt (y + h) + e1 * e')) with
   (2 * (sqrt (y + h)) * (1 + e'')) by (unfold e''; field; interval).
-unfold Rdiv; rewrite -> Rinv_mult_distr;
-  [ | interval | unfold e''; interval].
+unfold Rdiv; rewrite -> Rinv_mult.
 (* test different values of the lower bound here.  Need at least /6 if propagated
    error is at /14, and then bisection on y is needed for interval *)
 assert (- / 6 <= e'' <= 0) by (unfold e''; interval with (i_prec 50)).
@@ -865,7 +864,7 @@ assert (141/100 < sqrt 2 < 142/100) by (split; interval).
 assert (1 < r_sqrt 2 < 142/100) by psatzl R.
 assert (rs2_0 : 0 <= r_sqrt 2) by psatzl R.
 destruct (r_sqrt_spec _ rs2_0).
-rewrite inv_sqrt, Rinv_involutive;[ | interval | interval].
+rewrite inv_sqrt, Rinv_inv; try lt0.
 replace (r_sqrt (r_sqrt 2) - sqrt (sqrt 2)) with
  (r_sqrt (r_sqrt 2) - sqrt(r_sqrt 2) +
   (sqrt (r_sqrt 2) - sqrt (sqrt 2))) by ring.
@@ -1036,19 +1035,17 @@ Lemma million_correct :
 Proof using ce r_div_spec r_mult_spec r_sqrt_spec.
 intros em.
 assert (e < /100000).
-  rewrite em, Rpower_Ropp, Rpower_plus, Rinv_mult_distr.
-      replace (/100000) with (/Rpower 10 1 */Rpower 10 4).
-        apply Rmult_lt_compat_r.
-          now apply Rinv_0_lt_compat, exp_pos.
-        rewrite <- !Rpower_Ropp; apply exp_increasing.
-        rewrite !Ropp_mult_distr_l_reverse.
-        apply Ropp_lt_contravar, Rmult_lt_compat_r.
-          now rewrite <- ln_1; apply ln_increasing; psatzl R.
-        pattern 1 at 1; rewrite <- (pow_O 10); apply Rlt_pow;[psatzl R | lia].
-      replace 4 with (INR 4) by (simpl; ring).
-      rewrite Rpower_pow, Rpower_1; simpl; psatzl R.
-    now apply Rgt_not_eq, exp_pos.
-  now apply Rgt_not_eq, exp_pos.
+  rewrite em, Rpower_Ropp, Rpower_plus, Rinv_mult.
+  replace (/100000) with (/Rpower 10 1 */Rpower 10 4).
+    apply Rmult_lt_compat_r.
+      now apply Rinv_0_lt_compat, exp_pos.
+    rewrite <- !Rpower_Ropp; apply exp_increasing.
+    rewrite !Ropp_mult_distr_l_reverse.
+    apply Ropp_lt_contravar, Rmult_lt_compat_r.
+    now rewrite <- ln_1; apply ln_increasing; psatzl R.
+  pattern 1 at 1; rewrite <- (pow_O 10); apply Rlt_pow;[psatzl R | lia].
+  replace 4 with (INR 4) by (simpl; ring).
+  now rewrite Rpower_pow, Rpower_1; simpl; psatzl R.
 assert (toe : (21 * 20 + 3) * e < /10 * Rpower 10 (- 10 ^ 6)).
   rewrite em, Ropp_plus_distr, Rpower_plus, (Rmult_comm (Rpower _ _)).
   rewrite <- Rmult_assoc; apply Rmult_lt_compat_r.
@@ -1684,7 +1681,7 @@ apply Rlt_trans with
       now apply Rinv_0_lt_compat.
     rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l;
        [ | apply Rgt_not_eq; assumption].
-    rewrite <- Rinv_mult_distr;[|psatzl R|psatzl R].
+    rewrite <- Rinv_mult.
     apply Rinv_1_lt_contravar.
       now assert (1 < INR ( n + 1));[apply lt_1_INR; lia | psatzl R].
     now psatzl R.
@@ -1695,14 +1692,12 @@ destruct (bound_agmpi n n1) as [_ it]; apply Rle_lt_trans with (1 := it).
 clear - Rp0 n1 intp big_magnifier; unfold agmpi.
 assert (1 < sqrt 2 < 15/10) by (split; interval).
 assert (lp : 0 < 4 * (2 + sqrt 2) < 14) by psatzl R.
-match goal with |- ?a < _ => rewrite <- (Rinv_involutive a) end;
- [| apply Rgt_not_eq, Rmult_lt_0_compat;[psatzl R | apply exp_pos]].
+match goal with |- ?a < _ => rewrite <- (Rinv_inv a) end.
 apply Rinv_1_lt_contravar.
   apply (IZR_le 1),
    (fun h => Z.le_trans 1 _ _ h (Z.lt_le_incl _ _ big_magnifier)).
   discriminate.
-rewrite Rmult_comm, Rinv_mult_distr;
-   try apply Rgt_not_eq;[|apply exp_pos |psatzl R].
+rewrite Rmult_comm, Rinv_mult.
 rewrite <- Rpower_Ropp, Ropp_involutive.
 destruct intp as [_ up]; apply Rlt_trans with (1 := up).
 apply Rmult_lt_compat_l;[apply exp_pos | ].
@@ -1745,7 +1740,7 @@ assert (prem : 600 * INR (19 + 1) < IZR magnifier < Rpower 531 (2 ^ 19)/14).
 apply Rlt_trans with (1 := integer_pi 19 nineteen1 prem).
 replace (21 * INR (19 + 1) + 3) with 423 by (simpl; ring).
 rewrite magnifierq, Rpower_plus; try psatzl R.
-unfold Rdiv; rewrite (Rmult_comm (Rpower 10 (10 ^ 6))), Rinv_mult_distr;
+unfold Rdiv; rewrite (Rmult_comm (Rpower 10 (10 ^ 6))), Rinv_mult;
   try apply Rgt_not_eq, exp_pos.
 assert (0 < / Rpower 10 (10 ^ 6)).
   now rewrite <- Rpower_Ropp; apply exp_pos.
@@ -1772,7 +1767,7 @@ assert (prem : 600 * INR (16 + 1) < IZR magnifier < Rpower 531 (2 ^ 16)/14).
 apply Rlt_trans with (1 := integer_pi 16 sixteen1 prem).
 replace (21 * INR (16 + 1) + 3) with 360 by (simpl; ring).
 rewrite magnifierq, Rpower_plus; try psatzl R.
-unfold Rdiv; rewrite (Rmult_comm (Rpower 10 (10 ^ 5))), Rinv_mult_distr;
+unfold Rdiv; rewrite (Rmult_comm (Rpower 10 (10 ^ 5))), Rinv_mult;
   try apply Rgt_not_eq, exp_pos.
 assert (0 < / Rpower 10 (10 ^ 5)).
  rewrite <- Rpower_Ropp; apply exp_pos.
@@ -1799,7 +1794,7 @@ assert (prem : 600 * INR (9 + 1) < IZR magnifier < Rpower 531 (2 ^ 9)/14).
 apply Rlt_trans with (1 := integer_pi 9 nine1 prem).
 replace (21 * INR (9 + 1) + 3) with 213 by (simpl; ring).
 rewrite magnifierq, Rpower_plus; try psatzl R.
-unfold Rdiv; rewrite (Rmult_comm (Rpower 10 (10 ^ 3))), Rinv_mult_distr;
+unfold Rdiv; rewrite (Rmult_comm (Rpower 10 (10 ^ 3))), Rinv_mult;
   try apply Rgt_not_eq, exp_pos.
 assert (0 < / Rpower 10 (10 ^ 3)).
   now rewrite <- Rpower_Ropp; apply exp_pos.
@@ -1822,7 +1817,7 @@ replace (21 * INR (9 + 1) + 3) with 213 by (simpl; ring).
 rewrite magnifierq.
 rewrite Rmult_assoc; apply Rmult_le_compat_l;[psatzl R | ].
 replace 3336 with (14 + 3322) by ring; rewrite Rpower_plus.
-rewrite Rinv_mult_distr, <- !Rpower_Ropp; try (apply Rgt_not_eq, exp_pos).
+rewrite Rinv_mult, <- !Rpower_Ropp; try (apply Rgt_not_eq, exp_pos).
 now apply Req_le.
 Qed.
 
@@ -1842,7 +1837,7 @@ assert (rr : hR k (n / d) = hR (k * d) (d * (n / d))).
   unfold hR; rewrite !mult_IZR.
   rewrite (Rmult_comm (IZR d)); unfold Rdiv.
   rewrite Rmult_assoc, (Rmult_comm (IZR d)).
-  rewrite Rinv_mult_distr; try (apply Rgt_not_eq, (IZR_lt 0); assumption).
+  rewrite Rinv_mult; try (apply Rgt_not_eq, (IZR_lt 0); assumption).
   rewrite Rmult_assoc, Rinv_l; try (apply Rgt_not_eq, (IZR_lt 0); assumption).
   now rewrite Rmult_1_r.
 replace (hR k (n / d)) with (hR k (n / d) - hR (k * d) n +
@@ -2114,8 +2109,7 @@ unfold hR; split.
   rewrite Rinv_r, Rmult_1_r;[ | apply Rgt_not_eq, (IZR_lt 0); assumption].
   assert (help : forall x y z, x < z + y -> x - y < z) by (intros; psatzl R).
   apply help; clear help; rewrite <- !mult_IZR,  <- plus_IZR;  apply IZR_lt.
-  pattern (x * m2)%Z at 1; rewrite (Z_div_mod_eq (x * m2)  (m1));
-    [|apply Z.lt_gt; assumption].
+  pattern (x * m2)%Z at 1; rewrite (Z_div_mod_eq_full (x * m2)  (m1)).
   rewrite (Zmult_comm (m1)).
   apply Zplus_lt_compat_l.
   now destruct (Zmod_pos_bound (x * m2) (m1)).

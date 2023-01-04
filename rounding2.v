@@ -216,8 +216,8 @@ assert (2 * ((3 / 2) ^ n * e') <= /4 * / 2 ^ n).
     now repeat (apply Rmult_le_compat; try lt0).
   replace (10 ^ (n + 4)) with (1000 * 10 ^ (n + 1)) by
       (rewrite -> !pow_add; ring).
-  rewrite Rinv_mult_distr; try lt0; unfold Rdiv.
-  rewrite !Rinv_pow; try lt0.
+  rewrite Rinv_mult; unfold Rdiv.
+  rewrite <- !pow_inv.
   rewrite -> (Rmult_assoc (/_)), <- Rpow_mult_distr, <- (Rmult_assoc _ (/_)).
   rewrite -> pow_add, pow_1, (Rmult_comm ((/_ * _) ^ _)), !Rmult_assoc,
      (Rmult_comm (_ ^ _)), !Rmult_assoc, <- Rpow_mult_distr, <- !Rmult_assoc.
@@ -226,7 +226,7 @@ assert (2 * ((3 / 2) ^ n * e') <= /4 * / 2 ^ n).
 case_eq (n =? 0).
   assert (amv : 0 < a_ 0 (/sqrt 2) - b_ 0 (/sqrt 2) < /2).
     now unfold a_, b_; simpl; split; interval.
-  intros hn_is0; apply beq_nat_true in hn_is0.
+  intros hn_is0; rewrite Nat.eqb_eq in hn_is0.
   revert inth inth' e'bnd.
   rewrite hn_is0; simpl pow; rewrite -> !Rmult_1_r, !Rmult_1_l.
   intros inth inth' e'bnd.
@@ -269,7 +269,7 @@ case_eq (n =? 0).
   apply Rplus_le_compat;[ | lt0].
   rewrite -> Ropp_mult_distr_r.
   now apply Rmult_le_compat'; lt0.
-intros hn_n0; apply beq_nat_false in hn_n0.
+intros hn_n0; rewrite Nat.eqb_neq in hn_n0.
 assert (0 <= a_ n (/sqrt 2) - b_ n (/sqrt 2) <= /4 * / 2 ^ n).
   split.
     now apply Rlt_le, Rlt_Rminus, b_lt_a, ints.
@@ -288,7 +288,7 @@ assert (0 <= a_ n (/sqrt 2) - b_ n (/sqrt 2) <= /4 * / 2 ^ n).
   rewrite -> Nat.pow_succ_r, mult_INR, Rmult_assoc; simpl INR; auto with arith.
   apply Rlt_trans with (2 * ln (/4 * /2 ^ n)).
     apply Rmult_lt_compat_l;[lt0 | assumption].
-  rewrite <- tech_pow_Rmult, (Rinv_mult_distr 2 (2 ^ n));[ | lt0 | lt0].
+  rewrite <- tech_pow_Rmult, (Rinv_mult 2 (2 ^ n)).
   replace (2 * ln (/ 4 * / 2 ^ n)) with 
      (ln (/4 * /2 ^ n) + ln (/4 * /2 ^ n)) by ring.
   rewrite !ln_mult; try lt0; rewrite <- !Rplus_assoc; apply Rplus_lt_compat_r.
@@ -631,7 +631,7 @@ induction p.
   assert (ssub := salamin_sum_ub (n - 1)).
   apply Rle_trans with (1 := Rabs_triang _ _), Rplus_le_compat; cycle 1.
     assert (/ (1 - sum_f_R0 salamin_sumand (n - 1) + hsm) < 2).
-      rewrite <- (Rinv_involutive 2); try lt0; apply Rinv_lt_contravar.
+      rewrite <- (Rinv_inv 2); apply Rinv_lt_contravar.
         apply Rmult_lt_0_compat; try lt0.
       now assert (t := salamin_sum_ub (n -1)); lt0.
     replace (8 * local_e) with (4 * local_e * 2) by ring.
@@ -688,7 +688,7 @@ induction p.
         apply Rmult_le_compat_l;[lt0 | auto].
       assert (0 < (3 / 2) ^ n * local_e) by lt0; psatzl R.
     rewrite Rabs_right;[|  apply Rle_ge, Rlt_le; lt0].
-    now rewrite <- (Rinv_involutive 2);[|lt0]; apply Rinv_le_contravar; lt0.
+    now rewrite <- (Rinv_inv 2); apply Rinv_le_contravar; lt0.
   unfold salamin_formula; set (B := 1 - _); set (A := 4 * _).
   replace (A / (B + hsm) - A / B) with (- A * hsm / (B * (B + hsm))); cycle 1.
     now field; split; unfold B; psatzl R.
@@ -709,13 +709,12 @@ induction p.
       replace 1 with (1 * 1) by ring.
       now simpl; rewrite Rmult_1_r; apply Rmult_le_compat; auto; psatzl R.
     rewrite Rabs_mult; apply Rmult_le_compat_l; try lt0.
-    rewrite Rabs_Rinv; cycle 1.
-      now apply Rgt_not_eq, Rmult_lt_0_compat; unfold B; psatzl R.
+    rewrite Rabs_inv.
     assert (6 / 10 < Rabs B).
       now unfold B; rewrite Rabs_pos_eq; psatzl R.
     assert (59/100 < Rabs (B + hsm)).
       now unfold B; rewrite Rabs_pos_eq; psatzl R.
-    rewrite -> Rabs_mult, Rinv_mult_distr; try psatzl R.
+    rewrite -> Rabs_mult, Rinv_mult.
     replace 4 with (2 * 2) by ring.
     apply Rmult_le_compat; try lt0.
       replace 2 with (/ / 2) by field.
@@ -880,7 +879,7 @@ assert (0 <= 10 * e <= / (10 * 10 ^ (n + 4)) / (3 * 3 ^ n)).
   apply Rle_trans with (1 := proj2 ce').
   unfold Rdiv; rewrite <- Rmult_assoc.
   apply Rmult_le_compat; try lt0.
-    rewrite <- Rinv_mult_distr; try lt0; apply Rinv_le_contravar; try lt0.
+    rewrite <- Rinv_mult; apply Rinv_le_contravar; try lt0.
     now rewrite !pow_add; apply Req_le; ring.
   now apply Rinv_le_contravar; try lt0; apply Req_le; rewrite !pow_add; ring.
 assert (help1 : forall a b c, 0 < a -> b * a < c -> b <= c / a).

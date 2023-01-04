@@ -3,6 +3,7 @@ Require Import filter_Rlt atan_derivative_improper_integral.
 Require Import generalities.
 Import mathcomp.ssreflect.ssreflect.
 
+#[export] 
 Hint Mode ProperFilter' - + : typeclass_instances.
 
 Definition ellf (a b x : R) := /sqrt ((x ^ 2 + a ^ 2) * (x ^ 2 + b ^ 2)).
@@ -28,8 +29,7 @@ intros x y x0 y0; split; cbv [fst snd].
     apply Rplus_le_lt_0_compat; [apply pow2_ge_0 | psatzl R].
   split.
     now apply Rlt_le, Rinv_0_lt_compat, sqrt_lt_R0, Rmult_lt_0_compat; lt0.
-  rewrite <- !Rinv_mult_distr; try apply Rgt_not_eq; auto; cycle 1.
-    now lt0.
+  rewrite <- !Rinv_mult; try apply Rgt_not_eq; auto.
   apply Rinv_le_contravar;[lt0 | ].
   rewrite <- (sqrt_pow2 (m * _)); cycle 1;[lt0 | ].
   apply sqrt_le_1_alt.
@@ -97,9 +97,9 @@ assert (ellfq : filter_prod (Rbar_locally m_infty) (Rbar_locally p_infty)
   assert (help : forall v u w, u * (v * w) = v * (u * w)) by (intros; ring).
   rewrite (help (k ^ 2)) -(Rmult_assoc _ (k ^ 2)) sqrt_mult_alt;[ | lt0].
   rewrite <- Rpow_mult_distr, sqrt_pow2;[ | lt0].
-  rewrite Rinv_mult_distr;[ | apply Rgt_not_eq; lt0 | lt0].
+  rewrite Rinv_mult.
   rewrite Rplus_0_r (Rmult_comm (/k) x).
-  now rewrite Rinv_mult_distr ?Rmult_assoc;[ | lt0 | lt0].
+  now rewrite Rinv_mult Rmult_assoc.
 symmetry; apply ell_unique; auto.
 apply (is_RInt_gen_ext _ _ _ ellfq).
 apply (is_RInt_gen_scal (fun x => /k * ellf a b (/k * x + 0)) (/k)).
@@ -575,7 +575,7 @@ assert (v3_4 :is_RInt_gen (ellf 1 x) (at_point 0) (at_point (sqrt x)) v3).
         cycle 1.
       rewrite -> sqrt_div_alt, !sqrt_pow2; try lt0.
       now field; split; lt0.
-    rewrite <- Rinv_mult_distr; try lt0.
+    rewrite <- Rinv_mult.
     rewrite <- sqrt_mult; try lt0.
     apply f_equal with (f := fun x => / sqrt x).
     now field; lt0.
@@ -790,7 +790,7 @@ assert (exists n, (a - b) / 2 ^ n < eps) as [n Pn].
   exists it; apply Rmult_lt_reg_r with (/(a - b)); try lt0.
   unfold Rdiv; rewrite -> (Rmult_comm (a - b)), Rmult_assoc, Rinv_r; try lt0.
   apply Rle_lt_trans with (2 := Pit it (le_n _)).
-  now rewrite -> Rmult_1_r, Rabs_right, Rinv_pow; try apply Rle_ge; lt0.
+  now rewrite -> Rmult_1_r, Rabs_right, pow_inv; try apply Rle_ge; lt0.
 exists n; intros k nk; apply peps.
 assert (cmps : b <= snd (ag a b k) /\ snd (ag a b k) <= fst (ag a b k) <= a).
   now apply ag_le.

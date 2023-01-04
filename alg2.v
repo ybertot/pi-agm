@@ -39,7 +39,7 @@ assert (dd : Derive (fun y => a_ n y / b_ n y) x =
   repeat (split;[eapply ex_intro; eassumption |]); psatzl R.
 rewrite dd; clear dd; change (Derive (fun x => b_ n x)) with (Derive (b_ n)).
 change (sqrt (a_ n x ^ 2 - b_ n x ^ 2)) with (w_ n x).
-rewrite Rinv_Rdiv; try psatzl R.
+rewrite Rinv_div; try psatzl R.
 match goal with |- ?a = _ =>
   replace a with ((- a_ n x ^ 2 * Derive (a_ n) x + a_ n x * b_ n x *
       Derive (b_ n) x + w_ n x ^ 2 *
@@ -224,8 +224,7 @@ unfold Rdiv; replace (/ (/sqrt 2 - sqrt 2 * sum_f_R0 direct_sumand (n - 1)))
  with (sqrt 2 /
           (sqrt 2 * (/sqrt 2 - sqrt 2 * sum_f_R0 direct_sumand (n - 1))));
   cycle 1.
-  unfold Rdiv; rewrite -> Rinv_mult_distr, <- Rmult_assoc; try lt0; cycle 1.
-    now apply Rgt_not_eq, direct_sum_0.
+  unfold Rdiv; rewrite -> Rinv_mult, <- Rmult_assoc.
   now rewrite -> Rinv_r, Rmult_1_l;[ | lt0].
 unfold Rdiv; rewrite <- !Rmult_assoc, !(Rmult_assoc (2 * sqrt 2)).
 unfold Rdiv; rewrite (Rmult_comm (a_ n (/sqrt 2) ^ 2) (sqrt 2)).
@@ -360,7 +359,7 @@ apply Rle_trans with
   now assert (t := pos_INR n); lt0.
 rewrite -> Rpower_Ropp, Rpower_pow; try lt0.
 rewrite -> pow_mult, (Rmult_comm (2 ^ _)), Rmult_assoc. 
-rewrite Rinv_pow; try lt0.
+rewrite <- pow_inv.
 rewrite <- Rpow_mult_distr.
 rewrite -> Nat.add_comm, !pow_add.
 rewrite <- (Rmult_assoc (7 ^ 2)), <- (Rmult_assoc (/11)).
@@ -418,7 +417,7 @@ apply Rmult_le_compat; try lt0.
       now apply pow_incr; lt0.
     now apply Rle_ge, pow_le; lt0.
   rewrite Rabs_right; try lt0.
-  rewrite -> Nat.add_comm, <- (Rinv_involutive 2);[|lt0].
+  rewrite -> Nat.add_comm, <- (Rinv_inv 2).
   apply Rinv_le_contravar;[lt0 |].
   apply Rle_trans with (2 := derive_un_growing' 1 n s2 ints2).
   apply Req_le; rewrite derive_fst_step; unfold a_; simpl;[|exact ints2].
@@ -434,7 +433,7 @@ apply Rle_trans with (1 := Rabs_triang _ _).
 apply Rplus_le_compat.
   rewrite Rabs_mult; apply Rmult_le_compat; try lt0.
     rewrite Rabs_right;[ | apply Rle_ge; lt0].
-    rewrite <- (Rinv_involutive 1); try lt0.
+    rewrite <- (Rinv_inv 1).
     now apply Rinv_le_contravar; lt0.
   rewrite Rabs_right; cycle 1.
     now assert (t3 := y_gt_1 s2 (n + 1) ints2); lt0.
@@ -460,7 +459,7 @@ assert (n1'' : (1 <= n)%nat) by lia.
 assert (t3 := chain_y_z_y s2 n ints n1'').
 rewrite Rabs_mult; apply Rmult_le_compat; try lt0.
   rewrite Rabs_right;[|apply Rle_ge, Rlt_le, Rinv_0_lt_compat; lt0].
-  now rewrite <- (Rinv_involutive 1); try lt0; apply Rinv_le_contravar; lt0.
+  now rewrite <- (Rinv_inv 1); apply Rinv_le_contravar; lt0.
 rewrite -> Rabs_left1, Ropp_minus_distr; try lt0.
 apply Rle_trans with (y_ n s2 - 1).
   apply Rplus_le_compat_r.
