@@ -9,8 +9,6 @@ Require rounding_big.
 Local Open Scope bigZ.
 Local Notation "[ x ]" := (BigZ.to_Z x).
 
-Local Notation "[ x ]" := (BigZ.to_Z x).
-
 Lemma hmult_morph p x y: [rounding_big.hmult p x y] = hmult [p] [x] [y].
 Proof.
 unfold hmult, rounding_big.hmult.
