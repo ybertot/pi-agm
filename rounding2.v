@@ -203,10 +203,10 @@ assert (e'bnd : 0 <= (3 / 2) ^ n * e' <= /1000).
     [apply Rle_trans with (1 := proj2 inte')| lt0].
   unfold Rdiv; rewrite -> (Rmult_comm (/10 ^ (n + 4))).
   apply Rmult_le_compat; try lt0; cycle 1.
-    apply Rle_Rinv; try lt0; replace 1000 with (10 ^ 3) by ring; apply Rle_pow.
+    apply Rinv_le_contravar; try lt0; replace 1000 with (10 ^ 3) by ring; apply Rle_pow.
       now lt0.
     now lia.
-  apply Rle_Rinv;[lt0 | lt0 | apply Rle_trans with ((3/2) ^ (n + 1))].
+  apply Rinv_le_contravar;[lt0 | apply Rle_trans with ((3/2) ^ (n + 1))].
     now apply Rle_pow;[lt0 | lia].
   now apply pow_incr; psatzl R.
 assert (e <= (3 / 2) ^ n * e').
@@ -273,7 +273,7 @@ case_eq (n =? 0).
 intros hn_n0; rewrite Nat.eqb_neq in hn_n0.
 assert (0 <= a_ n (/sqrt 2) - b_ n (/sqrt 2) <= /4 * / 2 ^ n).
   split.
-    now apply Rlt_le, Rlt_Rminus, b_lt_a, ints.
+    now apply Rlt_le, Rlt_0_minus, b_lt_a, ints.
   assert (s24 : /4 <= /sqrt 2) by interval.
   assert (s21 : /sqrt 2 <= 1) by interval.
   assert (s2m : 1 - /sqrt 2 < 1) by interval.

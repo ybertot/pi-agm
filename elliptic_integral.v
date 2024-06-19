@@ -624,7 +624,7 @@ replace (PI / Rmax a b) with (ell (Rmax a b) (Rmax a b)).
       now apply is_RInt_gen_ell.
     now apply is_RInt_gen_ell.
   apply filter_forall; intros p x _; clear p.
-  apply Rle_Rinv; try lt0.
+  apply Rinv_le_contravar; try lt0.
   apply sqrt_le_1_alt; try lt0.
   apply Rmult_le_compat; try lt0.
     now apply Rplus_le_compat_l, pow_incr; split;[lt0 | apply Rmax_l].
@@ -664,7 +664,7 @@ replace (PI / Rmin a b) with (ell (Rmin a b) (Rmin a b)).
           (Rbar_locally m_infty) (Rbar_locally p_infty)); auto.
       now apply filter_Rlt_m_infty_p_infty.
   apply filter_forall; intros p x _; clear p.
-  apply Rle_Rinv; try lt0.
+  apply Rinv_le_contravar; try lt0.
   apply sqrt_le_1_alt; try lt0.
   apply Rmult_le_compat; try lt0.
     now apply Rplus_le_compat_l, pow_incr; split;[lt0 | apply Rmin_l].

@@ -117,7 +117,7 @@ unfold Boule in dyx; apply Rabs_lt_between in dyx; unfold pos_div_2;
  simpl in dyx.
 assert (y0 : 0 < y) by psatzl R.
 destruct  (dist_a_ff n y n1 y0) as [difpos difbound].
-rewrite <- Rabs_Ropp, Rabs_pos_eq, Ropp_minus_distr';[ | psatzl R].
+rewrite <- Rabs_Ropp, Rabs_pos_eq, Ropp_minus_distr;[ | psatzl R].
 apply Rle_lt_trans with (1 := difbound).
 assert (Nn' : (n >= N)%nat) by lia.
 assert (Pn' := pn n Nn').
@@ -318,7 +318,7 @@ apply Rabs_lt_between in inty'; simpl in inty'.
 assert (nN' : (N <= n)%nat) by lia.
 simpl in inty'; assert (inty : 0 < y < 1) by psatzl R.
 assert (db := agm_conv 1 y n Rlt_0_1 (proj1 inty) (Rlt_le _ _ (proj2 inty))).
-rewrite <- Rabs_Ropp, Ropp_minus_distr', Rabs_pos_eq.
+rewrite <- Rabs_Ropp, Ropp_minus_distr, Rabs_pos_eq.
   unfold y_, a_, b_.
   assert (y0 : 0 < y) by psatzl R.
   destruct (ag_le n 1 y Rlt_0_1 (proj1 inty) (Rlt_le _ _ (proj2 inty))).
@@ -548,7 +548,7 @@ replace (S n) with (n + 1)%nat by ring.
 assert (n11 : (1 <= n + 1)%nat) by lia.
 generalize  (z_gt_1 x (n + 1) intx' n11); intros.
 apply Rmult_le_compat_l;[psatzl R | ].
-apply Rle_Rinv;lt0.
+apply Rinv_le_contravar;lt0.
 Qed.
 
 Lemma derive_snd_decrease :
@@ -1312,8 +1312,8 @@ assert (vris := int_arcsinh x x0).
 assert (cmp : forall y : R,
        0 < y < sqrt x ->
        (fun t : R => / sqrt ((t ^ 2 + 1 ^ 2) * (t ^ 2 + x ^ 2))) y <=
-       (fun t : R => / sqrt (t ^ 2 + x ^ 2)) y).
-  intros y inty; apply Rle_Rinv;[lt0 | lt0 | ].
+         (fun t : R => / sqrt (t ^ 2 + x ^ 2)) y).
+  intros y inty; apply Rinv_le_contravar;[lt0 | ].
   apply sqrt_le_1_alt; assert (tmp := pow2_ge_0 y); rewrite pow1.
   enough (t : forall a b, 0 <= a -> 0 <= b -> b <= (a + 1) * b) by
     (apply t; auto; lt0).
@@ -1326,7 +1326,7 @@ assert (cmp' : forall y : R,
          0 < y < sqrt x ->
         (fun t : R => / sqrt (((delta1/2) ^ 2 + 1) * (t ^ 2 + x ^ 2))) y <=
         (fun t : R => / sqrt ((t ^ 2 + 1 ^ 2) * (t ^ 2 + x ^ 2))) y).
-  intros y inty; apply Rle_Rinv;[lt0 | lt0 | ].
+  intros y inty; apply Rinv_le_contravar;[lt0 | ].
   apply sqrt_le_1_alt, Rmult_le_compat_r;[lt0 | ].
   rewrite pow1; apply Rplus_le_compat_r, pow_incr; split; [lt0 | ].
   apply Rle_trans with (1 := Rlt_le _ _ (proj2 inty)).
@@ -1364,9 +1364,9 @@ rewrite <- Rabs_Ropp, -> Rabs_right, Ropp_minus_distr.
   pattern 1 at 1; replace 1 with (/sqrt (0 ^ 2 + 1)) by
    (rewrite -> pow_i, Rplus_0_l, sqrt_1, Rinv_1; auto; lt0).
   assert (/sqrt ((delta1 / 2) ^ 2 + 1) <= /sqrt (0 ^ 2 + 1)).
-  apply Rle_Rinv;[lt0 | lt0 | apply sqrt_le_1_alt, Rplus_le_compat_r, pow_incr].
+  apply Rinv_le_contravar;[lt0 | apply sqrt_le_1_alt, Rplus_le_compat_r, pow_incr].
     now destruct delta1; simpl; psatzl R.
-  rewrite <- (Rabs_pos_eq (_ - _)), <- Rabs_Ropp, Ropp_minus_distr';[| psatzl R].
+  rewrite <- (Rabs_pos_eq (_ - _)), <- Rabs_Ropp, Ropp_minus_distr;[| psatzl R].
   apply (Pd1 (delta1 / 2)).
   now rewrite -> ball_Rabs, Rabs_right; destruct delta1; simpl; psatzl R.
 apply Rle_ge, Rmult_le_reg_r with (arcsinh (/ sqrt x)); auto; rewrite Rmult_0_l.
@@ -1583,7 +1583,7 @@ rewrite -> t, Rabs_pos_eq; clear t.
       now split; unfold a_, b_ in * |- *; try psatzl R.
     assert (bot * (1 - bot ^ 2) <= y * (1 - y ^ 2)).
       now apply pbot; psatzl R.
-    now apply Rle_Rinv; psatzl R.
+    now apply Rinv_le_contravar; psatzl R.
   destruct (bound_modulus_convergence_snd_ag n y) as [c1 c2]; try psatzl R.
   apply Rmult_lt_reg_r with (bot * (1 - bot ^ 2));[lt0 | ].
   unfold Rdiv; rewrite -> Rmult_assoc, Rinv_l, Rmult_1_r;[|lt0].
@@ -1864,7 +1864,7 @@ apply Rle_trans with ((3 - 1)/(4 * 2 * sqrt 1 ^ 5) * / 2).
     apply Rmult_le_compat; try lt0.
     now apply Rmult_le_pos; try lt0.
     apply Rmult_le_compat; try lt0.
-    apply Rle_Rinv; try lt0.
+    apply Rinv_le_contravar; try lt0.
     apply Rmult_le_compat_l; try lt0.
     now apply pow_incr; split;[rewrite sqrt_1 | apply sqrt_le_1_alt]; psatzl R.
   apply Rle_trans with 0.
@@ -2025,7 +2025,7 @@ assert (step1:
   unfold Rdiv; rewrite !Rmult_assoc; apply Rmult_le_compat_l.
     now apply Rlt_le, agm0.
   rewrite Rmult_comm.
-  apply Rmult_le_compat;[| |apply Rle_Rinv | apply Rplus_le_compat_r]; try lt0.
+  apply Rmult_le_compat;[| |apply Rinv_le_contravar | apply Rplus_le_compat_r]; try lt0.
   now apply Rle_trans with (1 := zltsy), Rlt_le, gt1_imp_sqrt_lt, y_gt_1, ints.
 assert (agmpi_decr : forall n m, (m <= n)%nat -> (1 <= m)%nat ->
           agmpi n <= agmpi m).

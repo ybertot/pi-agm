@@ -285,7 +285,7 @@ apply Rle_trans with (Derive (a_ n) (/sqrt 2) / a_ 1 (/sqrt 2)).
 apply Rle_trans with (Derive (b_ n) (/sqrt 2) / a_ 1 (/sqrt 2)).
   now apply Rmult_le_compat_r;[lt0 | apply Rlt_le].
 apply Rmult_le_compat_l;[apply Rle_trans with (2 := Rlt_le _ _ daltdb); lt0 |].
-now apply Rle_Rinv; lt0.
+now apply Rinv_le_contravar; lt0.
 Qed.
     
 Lemma a_n_m_b_n_bound n : 0 < a_ (n + 1) (/sqrt 2) - b_ (n + 1) (/sqrt 2) <=

@@ -307,7 +307,7 @@ split.
   rewrite help; clear help.
   apply Rplus_le_lt_compat.
     rewrite <- Rminus_le_0; unfold y2; apply Rmult_le_compat_l;[interval | ].
-    apply Rle_Rinv;[interval | interval | apply Rmult_le_compat_l; [lt0 | ]].
+    apply Rinv_le_contravar;[interval | apply Rmult_le_compat_l; [lt0 | ]].
     now assert (e1 * e' <= 0) by interval with (i_prec 50); lt0.
   now rewrite Ropp_mult_distr_l; apply Rmult_lt_compat_r; psatzl R.
 replace (y1 + e') with ((e' / 14) + (y1 + (0  + 13/14 * e'))) by field.
@@ -440,7 +440,7 @@ split.
     apply Rplus_le_compat;[ | apply Rmult_le_compat_r; psatzl R].
     apply Rle_trans with ((1 + ((z + h') * (y + h) + e1 * e')) /
                           ((1 + (z + h')) * (sqrt (y + h)))); cycle 1.
-      apply Rmult_le_compat_l;[interval | apply Rle_Rinv; try interval].
+      apply Rmult_le_compat_l;[interval | apply Rinv_le_contravar; try interval].
       apply Rle_trans with ((1 + (z + h')) * (sqrt (y + h) + e2 * e')).
         now assert (e3 * e' <= 0) by interval with (i_prec 50); lra.
       apply Rmult_le_compat_l;[interval | ].
@@ -550,7 +550,7 @@ apply Rplus_lt_compat.
     apply Rmult_le_compat_r;[apply Rabs_pos | ].
     rewrite Rabs_pos_eq.
       replace (40/79) with (/(79/40)) by field.
-      now apply Rle_Rinv; psatzl R.
+      now apply Rinv_le_contravar; psatzl R.
     apply Rlt_le, Rinv_0_lt_compat; psatzl R.
   apply Rmult_lt_compat_l; try apply Rabs_def1; psatzl R.
 destruct (MVT_abs (fun z => (1 + y) / (1 + z)) (fun z => -(1 + y)/(1 + z) ^ 2)
@@ -880,8 +880,7 @@ revert intc; rewrite Rmin_right, Rmax_left; try psatzl R; intros intc.
 rewrite pc, Rabs_pos_eq, <- Rabs_Ropp, Ropp_minus_distr, Rabs_pos_eq;
  try psatzl R.
   apply Rle_lt_trans with (/ (2 * 1) * (sqrt 2 - r_sqrt 2)); try psatzl R.
-  apply Rmult_le_compat_r;[ | apply Rle_Rinv]; try psatzl R.
-    apply Rmult_lt_0_compat; try apply sqrt_lt_R0; try psatzl R.
+  apply Rmult_le_compat_r;[ | apply Rinv_le_contravar]; try psatzl R.
   apply Rmult_le_compat_l; try psatzl R.
   now rewrite <- sqrt_1; apply sqrt_le_1_alt; psatzl R.
 apply Rlt_le, Rinv_0_lt_compat, Rmult_lt_0_compat; try psatzl R.
@@ -1952,7 +1951,7 @@ assert (main : hR (10 ^ (10 ^ 6)) n' < PI < hR (10 ^ (10 ^ 6)) (n' + 1)).
                (6/100 * Rpower 10 (-10 ^ 6))
              PI n cd cp t' ctr').
   exact t.
-split;[apply Rlt_Rminus; tauto | destruct main as [_ main]]; revert main.
+split;[apply Rlt_0_minus; tauto | destruct main as [_ main]]; revert main.
 rewrite hplus_spec; unfold hR at 2; simpl (IZR 1).
 unfold Rdiv; rewrite Rmult_1_l.
 rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
@@ -2024,7 +2023,7 @@ assert (main : hR (10 ^ (10 ^ 5)) n' < PI < hR (10 ^ (10 ^ 5)) (n' + 1)).
     assumption.
   exact (rerounding_simple (10 ^ (10 ^ 5)) (10 ^ 4) _
              PI n cd cp t' ctr').
-split;[apply Rlt_Rminus; tauto | destruct main as [_ main]]; revert main.
+split;[apply Rlt_0_minus; tauto | destruct main as [_ main]]; revert main.
 rewrite hplus_spec; unfold hR at 2; simpl (IZR 1); unfold Rdiv; rewrite Rmult_1_l.
 rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
 rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
@@ -2085,7 +2084,7 @@ assert (main : hR (2 ^ 3322) n' < PI < hR (2 ^ 3322) (n' + 1)).
     assumption.
  exact (rerounding_simple (2 ^ 3322) (2 ^ 14) _
              PI n cd cp t' ctr').
-split;[apply Rlt_Rminus; tauto | destruct main as [_ main]]; revert main.
+split;[apply Rlt_0_minus; tauto | destruct main as [_ main]]; revert main.
 rewrite hplus_spec; unfold hR at 2.
 simpl (IZR 1); unfold Rdiv; rewrite Rmult_1_l.
 rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
@@ -2112,7 +2111,7 @@ unfold hR; split.
   pattern (x * m2)%Z at 1; rewrite (Z_div_mod_eq_full (x * m2)  (m1)).
   rewrite (Zmult_comm (m1)).
   apply Zplus_lt_compat_l.
-  now destruct (Zmod_pos_bound (x * m2) (m1)).
+  now destruct (Z.mod_pos_bound (x * m2) (m1)).
 apply Rmult_le_reg_r with (IZR m2); [apply (IZR_lt 0); assumption | ].
   unfold Rdiv at 1; rewrite Rmult_assoc, Rinv_l, Rmult_1_r;
     [|apply Rgt_not_eq, (IZR_lt 0); assumption].
