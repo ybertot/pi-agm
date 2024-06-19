@@ -1880,7 +1880,7 @@ rewrite Rmult_plus_distr_r, sk, Rmult_assoc, Rinv_l, Rmult_1_r;[|psatzl R].
 apply Rlt_trans with (-(hR (k * d) ((Rh (k * d) e) + 1)) * IZR(k * d) + IZR d).
   unfold hR, Rdiv.
   rewrite Ropp_mult_distr_l_reverse, Rmult_assoc, Rinv_l, Rmult_1_r; cycle 1.
-    now psatzl R.  
+    now psatzl R.
   rewrite <-opp_IZR, <- plus_IZR; apply IZR_lt.
   now rewrite Z.add_comm, Z.add_opp_r; destruct ctr as [c1 c2].
 apply Rplus_lt_compat_r.
@@ -1931,7 +1931,7 @@ assert (main : hR (10 ^ (10 ^ 6)) n' < PI < hR (10 ^ (10 ^ 6)) (n' + 1)).
                   n mod 10 ^ 4 <
                    10 ^ 4 - (Rh (10 ^ 10 ^ 6 * 10 ^ 4)
                    (6/ 100 * Rpower 10 (- 10 ^ 6)) + 1))%Z).
-    assert (sm: (Rh (10 ^ 10 ^ 6 * 10 ^ 4) 
+    assert (sm: (Rh (10 ^ 10 ^ 6 * 10 ^ 4)
                    (6/ 100 * Rpower 10 (- 10 ^ 6)) = 600)%Z).
       unfold Rh; rewrite mult_IZR.
       rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].
@@ -2069,7 +2069,7 @@ assert (main : hR (2 ^ 3322) n' < PI < hR (2 ^ 3322) (n' + 1)).
        2 ^ 14 - (Rh (2 ^ 3322 * 2 ^ 14)
              (213 * Rpower 2 (-14) * Rpower 2 (-3322)) + 1))%Z).
     assert (sm: (Rh (2 ^ 3322 * 2 ^ 14)
-                   (213 * Rpower 2 (-14) * Rpower 2 (-3322)) = 
+                   (213 * Rpower 2 (-14) * Rpower 2 (-3322)) =
                    213)%Z).
       unfold Rh; rewrite mult_IZR.
       rewrite Zpow_Rpower;[ | reflexivity | compute; discriminate].

@@ -345,7 +345,7 @@ apply (filterlim_le (F := filter_prod F G) (fun p => RInt f (fst p) (snd p))
     unfold filtermapi in intg, intf.
     apply: filter_imp (filter_and _ _ (filter_and _ _ intg intf)
                           (filter_and _ _ mmid cmp)).
-    intros [a b]; simpl; intros [[[Ig [Hg1 Hg2]] [If [Hf1 Hf2]]] [cmp']]. 
+    intros [a b]; simpl; intros [[[Ig [Hg1 Hg2]] [If [Hf1 Hf2]]] [cmp']].
     apply RInt_le;
       [apply Rle_trans with m;apply Rlt_le | exists If| exists Ig| ]; tauto.
   intros P HP; specialize (intf P HP); unfold filtermapi, filtermap in intf |- *.
@@ -624,10 +624,10 @@ unfold filtermap, filtermapi in t |- *.
 assert (atpa : at_point a (eq a)) by reflexivity.
 enough (H1 : exists S4, G S4 /\ forall x, S4 x -> is_RInt f a x (RInt f a x)).
   destruct H1 as [S4 [gs4 Ps4]].
-  apply (Filter_prod (at_point a) G _ (eq a) 
+  apply (Filter_prod (at_point a) G _ (eq a)
            (fun x => ball
              (R_complete_lim
-                (fun P : R -> Prop => G (fun x0 => P (RInt f a x0)))) eps 
+                (fun P : R -> Prop => G (fun x0 => P (RInt f a x0)))) eps
            (RInt f a x) /\ S4 x) atpa (filter_and _ _ t gs4)).
   intros x y <- dist.
   now exists (RInt f a y);split;[apply Ps4; tauto| apply Peps; tauto].

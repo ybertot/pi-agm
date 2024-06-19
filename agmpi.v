@@ -1579,7 +1579,7 @@ rewrite -> t, Rabs_pos_eq; clear t.
     apply Rmult_le_compat_l.
       destruct (bound_modulus_convergence_snd_ag n y); try psatzl R.
       destruct (ag_le n 1 y); try (unfold a_, b_; lt0).
-      rewrite <- Rminus_le_0; apply pow_incr. 
+      rewrite <- Rminus_le_0; apply pow_incr.
       now split; unfold a_, b_ in * |- *; try psatzl R.
     assert (bot * (1 - bot ^ 2) <= y * (1 - y ^ 2)).
       now apply pbot; psatzl R.

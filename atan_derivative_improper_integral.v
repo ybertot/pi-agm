@@ -45,7 +45,7 @@ destruct (Rtotal_order (atan (tan x)) x) as [abs | [ it | abs]]; auto;
 Qed.
 
 Lemma atan_lim_pinfty : Lim atan p_infty = PI/2.
-Proof. 
+Proof.
 assert (t := PI2_RGT_0).
 apply is_lim_unique; intros P [eps Peps].
 assert (ep2 : 0 < Rmin eps (PI/4)).
@@ -70,7 +70,7 @@ now apply atan_increasing.
 Qed.
 
 Lemma atan_lim_minfty : Lim atan m_infty = -PI/2.
-Proof. 
+Proof.
 assert (t := PI2_RGT_0).
 apply is_lim_unique; intros P [eps Peps].
 assert (ep2 : 0 < Rmin eps (PI/4)).
@@ -95,12 +95,12 @@ now apply atan_increasing.
 Qed.
 
 Lemma integral_atan_comp_scal m : 0 < m ->
-   is_RInt_gen (fun x => /m * /((x / m) ^ 2 + 1)) 
+   is_RInt_gen (fun x => /m * /((x / m) ^ 2 + 1))
        (Rbar_locally m_infty) (Rbar_locally p_infty) PI.
 Proof.
 (* assert (tmp := PI2_RGT_0). *)
 intros m0.
-assert (is_derive_atan_scal : forall x,  
+assert (is_derive_atan_scal : forall x,
            is_derive (fun x => atan (x / m)) x (/ m * /((x/m)^2 + 1))).
   intros x; auto_derive; auto; field.
   split; apply Rgt_not_eq; auto; apply Rplus_le_lt_0_compat.

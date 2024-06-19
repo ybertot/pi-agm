@@ -29,7 +29,7 @@ Local Ltac lt0 :=
   | |- 0 < _ / _ => unfold Rdiv; apply Rmult_lt_0_compat; lt0
   | |- 0 < _ ^ _ => apply pow_lt; lt0
   | |- 0 < _ ^ 2 + _ => apply Rplus_le_lt_0_compat;[apply pow2_ge_0 | lt0]
-  | |- 0 < (?x * (?x * 1))%R + _ => 
+  | |- 0 < (?x * (?x * 1))%R + _ =>
                         apply Rplus_le_lt_0_compat;[apply pow2_ge_0 | lt0]
   | |- 0 <= Rabs _ => apply Rabs_pos
   | |- _ <= _ => apply Rlt_le; lt0
@@ -43,11 +43,11 @@ Proof.
 intros x; unfold sinh, arcsinh.
 rewrite <- exp_0, <- (Rminus_eq_0 x); unfold Rminus.
 rewrite exp_plus.
-match goal with |- context[sqrt ?a] => 
+match goal with |- context[sqrt ?a] =>
   replace a with (((exp x + exp(-x))/2)^2) by field
-end. 
+end.
 rewrite sqrt_pow2;[ | lt0].
-match goal with |- context[ln ?a] => replace a with (exp x) by field end. 
+match goal with |- context[ln ?a] => replace a with (exp x) by field end.
 rewrite ln_exp; reflexivity.
 Qed.
 
@@ -96,7 +96,7 @@ assert (0 < x + sqrt (x ^ 2 + 1)).
   assert (t:= sqrt_pos ((-x)^2)); psatzl R.
  rewrite sqrt_pow2; psatzl R.
 replace (/sqrt (x ^ 2 + 1)) with
- (/(x + sqrt (x ^ 2 + 1)) * 
+ (/(x + sqrt (x ^ 2 + 1)) *
     (1 + (/(2 * sqrt (x ^ 2 + 1)) * (INR 2 * x ^ 1 + 0)))).
 apply (derivable_pt_lim_comp (fun x => x + sqrt (x ^ 2 + 1)) ln).
  apply (derivable_pt_lim_plus).
@@ -169,7 +169,7 @@ assert (sqrt ((/f n) ^ 2 + 1) < sqrt (2 ^ 2 * (/ f n) ^ 2)).
 assert (/f n + sqrt ((/f n) ^ 2 + 1) < 3 * / f n).
 replace (3 * / f n) with (/ f n + 2 * / f n) by ring.
  apply Rplus_lt_compat_l.
- rewrite <- (sqrt_pow2 2);[ | lt0]. 
+ rewrite <- (sqrt_pow2 2);[ | lt0].
  pattern (/ f n) at 2; rewrite <- (sqrt_pow2 (/ f n)); try lt0.
  rewrite <- sqrt_mult; lt0.
 replace (ln (/ f n) / arcsinh (/ f n)) with (/( (arcsinh (/ f n))/ln (/f n)))

@@ -67,7 +67,7 @@ intros x y [sgx s1x] [sgy s2y]; simpl.
 exists (RInt f (g x) (g y)); split.
   destruct (fp1 (g x) (g y)); try tauto.
   apply (is_RInt_comp f g dg).
-     intros z zcond. 
+     intros z zcond.
      now destruct (dp x y s1x s2y z); auto.
   intros z zcond.
   now destruct (dp x y s1x s2y z); auto.

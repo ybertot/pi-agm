@@ -3,7 +3,7 @@ Require Import filter_Rlt atan_derivative_improper_integral.
 Require Import generalities.
 Import mathcomp.ssreflect.ssreflect.
 
-#[export] 
+#[export]
 Hint Mode ProperFilter' - + : typeclass_instances.
 
 Definition ellf (a b x : R) := /sqrt ((x ^ 2 + a ^ 2) * (x ^ 2 + b ^ 2)).
@@ -65,7 +65,7 @@ now apply elliptic_integrable.
 Qed.
 
 Lemma is_RInt_gen_ell a b : 0 < a -> 0 < b ->
-  is_RInt_gen (ellf a b) (Rbar_locally m_infty) (Rbar_locally p_infty) 
+  is_RInt_gen (ellf a b) (Rbar_locally m_infty) (Rbar_locally p_infty)
   (ell a b).
 Proof.
 now intros a0 b0; generalize (iota_correct _ (ex_un_ell a b a0 b0)).
@@ -201,7 +201,7 @@ erewrite is_Rbar_mult_unique; cycle 1.
        apply is_Rbar_mult_p_infty_neg; unfold Rbar_lt; psatzl R|
        apply is_Rbar_mult_p_infty_pos; unfold Rbar_lt; psatzl R].
 reflexivity.
-Qed. 
+Qed.
 
 Fixpoint ag (a b : R) (n : nat) :=
   match n with 0 => (a, b) | S p => ag ((a + b)/2) (sqrt(a * b)) p end.
@@ -464,7 +464,7 @@ intros a0 b0 ceq deq vp.
 assert (c0 : 0 < c) by psatzl R.
 assert (d0 : 0 < d) by (rewrite deq; lt0).
 destruct (ex_un_ell a b) as [w [wp wq]]; auto; simpl in w; move w before v.
-destruct (ex_RInt_gen_cut 0 _ _ _ 
+destruct (ex_RInt_gen_cut 0 _ _ _
    (filter_Rlt_m_infty_at_point 0) (filter_Rlt_at_point_p_infty _)
     (ex_intro _ w wp)) as [w2 w2p].
 set (s x := (x - a * b/x)  /2).
@@ -537,7 +537,7 @@ Proof.
 intros x0.
 set (Pv := is_RInt_gen_ell 1 x Rlt_0_1 x0).
 destruct (ex_RInt_gen_cut 0 _ _
-          (ellf 1 x) 
+          (ellf 1 x)
           (filter_Rlt_m_infty_at_point _) (filter_Rlt_at_point_p_infty _)
                (ex_intro _ _ Pv)) as [v2 Pv2]; simpl in v2.
 assert (0 < sqrt x) by lt0.

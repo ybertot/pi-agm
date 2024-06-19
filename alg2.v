@@ -47,7 +47,7 @@ match goal with |- ?a = _ =>
       Derive (a_ n) x) / (a_ n x * w_ n x ^ 2)) by (field; psatzl R)
 end.
 rewrite (Rmult_comm (/ (a_ n x * w_ n x ^ 2))).
-unfold Rdiv; rewrite -> Ropp_mult_distr_l, <- !Rmult_assoc. 
+unfold Rdiv; rewrite -> Ropp_mult_distr_l, <- !Rmult_assoc.
 apply f_equal with (f := (fun A => A * / (a_ n x * w_ n x ^ 2))).
 replace (w_ n x ^ 2) with (a_ n x ^ 2 - b_ n x ^ 2); cycle 1.
   now unfold w_; rewrite sqrt_pow_2;[reflexivity | rewrite diff_square; lt0].
@@ -110,7 +110,7 @@ assert (0 < ff s2).
   now destruct (ag_le 1 1 s2); unfold ff; lt0.
 apply (is_lim_seq_div _ _ 1 1);
   [ | | injection; exact R1_neq_R0 |
-    now unfold is_Rbar_div, is_Rbar_mult; simpl; apply f_equal; 
+    now unfold is_Rbar_div, is_Rbar_mult; simpl; apply f_equal;
     rewrite -> Rinv_1, Rmult_1_l].
   unfold y_; apply (is_lim_seq_div _ _ (ff s2) (ff s2)); cycle 3.
         unfold is_Rbar_div, is_Rbar_mult; simpl; apply f_equal.
@@ -229,7 +229,7 @@ unfold Rdiv; replace (/ (/sqrt 2 - sqrt 2 * sum_f_R0 direct_sumand (n - 1)))
   now rewrite -> Rinv_r, Rmult_1_l;[ | lt0].
 unfold Rdiv; rewrite <- !Rmult_assoc, !(Rmult_assoc (2 * sqrt 2)).
 unfold Rdiv; rewrite (Rmult_comm (a_ n (/sqrt 2) ^ 2) (sqrt 2)).
-rewrite -> (Rmult_assoc _ (sqrt 2)), (Rmult_assoc (sqrt 2) (_ ^ 2)). 
+rewrite -> (Rmult_assoc _ (sqrt 2)), (Rmult_assoc (sqrt 2) (_ ^ 2)).
 rewrite <- (Rmult_assoc (sqrt 2) (sqrt 2)), sqrt_sqrt;[ | lt0].
 rewrite <- !Rmult_assoc; unfold salamin_formula, Rdiv.
 apply (f_equal (fun x => 4 * a_ n (/sqrt 2) ^ 2 / x)).
@@ -287,7 +287,7 @@ apply Rle_trans with (Derive (b_ n) (/sqrt 2) / a_ 1 (/sqrt 2)).
 apply Rmult_le_compat_l;[apply Rle_trans with (2 := Rlt_le _ _ daltdb); lt0 |].
 now apply Rinv_le_contravar; lt0.
 Qed.
-    
+
 Lemma a_n_m_b_n_bound n : 0 < a_ (n + 1) (/sqrt 2) - b_ (n + 1) (/sqrt 2) <=
   7 * Rpower 531 (- 2 ^ n).
 Proof.
@@ -348,7 +348,7 @@ replace (- 2 ^ n * 2) with (- (2 ^ (n + 1))) by now rewrite pow_add; simpl; ring
 apply Rle_trans with
   (2 ^ (n + 1) * (7 ^ 2 * Rpower 531 (-INR (2 * (n + 1))))).
   repeat apply Rmult_le_compat_l; try lt0.
-  rewrite !Rpower_Ropp; apply Rinv_le_contravar. 
+  rewrite !Rpower_Ropp; apply Rinv_le_contravar.
     now unfold Rpower; lt0.
   apply Rle_Rpower; try lt0.
   rewrite mult_INR; simpl INR.
@@ -359,7 +359,7 @@ apply Rle_trans with
   apply Rle_trans with (2 := IHn); rewrite plus_INR; simpl INR.
   now assert (t := pos_INR n); lt0.
 rewrite -> Rpower_Ropp, Rpower_pow; try lt0.
-rewrite -> pow_mult, (Rmult_comm (2 ^ _)), Rmult_assoc. 
+rewrite -> pow_mult, (Rmult_comm (2 ^ _)), Rmult_assoc.
 rewrite <- pow_inv.
 rewrite <- Rpow_mult_distr.
 rewrite -> Nat.add_comm, !pow_add.
@@ -474,7 +474,7 @@ Qed.
 (* If we want, the constants can probably be improved, as we over estimate
   b_ n with 1, when we could use 6/7 instead. *)
 Lemma salamin_convergence_speed' n (n1 : (1 <= n)%nat) :
-  Rabs (salamin_formula (n + 1) - PI) <= 
+  Rabs (salamin_formula (n + 1) - PI) <=
    (132 + 384 * 2 ^ n) * Rpower 531 (-(2 ^ n)).
 Proof.
 assert (help1 : forall a b c, b - c = a - c + (b - a)) by now intros; ring.
@@ -556,7 +556,7 @@ apply Rmult_le_compat; try lt0.
     intros m; unfold salamin_sumand; case (m =? 0); try lt0.
     now apply Rmult_le_pos;[lt0 | apply pow2_ge_0].
   assert (tmpn := conj (asp n) (asp (S n))).
-  assert (0 <= sum_f_R0 salamin_sumand n <= /10 /\ 
+  assert (0 <= sum_f_R0 salamin_sumand n <= /10 /\
           0 <= sum_f_R0 salamin_sumand (S n) <= /10) by lt0.
   (* TODO : investigate why interval does not work here. *)
   now apply Rle_trans with ((8 / 10) * (8 / 10));[ | apply Rmult_le_compat]; lt0.
