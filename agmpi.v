@@ -1589,7 +1589,9 @@ rewrite -> t, Rabs_pos_eq; clear t.
   unfold Rdiv; rewrite -> Rmult_assoc, Rinv_l, Rmult_1_r;[|lt0].
   replace (ff y ^ 2 - b_ n y ^ 2) with
       ((ff y + b_ n y) * (ff y - b_ n y)) by ring.
-  destruct n as [ | n];[elimtype False; clear -nN; lia | ].
+  destruct n as [ | n].
+    enough (abs : False) by elim abs.
+    clear -nN; lia.
   assert (nN2 : (n >= N)%nat) by lia.
   assert (Pn' := Pn n nN2); revert Pn'; rewrite ball_Rabs.
   rewrite -> Rminus_0_r, Rabs_right; try (apply Rle_ge; lt0).
