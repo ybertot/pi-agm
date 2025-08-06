@@ -1,6 +1,7 @@
-(* This file was tested with coq 8.10.0 and coquelicot 3.0.4 *)
+(* This file was tested with rocq 9.0 and coquelicot 3.4.4 *)
 
-Require Import Reals Coquelicot.Coquelicot Psatz.
+From Stdlib Require Import Reals Psatz.
+From Coquelicot Require Import Coquelicot.
 
 Lemma lim_atan_p_infty :
   filterlim atan (Rbar_locally p_infty) (at_left (PI/2)).

@@ -1,5 +1,6 @@
 From mathcomp Require Import ssreflect.
-Require Import Reals Coquelicot.Coquelicot Psatz.
+From Stdlib Require Import Reals Psatz.
+From Coquelicot Require Import Coquelicot.
 
 Lemma ball_Rabs x y e : ball x e y <-> Rabs (y - x) < e.
 Proof. intros; tauto. Qed.

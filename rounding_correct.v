@@ -1,10 +1,12 @@
-Require Import Psatz Reals Coquelicot.Coquelicot Interval.Tactic
-  generalities elliptic_integral agmpi.
-Require Import Bool.
+From Stdlib Require Import Psatz Reals.
+From Interval Require Import Tactic.
+From Coquelicot Require Import Coquelicot.
+Require Import generalities elliptic_integral agmpi.
+From Stdlib Require Import Bool.
+From Stdlib Require Import ZArith.
 
 
-
-Require Import Zwf.
+From Stdlib Require Import Zwf.
 
 Coercion INR : nat >-> R.
 Open Scope R_scope.
@@ -40,7 +42,7 @@ Proof.
 intros n p1; unfold pr.
 assert (0 < /sqrt 2 < 1) by now split; interval.
 assert (n = (pred n + 1)%nat) by now destruct n; lia.
-  case (eq_nat_dec n 1).
+  case (Nat.eq_dec n 1).
     intros nis1; rewrite nis1; simpl; rewrite z_1, y_s, y_0; unfold yfun; auto.
     split; interval.
 set (k := (n - 1)%nat); assert (nk1 : n = (k + 1)%nat).
@@ -56,7 +58,7 @@ apply Rle_lt_trans with (1 := proj2 t).
 unfold agmpi, Rpower.
 apply Rle_lt_trans with (4 * (2 + sqrt 2) * exp (- 2 ^ 1 * ln 531)).
   apply Rmult_le_compat; [interval | apply Rlt_le, exp_pos| psatzl R |].
-  case (eq_nat_dec k 1).
+  case (Nat.eq_dec k 1).
     now intros kis1; rewrite kis1; apply Req_le.
   intros kn1; apply Rlt_le, exp_increasing, Rmult_lt_compat_r;[interval | ].
   now apply Ropp_lt_contravar, Rlt_pow;[psatzl R | lia].
@@ -101,7 +103,7 @@ intros x p n intx cp.
 assert (0 < sqrt x) by (apply sqrt_lt_R0; psatzl R).
 assert (0 < /sqrt x) by (apply Rinv_0_lt_compat; psatzl R).
 assert (yz: forall k, (1 <= k)%nat -> y_ k x <= z_ k x).
-  intros k ck; case (eq_nat_dec k 1) as [k1 | kn1].
+  intros k ck; case (Nat.eq_dec k 1) as [k1 | kn1].
     rewrite k1; rewrite y_s; auto; unfold yfun.
     unfold y_, z_, a_, b_; simpl.
     assert (dn : Derive (fun x => sqrt (1 * x)) x = / (2 * sqrt x)).
@@ -152,7 +154,7 @@ intros p p1; split; assert (t := ints).
   now apply z_decr_n; auto; lia.
 assert (z1bnd : z_ 1 (/sqrt 2) < 6/5)
   by now rewrite z_1; auto; interval.
-destruct (eq_nat_dec p 1) as [p1' | pn1].
+destruct (Nat.eq_dec p 1) as [p1' | pn1].
   rewrite p1'; assumption.
 apply Rlt_trans with (2 := z1bnd).
 apply z_decr_n; auto; lia.
@@ -643,7 +645,7 @@ assert (double_eK : e <= (2 * e) / 2) by psatzl R.
 set (y' := r_div (1 + y) (2 * (r_sqrt y))).
 assert (inty' : 1 <= y_ p (/sqrt 2) <= 71/50).
   split; [apply Rlt_le, y_gt_1, ints |  ].
-  destruct (eq_nat_dec p 1) as [pq1 | pn1].
+  destruct (Nat.eq_dec p 1) as [pq1 | pn1].
     now rewrite pq1; apply Rlt_le, Rlt_trans with (1 := y_1_ub); psatzl R.
   apply Rlt_le, Rlt_le_trans with (y_ 1 (/sqrt 2));
     [apply y_decr_n; try apply ints; try lia; try psatzl R | ].
@@ -671,7 +673,7 @@ assert (y1b := y_1_ub).
 assert (inty : 1 < y_ p (/sqrt 2) < 51/50).
   split;[apply y_gt_1, ints |
     apply Rle_lt_trans with (y_ 1 (/sqrt 2)); try psatzl R].
-  now destruct (eq_nat_dec p 1) as [pq1 |];
+  now destruct (Nat.eq_dec p 1) as [pq1 |];
     [rewrite pq1; psatzl R | apply Rlt_le, y_decr_n; auto; lia].
 assert (be44 : e <= (4 * e) / 4) by psatzl R.
 assert (four_e : 4 * e < /50) by psatzl R.
@@ -807,7 +809,7 @@ assert (inty : 1 < y_ p (/sqrt 2) < 51/50).
   assert (t := ints).
   split;[apply y_gt_1; psatzl R | ].
   apply Rle_lt_trans with (y_ 1 (/sqrt 2)).
-    destruct (eq_nat_dec p 1) as [p1' | pn1].
+    destruct (Nat.eq_dec p 1) as [p1' | pn1].
       now rewrite p1'; apply Req_le; auto.
     apply Rlt_le, y_decr_n; try psatzl R; try lia.
   rewrite y_s; unfold yfun; auto; rewrite y_0.
@@ -1066,8 +1068,6 @@ rewrite Rabs_pos_eq, em; assumption.
 Qed.
 
 End rounded_operations.
-
-Require Import ZArith.
 
 Section high_precision.
 

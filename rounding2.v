@@ -1,10 +1,11 @@
-Require Import Reals Coquelicot.Coquelicot Fourier Psatz.
+From Stdlib Require Import Reals Fourier Psatz.
+From Coquelicot Require Import Coquelicot.
+From Interval Require Import Tactic.
 Require Import filter_Rlt atan_derivative_improper_integral arcsinh.
 Require Import elliptic_integral generalities agmpi rounding_big alg2.
-Require Import Interval.Tactic.
 Require Import rounding_correct.
 
-Import mathcomp.ssreflect.ssreflect.
+From mathcomp Require Import ssreflect.
 
 #[export]
 Hint Mode ProperFilter' - + : typeclass_instances.

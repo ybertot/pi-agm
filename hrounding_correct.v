@@ -1,6 +1,8 @@
-Require Import Psatz Reals Coquelicot.Coquelicot Interval.Tactic
-  generalities elliptic_integral agmpi.
-Require Import Bool Zwf.
+From Stdlib Require Import Psatz Reals Bool Zwf.
+From Coquelicot Require Import Coquelicot.
+From Interval Require Import Tactic.
+Require Import generalities elliptic_integral agmpi.
+
 
 From Bignums Require Import BigZ.
 Require Import rounding_correct.
